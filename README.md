@@ -9,7 +9,7 @@ py-test-utility can be installed via pip
 pip install py-analytics
 ```
 
-## Module tdd_utility
+## tdd_utility - module
 
 ### mockdata - class load_csv(csv,schema) 
 Contains methods to extract the equivalent json from csv with nested and repeated records structures
