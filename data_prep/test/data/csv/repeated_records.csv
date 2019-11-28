@@ -1,0 +1,7 @@
+order,item.id,item.quantity,delivery.address,delivey.postcode
+A0001,item1,5,address1,e13bp
+,item2,1,,
+,item3,3,,
+A0002,item4,4,address4,e13bp
+,item1,4,,
+,item3,2,,
