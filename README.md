@@ -83,8 +83,9 @@ Contains methods to extract the equivalent json from csv with nested and repeate
 - to_json()
     - if successfuls return the json extracted from the csv
 
-- to_new_line_delimiter_file()
-    - return 0: if successfuls & create the new line delimiter file
+- to_new_line_delimiter_file(output_file_name)
+    - return 0 if successfuls 
+    - create new line delimiter "output_file_name" file
 
 
 #### Usage
@@ -95,5 +96,5 @@ Contains methods to extract the equivalent json from csv with nested and repeate
 ...     csv="path/to/filename/file.csv", 
 ...     schema="path/to/schema/schema.json") # initialise the object
 >>> mockdata_json = mockdata_csv.to_json() # return the equivalent json
->>> mockdata_json = mockdata_csv.to_new_line_delimiter_file(output="path/output_file_name.json") # return the equivalent json
+>>> mockdata_json = mockdata_csv.to_new_line_delimiter_file(output="path/output_file_name.json") # return output_file_name
 ```
