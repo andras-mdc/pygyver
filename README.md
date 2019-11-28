@@ -11,7 +11,7 @@ pip install py-analytics
 
 ## tdd_utility - module
 
-### mockdata - class load_csv(csv,schema) 
+### class load_csv(csv,schema) 
 Contains methods to extract the equivalent json from csv with nested and repeated records structures
 
 
