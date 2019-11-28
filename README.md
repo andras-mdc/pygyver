@@ -1,6 +1,6 @@
 #  py-analytics 
 
-This repo contains a python framework with Data Enginner, Data Scientist and 3rd party integration tools capabilities
+This python framework contains Data Enginner, Data Scientist and 3rd party integration tools capabilities
 
 ## Installation
 py-test-utility can be installed via pip
