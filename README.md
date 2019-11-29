@@ -19,7 +19,7 @@ To access BigQuery you will need following environment variables:
 
 BigQuery functions wrap `bigrquery` functions to provide higher level API removing boilerplate instructions of the lower level API.
 
-## [tdd_utility - module](../blob/master/data_prep/README.md)
+## [tdd_utility - module](../master/data_prep/README.md)
 
 ### class load_csv(csv,schema) 
 Contains methods to extract the equivalent json from csv with nested and repeated records structures
