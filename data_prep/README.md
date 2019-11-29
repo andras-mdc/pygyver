@@ -1,13 +1,12 @@
 # tdd_utility - module
 
-## class load_csv(csv,schema) 
+## class load_csv(file, type, schema) 
 Contains methods to extract the equivalent json from csv with nested and repeated records structures
 
 
 ### Args
-
-- csv
-    - path and file name of the csv
+- file
+    - path and file name of the file
     - mandatory
     - nested fields shall be separated by a dot "."  (i.e. item.id, item.quantity)
 
@@ -19,10 +18,12 @@ Contains methods to extract the equivalent json from csv with nested and repeate
 | A0002 | item4 | 4  | address4 | e13bp |
 | | item1 | 4 | | |
 | | item3 | 2 | | |
-
+- type 
+  - default = csv
+  - list of types: type
 - schema 
     - path and schema file name of the table schema
-    - required if the CSV contain nested and repeated records
+    - required if the file contain nested and repeated records
     - json format i.e. 
 ```json
 [  
