@@ -1,12 +1,12 @@
-#  py-data-framework
+#  py-analytics
 
-This python framework contains Data Enginner, Data Scientist and 3rd party integration tools capabilities
+Contains Data Enginner, Data Scientist and 3rd party integration tools capabilities
 
 ## Installation
 py-test-utility can be installed via pip
 
 ```python 
-pip install py-analytics
+pip install ??find the name??
 ```
 
 ## tdd_utility - module
