@@ -9,6 +9,16 @@ py-test-utility can be installed via pip
 pip install ??find the name??
 ```
 
+
+## BigQuery ##
+
+To access BigQuery you will need following environment variables:
+
+- `BIGQUERY_PROJECT` - name of the project in BigQuery. Default project cannot be changed in the code.
+- `BIGQUERY_ACCESS_TOKEN_PATH` - path to the json token file.
+
+BigQuery functions wrap `bigrquery` functions to provide higher level API removing boilerplate instructions of the lower level API.
+
 ## tdd_utility - module
 
 ### class load_csv(csv,schema) 
