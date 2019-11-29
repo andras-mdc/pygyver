@@ -6,9 +6,9 @@ import filecmp as cmp
 
 class test_mockdata(unittest.TestCase):
 
-    def test_class_csv_from(self):
-        json_output = tu.load_csv(
-            csv="data_prep/test/data/csv/repeated_records.csv", 
+    def test_class_load_file(self):
+        json_output = tu.load_file(
+            file="data_prep/test/data/csv/repeated_records.csv", 
             schema="data_prep/test/data/schema/repeated_records_schema.json"
         )
         result = json_output.to_new_line_delimiter_file("data_prep/test/data/json/output.json")
