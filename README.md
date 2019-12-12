@@ -1,4 +1,4 @@
-#  py-analytics
+#  pygyver
 
 Contains Data Enginner, Data Scientist and 3rd party integration tools capabilities
 
