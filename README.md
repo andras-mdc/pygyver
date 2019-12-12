@@ -6,18 +6,20 @@ Contains Data Enginner, Data Scientist and 3rd party integration tools capabilit
 py-test-utility can be installed via pip
 
 ```python 
-pip install ??find the name??
+pip install pygyver
 ```
 
 
-## BigQuery ##
+## [DS Libraries](../master/utils/README.md)
 
 To access BigQuery you will need following environment variables:
 
 - `BIGQUERY_PROJECT` - name of the project in BigQuery. Default project cannot be changed in the code.
 - `BIGQUERY_ACCESS_TOKEN_PATH` - path to the json token file.
 
-BigQuery functions wrap `bigrquery` functions to provide higher level API removing boilerplate instructions of the lower level API.
+BigQuery functions wrap `bigpyquery` functions to provide higher level API removing boilerplate instructions of the lower level API.
+
+
 
 ## [tdd_utility - module](../master/data_prep/README.md)
 
