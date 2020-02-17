@@ -7,7 +7,7 @@ setuptools.setup(
     author="Made.com",
     author_email="analytics@made.com",
     description="Data engineering & Data science Framework",
-    long_description=long_description,
+    long_description="Data engineering & Data science Framework",
     long_description_content_type="text/markdown",
     url="https://github.com/madedotcom/pygyver",
     packages=setuptools.find_packages(),
