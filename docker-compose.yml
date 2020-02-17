@@ -1,0 +1,44 @@
+version: '3.2'
+
+services:
+
+#################################################################
+### LOCAL (UPDATE AT WILL)
+#################################################################
+
+  # for running entrypoints locally
+  pygyver-local:
+    build:
+      context: .
+      args:
+        - IMAGE_REGISTRY
+        - BASE_IMAGE_GIT_TAG
+        - GITHUB_PAT
+      cache_from:
+        - ${IMAGE_REGISTRY}/py-base:${BASE_IMAGE_GIT_TAG}
+        - ${IMAGE_REGISTRY}/pygyver:local
+    image: ${IMAGE_REGISTRY}/pygyver:local
+    env_file:
+      - ./vars/env/default/default.env
+      - ./vars/env/${ENV}/${ENV}.env
+    volumes:
+      - ./vars/env/local/access_token.json:/code/access_token.json
+
+  # for running tests locally
+  pygyver-tests-local:
+    build:
+      context: .
+      args:
+        - IMAGE_REGISTRY
+        - BASE_IMAGE_GIT_TAG
+        - GITHUB_PAT
+      cache_from:
+        - ${IMAGE_REGISTRY}/py-base:${BASE_IMAGE_GIT_TAG}
+        - ${IMAGE_REGISTRY}/pygyver:local
+    image: ${IMAGE_REGISTRY}/pygyver:local
+    command: ["pygyver-tests","local"]
+    env_file:
+      - ./vars/env/default/default.env
+      - ./vars/env/${ENV}/${ENV}.env
+    volumes:
+      - ./vars/env/local/access_token.json:/code/access_token.json

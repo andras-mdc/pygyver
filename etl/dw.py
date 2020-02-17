@@ -1,8 +1,10 @@
 """ Module containing bigquery object for Python """
 
 import os
+import logging
+import time
 from google.cloud import bigquery
-
+from google.cloud.exceptions import NotFound
 
 def read_sql(file, *args, **kwargs):
     """ Read sql query.
@@ -27,6 +29,57 @@ class BigQueryExecutor:
         project_id (sql_file): BigQuery Project. Defaults to BIGQUERY_PROJECT environment variable.
     """
     def __init__(self, project_id=os.environ['BIGQUERY_PROJECT']):
-
+        """
+        Initiates the object.
+        Required: GOOGLE_APPLICATION_CREDENTIALS (env variable).
+        """
         self.client = bigquery.Client()
         self.project_id = project_id
+
+    def dataset_exists(self, dataset_id):
+        """
+        Checks if a BigQuery dataset exists
+        Arguments:
+        - dataset_id (string): the BigQuery dataset ID
+        """
+        dataset = self.client.dataset(dataset_id)
+        try:
+            self.client.get_dataset(dataset)
+            return True
+        except NotFound:
+            return False
+
+    def table_exists(self, dataset_id, table_id):
+        """
+        Checks if a BigQuery table exists
+        Arguments:
+        - dataset_id (string): the BigQuery dataset ID
+        - table_id (string): the BigQuery table ID
+        """
+        dataset = self.client.dataset(dataset_id)
+        table_ref = dataset.table(table_id)
+        try:
+            self.client.get_table(table_ref)
+            return True
+        except NotFound:
+            return False
+
+    def delete_table(self, dataset_id, table_id):
+        """ Delete a BigQuery table.
+        Parameters:
+        dataset_id: the BigQuery dataset ID
+        table_id: the BigQuery table ID
+        """
+        try:
+            table_ref = self.client.dataset(dataset_id).table(table_id)
+            self.client.delete_table(table_ref)
+            logging.info(
+                'Table %s:%s.%s deleted.',
+                self.project_id,
+                dataset_id,
+                table_id
+            )
+            time.sleep(1)
+        except NotFound as error:
+            logging.error(error)
+
