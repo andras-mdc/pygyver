@@ -16,8 +16,14 @@ cd src/
 
 if [ "$1" == "pygyver-tests" ]; then
     echo "Starting "$2" tests"
-    ls -la
-    pytest tests
+    tests/entrypoint-tests.sh "$2"
+    echo "Finished "$2" tests."
+    exit $?
+fi
+
+if [ "$1" == "waxit-tests" ]; then
+    echo "Starting "$2" tests"
+    tests/entrypoint-tests.sh "$2"
     echo "Finished "$2" tests."
     exit $?
 fi

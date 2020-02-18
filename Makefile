@@ -11,19 +11,19 @@ clean:
 
 pull-ci:
 	docker pull ${IMAGE_REGISTRY}/py-base:${BASE_IMAGE_GIT_TAG} || true
-	docker pull ${IMAGE_REGISTRY}/waxit:${CACHE_TAG} || true
-	docker pull ${IMAGE_REGISTRY}/waxit:latest || true
+	docker pull ${IMAGE_REGISTRY}/pygyver:${CACHE_TAG} || true
+	docker pull ${IMAGE_REGISTRY}/pygyver:latest || true
 
 build-ci: 
-	docker-compose build waxit
-	docker tag ${IMAGE_REGISTRY}/waxit:${DOCKER_TAG} ${IMAGE_REGISTRY}/waxit:${CACHE_TAG}
-	docker tag ${IMAGE_REGISTRY}/waxit:${DOCKER_TAG} ${IMAGE_REGISTRY}/waxit:latest
+	docker-compose build pygyver
+	docker tag ${IMAGE_REGISTRY}/pygyver:${DOCKER_TAG} ${IMAGE_REGISTRY}/pygyver:${CACHE_TAG}
+	docker tag ${IMAGE_REGISTRY}/pygyver:${DOCKER_TAG} ${IMAGE_REGISTRY}/pygyver:latest
 
 run-tests-ci:
-	docker-compose -p ${TESTNAME} run --no-deps --name ${TESTNAME}${DOCKER_TAG} waxit-tests
+	docker-compose -p ${TESTNAME} run --no-deps --name ${TESTNAME}${DOCKER_TAG} pygyver-tests
 
 push-ci:
-	docker-compose push waxit
+	docker-compose push pygyver
 
 #################################################################
 ### FOR LOCAL DEVELOPMENT
@@ -33,15 +33,15 @@ push-ci:
 
 build: 
 	docker pull ${IMAGE_REGISTRY}/py-base:${BASE_IMAGE_GIT_TAG} || true
-	docker pull ${IMAGE_REGISTRY}/waxit:latest || true
-	docker-compose build waxit-local
+	docker pull ${IMAGE_REGISTRY}/pygyver:latest || true
+	docker-compose build pygyver-local
 
 run-tests:
-	docker-compose run waxit-tests-local
+	docker-compose run pygyver-tests-local
 
-run-waxit:
+run-pygyver:
 ifdef ENTRYPOINT
-	docker-compose run waxit-local $(ENTRYPOINT)
+	docker-compose run pygyver-local $(ENTRYPOINT)
 else
 	echo "No Entrypoint Specified"
 endif

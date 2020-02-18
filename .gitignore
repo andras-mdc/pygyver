@@ -1,3 +1,6 @@
+*access_token.json
+.idea/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -105,3 +108,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+vars/build/local/local.env
+vars/env/local/local.env
+

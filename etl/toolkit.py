@@ -134,3 +134,12 @@ def date_lister(start_date, end_date):
         date_list = date_list.format()
         logging.info(date_list)
     return date_list
+
+def validate_date(date_text, format='%Y-%m-%d', error_msg=None):
+    try:
+        datetime.strptime(date_text, format)
+    except ValueError:
+        if error_msg is None:
+            raise ValueError("Incorrect data format, should be YYYY-MM-DD")
+        else:
+            raise ValueError(error_msg)

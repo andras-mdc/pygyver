@@ -5,6 +5,7 @@ import logging
 import time
 from google.cloud import bigquery
 from google.cloud.exceptions import NotFound
+from etl.lib import bq_token_file_valid, bq_default_project
 
 def read_sql(file, *args, **kwargs):
     """ Read sql query.
@@ -28,13 +29,20 @@ class BigQueryExecutor:
     Parameters:
         project_id (sql_file): BigQuery Project. Defaults to BIGQUERY_PROJECT environment variable.
     """
-    def __init__(self, project_id=os.environ['BIGQUERY_PROJECT']):
+    def __init__(self, project_id=bq_default_project()):
         """
         Initiates the object.
         Required: GOOGLE_APPLICATION_CREDENTIALS (env variable).
         """
-        self.client = bigquery.Client()
+        self.client = None
         self.project_id = project_id
+        self.auth()
+
+    def auth(self):
+        bq_token_file_valid()
+        self.client = bigquery.Client(
+            project = self.project_id
+        )
 
     def dataset_exists(self, dataset_id):
         """
@@ -82,4 +90,3 @@ class BigQueryExecutor:
             time.sleep(1)
         except NotFound as error:
             logging.error(error)
-

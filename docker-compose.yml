@@ -3,6 +3,45 @@ version: '3.2'
 services:
 
 #################################################################
+### PROD AND CI/CD (DO NOT UPDATE)
+#################################################################
+
+  # for production (nomad, kubernetes)
+  pygyver:
+    build:
+      context: .
+      args:
+        - IMAGE_REGISTRY
+        - BASE_IMAGE_GIT_TAG
+        - GITHUB_PAT
+      cache_from:
+        - ${IMAGE_REGISTRY}/py-base:${BASE_IMAGE_GIT_TAG}
+        - ${IMAGE_REGISTRY}/pygyver:${CACHE_TAG}
+        - ${IMAGE_REGISTRY}/pygyver:latest
+    image: ${IMAGE_REGISTRY}/pygyver:${DOCKER_TAG:-local}
+
+  # for CI testing (jenkins, cloudbuild)
+  pygyver-tests:
+    build:
+      context: .
+      args:
+        - IMAGE_REGISTRY
+        - BASE_IMAGE_GIT_TAG
+        - GITHUB_PAT
+      cache_from:
+        - ${IMAGE_REGISTRY}/py-base:${BASE_IMAGE_GIT_TAG}
+        - ${IMAGE_REGISTRY}/pygyver:${CACHE_TAG}
+        - ${IMAGE_REGISTRY}/pygyver:latest
+    image: ${IMAGE_REGISTRY}/pygyver:${DOCKER_TAG:-local}
+    command: ["pygyver-tests","${TESTNAME:-local}"]
+    env_file:
+      - ./vars/env/default/default.env
+      - ./vars/env/test/test.env
+      - ./vars/env/test/test-secrets.env
+    volumes:
+      - ./access_token.json:/code/access_token.json
+  
+#################################################################
 ### LOCAL (UPDATE AT WILL)
 #################################################################
 

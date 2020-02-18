@@ -40,15 +40,11 @@ if(env.BRANCH_NAME == "master" || env.CHANGE_ID) {
 
     stage('generate secret files') {
       withCredentials([
-        file(credentialsId: 'sandbox_access_token_json', variable: 'BIGQUERY_ACCESS_TOKEN_PATH'),
-        file(credentialsId: 'ANALYTICS_GETFEEDBACK_ACCESS_TOKEN', variable: 'GETFEEDBACK_ACCESS_TOKEN_PATH'),
-        file(credentialsId: 'ANALYTICS_ZENDESK_ACCESS_TOKEN', variable: 'ZENDESK_ACCESS_TOKEN_PATH'),
+        file(credentialsId: 'sandbox_access_token_json', variable: 'GOOGLE_APPLICATION_CREDENTIALS'),
         string(credentialsId: 'analytics-email-hash-salt', variable: 'EMAIL_HASH_SALT'),
         [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'madecom-bi-sandbox-aws', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'],
       ]){
-        sh "cp $BIGQUERY_ACCESS_TOKEN_PATH ."
-        sh "cp $GETFEEDBACK_ACCESS_TOKEN_PATH ."
-        sh "cp $ZENDESK_ACCESS_TOKEN_PATH ."
+        sh "cp $GOOGLE_APPLICATION_CREDENTIALS ."
         sh "consul-template -once -template input.ctmpl:vars/env/test/test-secrets.env"
       }
     }
