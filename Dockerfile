@@ -9,7 +9,7 @@ WORKDIR /code
 COPY requirements.txt requirements.txt
 RUN pip install --upgrade pip && pip3 install -r requirements.txt
 
-COPY pygyver src
+COPY pygyver src/pygyver
 COPY tests src/tests
 
 COPY entrypoint.sh /bin/entrypoint

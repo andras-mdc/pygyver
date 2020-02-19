@@ -8,10 +8,10 @@ from google.cloud import bigquery
 from google.cloud.exceptions import NotFound
 from google.oauth2 import service_account
 from google.api_core import exceptions
-from etl.lib import bq_token_file_valid
-from etl.lib import bq_token_file_path
-from etl.lib import bq_default_project
-from etl.lib import read_table_schema_from_file
+from pygyver.etl.lib import bq_token_file_valid
+from pygyver.etl.lib import bq_token_file_path
+from pygyver.etl.lib import bq_default_project
+from pygyver.etl.lib import read_table_schema_from_file
 
 def read_sql(file, *args, **kwargs):
     """ Read sql query.

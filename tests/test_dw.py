@@ -4,7 +4,7 @@ import unittest
 import logging
 from google.cloud import bigquery
 from google.cloud import exceptions
-from etl import dw
+from pygyver.etl import dw
 
 class test_read_sql(unittest.TestCase):
     """ Test """

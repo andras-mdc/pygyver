@@ -4,7 +4,7 @@ from os import path
 import json
 from datetime import date, timedelta
 from google.cloud import bigquery
-from etl.toolkit import validate_date
+from pygyver.etl.toolkit import validate_date
 
 def set_write_disposition(write_disposition):
     """ Sets bigquery.WriteDisposition based on write_disposition """

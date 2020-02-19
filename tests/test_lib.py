@@ -2,7 +2,7 @@
 import os
 import unittest
 from unittest import mock
-from etl.lib import bq_token_file_valid
+from pygyver.etl.lib import bq_token_file_valid
 
 def bq_token_file_path_exists_mock(token_path):
     """
@@ -31,7 +31,7 @@ class FunctionsinLib(unittest.TestCase):
         """
         Tests that bq_token_file_valid is True when the file exists (mocked).
         """
-        with mock.patch('etl.lib.bq_token_file_path_exists') as mock_bq_token_file_path_exists:
+        with mock.patch('pygyver.etl.lib.bq_token_file_path_exists') as mock_bq_token_file_path_exists:
             mock_bq_token_file_path_exists.side_effect = bq_token_file_path_exists_mock
             self.assertTrue(
                 bq_token_file_valid(),
