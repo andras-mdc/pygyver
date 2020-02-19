@@ -24,7 +24,8 @@ def read_sql(file, *args, **kwargs):
     Returns:
         (SQL query): "select .. value2 .. value1 .. valueN
     """
-    file = open(file, 'r')
+    path_to_file = os.path.join(os.getenv("PROJECT_ROOT"), file)
+    file = open(path_to_file, 'r')
     sql = file.read()
     file.close()
     if len(kwargs) > 0:
