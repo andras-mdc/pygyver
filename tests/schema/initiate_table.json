@@ -1,0 +1,44 @@
+[
+  {
+    "mode": "NULLABLE", 
+    "name": "survey_id", 
+    "type": "STRING",
+    "description" : "GetFeedback survey ID"
+  }, 
+  {
+    "mode": "NULLABLE", 
+    "name": "language_code", 
+    "type": "STRING",
+    "description" : "Language of the survey"
+  }, 
+  {
+    "mode": "NULLABLE", 
+    "name": "customer_service", 
+    "type": "STRING",
+    "description" : "Translation of the issue in the survey language"
+  }, 
+  {
+    "mode": "NULLABLE", 
+    "name": "delivery_experience", 
+    "type": "STRING",
+    "description" : "Translation of the issue in the survey language"
+  }, 
+  {
+    "mode": "NULLABLE", 
+    "name": "long_lead_time", 
+    "type": "STRING",
+    "description" : "Translation of the issue in the survey language"
+  }, 
+  {
+    "mode": "NULLABLE", 
+    "name": "order_delay", 
+    "type": "STRING",
+    "description" : "Translation of the issue in the survey language"
+  }, 
+  {
+    "mode": "NULLABLE", 
+    "name": "product_quality", 
+    "type": "STRING",
+    "description" : "Translation of the issue in the survey language"
+  }
+]

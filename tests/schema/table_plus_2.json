@@ -1,0 +1,26 @@
+[  
+    {
+      "mode": "NULLABLE",
+      "name": "fullname",
+      "type": "STRING",
+      "description": "My description"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "age",
+      "type": "INTEGER",
+      "description": "23"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "postcode",
+      "type": "STRING",
+      "description": ""
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "address",
+      "type": "INTEGER",
+      "description": ""
+    }
+]

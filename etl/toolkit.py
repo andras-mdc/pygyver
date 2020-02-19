@@ -12,18 +12,18 @@ import yaml
 def read_sql_file(path_to_file):
     """ Loads SQL file as a string.
 	Arguments:
-	- path_to_file (string): path to sql file from PYTHONPATH
+	- path_to_file (string): path to sql file from PROJECT_ROOT
 	"""
-    full_path = os.path.join(os.environ.get("PYTHONPATH"), path_to_file)
+    full_path = os.path.join(os.environ.get("PROJECT_ROOT"), path_to_file)
     query = open(full_path, 'r').read()
     return query
 
 def read_yaml_file(path_to_file):
     """ Loads YAML file as a dictionary.
     Arguments:
-    - path_to_file (string): path to yaml file from PYTHONPATH
+    - path_to_file (string): path to yaml file from PROJECT_ROOT
     """
-    full_path = os.path.join(os.getenv("PYTHONPATH"), path_to_file)
+    full_path = os.path.join(os.getenv("PROJECT_ROOT"), path_to_file)
     with open(full_path, 'r') as file:
         config = yaml.safe_load(file)
     file.close()

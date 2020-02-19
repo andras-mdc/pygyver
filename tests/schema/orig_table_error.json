@@ -1,0 +1,14 @@
+[  
+    {
+      "mode": "NULLABLE",
+      "name": "fullname",
+      "type": "FLOAT",
+      "description": ""
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "age",
+      "type": "INTEGER",
+      "description": ""
+    }
+]
