@@ -13,7 +13,8 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=[
         'nltk==3.4.4',
-        'PyYAML==5.1.2'
+        'PyYAML==5.1.2',
+        'boto3==1.9.218'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
