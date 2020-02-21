@@ -11,6 +11,10 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/madedotcom/pygyver",
     packages=setuptools.find_packages(),
+    install_requires=[
+        'nltk==3.4.4',
+        'PyYAML==5.1.2'
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

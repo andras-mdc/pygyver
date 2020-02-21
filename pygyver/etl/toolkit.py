@@ -11,9 +11,9 @@ import yaml
 
 def read_sql_file(path_to_file):
     """ Loads SQL file as a string.
-	Arguments:
-	- path_to_file (string): path to sql file from PROJECT_ROOT
-	"""
+    Arguments:
+        - path_to_file (string): path to sql file from PROJECT_ROOT
+    """
     full_path = os.path.join(os.environ.get("PROJECT_ROOT"), path_to_file)
     query = open(full_path, 'r').read()
     return query
@@ -80,6 +80,9 @@ def anonymizer(text):
     A part-of-speech tagger, or POS-tagger, processes a sequence
     of words, and attaches a part of speech tag to each word. See
     https://www.nltk.org/index.html for more information.
+    Cant be used ATM. Need to add the process installation to base image.
+    $ pip install -U textblob
+    $ python -m textblob.download_corpora
     """
     if text is None or text == "":
         new_text = text
@@ -135,11 +138,11 @@ def date_lister(start_date, end_date):
         logging.info(date_list)
     return date_list
 
-def validate_date(date_text, format='%Y-%m-%d', error_msg=None):
+def validate_date(date, format='%Y-%m-%d', error_msg=None):
     try:
-        datetime.strptime(date_text, format)
+        datetime.strptime(date, format)
     except ValueError:
         if error_msg is None:
-            raise ValueError("Incorrect data format, should be YYYY-MM-DD")
+            raise ValueError("Incorrect data format, should be {}".format(format))
         else:
             raise ValueError(error_msg)

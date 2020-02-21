@@ -21,9 +21,10 @@ if [ "$1" == "pygyver-tests" ]; then
     exit $?
 fi
 
-if [ "$1" == "waxit-tests" ]; then
+if [ "$1" == "karim" ]; then
     echo "Starting "$2" tests"
-    tests/entrypoint-tests.sh "$2"
+    ls -la
+    python pygyver/etl/test.py
     echo "Finished "$2" tests."
     exit $?
 fi

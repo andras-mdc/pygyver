@@ -1,1 +1,1 @@
-select {param1}, {param3} from table1 where amount > {param2}
+select {param1}, {param3} from `table1` where amount > {param2}
