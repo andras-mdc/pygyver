@@ -39,7 +39,7 @@ def bq_token_file_path_exists(token_path):
     """
     Returns True if the file exists, False otherwise
     """
-    return path.exists(os.path.join("PROJECT_ROOT", token_path))
+    return path.exists(token_path)
 
 def bq_token_file_valid():
     """
@@ -48,11 +48,11 @@ def bq_token_file_valid():
     token_path = bq_token_file_path()
     if token_path == '':
         raise ValueError(
-            "Please set GOOGLE_APPLICATION_CREDENTIALS to the path to the access token from the PROJECT_ROOT."
+            "Please set GOOGLE_APPLICATION_CREDENTIALS to the path to the access token."
         )
     elif bq_token_file_path_exists(token_path) is False:
         raise ValueError(
-            "Token file could not be found. Please reset your GOOGLE_APPLICATION_CREDENTIALS/PROJECT_ROOT env vars. Current:",
+            "Token file could not be found. Please reset your GOOGLE_APPLICATION_CREDENTIALS env var. Current:",
             token_path
         )
     else:
