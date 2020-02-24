@@ -78,7 +78,7 @@ class BigQueryExecutor:
         """
         bq_token_file_valid()
         self.credentials = service_account.Credentials.from_service_account_file(
-            os.path.join("PROJECT_ROOT", bq_token_file_path())
+            bq_token_file_path()
         )
         self.client = bigquery.Client(
             credentials=self.credentials,
