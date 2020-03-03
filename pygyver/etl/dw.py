@@ -463,3 +463,43 @@ class BigQueryExecutor:
             dialect=dialect
         )
         return data
+    def load_dataframe(self, df, table_id, dataset_id=bq_default_dataset(), if_exists='replace'):
+        ''' create the table from a dataframe
+            'fail'
+                If table exists, do nothing.
+            'replace'
+                it's the default, If table exists, drop it, recreate it, and insert data.
+            'append'
+                If table exists, insert data. Create if does not exist.
+            Arguments:
+            - dataset_id (string): the BigQuery dataset ID
+            - table_id (string): the BigQuery table ID'''
+        data = df.rename(columns=lambda cname: cname.replace('.', '_'))
+        print(data)
+        table_ref = self.client.dataset(dataset_id).table(table_id)
+        print(table_ref)
+        if if_exists == 'replace':
+            if self.table_exists(table_id, dataset_id):
+                self.delete_table(table_id, dataset_id)
+                print(
+                    'deleted ',
+                    self.project_id,
+                    dataset_id,
+                    table_id
+                    )
+                logging.info(
+                    'Table %s:%s.%s deleted.',
+                    self.project_id,
+                    dataset_id,
+                    table_id
+                    )
+        self.client.load_table_from_dataframe(data, table_ref)
+
+    def load_json(self, file, table_id, schema_path, dataset_id=bq_default_dataset(),  if_exists='replace'):
+        table_ref = self.client.dataset(dataset_id).table(table_id)
+        file_size = os.path.getsize(file)
+        data=open(file, 'rb')
+        print(table_ref)
+        # self.initiate_table(table_id,schema_path,dataset_id)
+        self.client.load_table_from_file(data, table_ref, size=file_size)
+        data.close()
