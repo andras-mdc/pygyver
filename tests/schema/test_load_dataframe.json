@@ -1,0 +1,8 @@
+[
+  {
+    "mode": "NULLABLE",
+    "name": "my_date_string",
+    "type": "STRING",
+    "description": "my_date_string"
+  }
+]

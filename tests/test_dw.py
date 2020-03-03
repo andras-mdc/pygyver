@@ -368,6 +368,85 @@ class BigQueryExecutorTableCreation(unittest.TestCase):
             table_id='my_normal_table'
         )
 
+from pandas.testing import assert_frame_equal
+
+class BigQueryLoadDataframe(unittest.TestCase):
+    """ Test """
+
+    def setUp(self):
+        self.db = dw.BigQueryExecutor()
+        self.db.initiate_table(
+            table_id='load_dataframe',
+            dataset_id='test',
+            schema_path='tests/schema/test_load_dataframe.json'
+        )
+
+    def test_load_dataframe_on_existing_table(self):
+        """ Test """
+        data = pd.DataFrame(data={'my_date_string': ["20200101", "20200102", "20200103"]})
+
+        self.db.load_dataframe(
+            df=data,
+            table_id='load_dataframe',
+            dataset_id='test'
+        )
+
+        import time
+        time.sleep(30)
+
+        result = self.db.execute_sql(
+            "SELECT * FROM test.load_dataframe"
+        )
+
+        assert_frame_equal(
+            result,
+            data
+        )
+
+    def test_load_dataframe_on_non_existing_table_error(self):
+        """ Test """
+        data = pd.DataFrame(data={'my_date_string': ["20200101", "20200102", "20200103"]})
+
+        with self.assertRaises(KeyError):
+            self.db.load_dataframe(
+                df=data,
+                table_id='load_dataframe_non_existing',
+                dataset_id='test'
+            )
+
+    def test_load_dataframe_on_non_existing_table_with_schema(self):
+        """ Test """
+        data = pd.DataFrame(data={'my_date_string': ["20200101", "20200102", "20200103"]})
+
+        self.db.load_dataframe(
+            df=data,
+            table_id='load_dataframe_non_existing_schema',
+            dataset_id='test',
+            schema_path='tests/schema/test_load_dataframe.json'
+        )
+
+        import time
+        time.sleep(30)
+
+        result = self.db.execute_sql(
+            "SELECT * FROM test.load_dataframe_non_existing_schema"
+        )
+
+        assert_frame_equal(
+            result,
+            data
+        )
+
+    def tearDown(self):
+        self.db.delete_table(
+            table_id='load_dataframe',
+            dataset_id='test'
+        )
+        self.db.delete_table(
+            table_id='load_dataframe_non_existing_schema',
+            dataset_id='test'
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
