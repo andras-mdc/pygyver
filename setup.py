@@ -14,7 +14,8 @@ setuptools.setup(
     install_requires=[
         'nltk==3.4.4',
         'PyYAML==5.1.2',
-        'boto3==1.9.218'
+        'boto3==1.9.218',
+        'facebook-business==6.0.0'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
