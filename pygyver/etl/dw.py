@@ -491,11 +491,29 @@ class BigQueryExecutor:
         else:
             raise KeyError("Please initiate %s.%s", dataset_id, table_id)
 
-    # def load_json(self, file, table_id, schema_path, dataset_id=bq_default_dataset(),  if_exists='replace'):
-    #     table_ref = self.client.dataset(dataset_id).table(table_id)
-    #     file_size = os.path.getsize(file)
-    #     data=open(file, 'rb')
-    #     print(table_ref)
-    #     # self.initiate_table(table_id,schema_path,dataset_id)
-    #     self.client.load_table_from_file(data, table_ref, size=file_size)
-    #     data.close()
+    def load_json(self, file, table_id,  dataset_id=bq_default_dataset(), schema_path='', write_disposition="WRITE_TRUNCATE"):
+        '''
+        '''
+        if schema_path != '':
+            self.initiate_table(
+                table_id=table_id,
+                schema_path=schema_path,
+                dataset_id=dataset_id
+            )
+        if self.table_exists(
+                table_id=table_id,
+                dataset_id=dataset_id
+        ):
+            table_ref = self.client.dataset(dataset_id).table(table_id)
+            job_config = bigquery.LoadJobConfig()
+            job_config.source_format = bigquery.SourceFormat.NEWLINE_DELIMITED_JSON
+            job_config.write_disposition = set_write_disposition(write_disposition)
+            with open(file, mode='rb') as data:
+                self.client.load_table_from_file(
+                    file_obj=data,
+                    destination=table_ref,
+                    location='US',
+                    job_config=job_config
+                )
+        else:
+            raise KeyError("Please initiate %s.%s", dataset_id, table_id)

@@ -447,6 +447,74 @@ class BigQueryLoadDataframe(unittest.TestCase):
             dataset_id='test'
         )
 
+class BigQueryLoadJSON(unittest.TestCase):
+    """ Test """
 
+    def setUp(self):
+        self.db = dw.BigQueryExecutor()
+        self.db.initiate_table(
+            table_id='load_json',
+            dataset_id='test',
+            schema_path='tests/schema/test_load_json.json'
+        )
+    def test_load_json_on_existing_table(self):
+        """ Test """
+
+        self.db.load_json(
+            file='tests/json/test_json_file.json',
+            table_id='load_json',
+            dataset_id='test'
+        )
+        import time
+        time.sleep(30)
+
+        result = self.db.execute_sql(
+            "SELECT * FROM test.load_json"
+        )
+        data = pd.read_json('tests/json/test_json_file.json', lines=True)
+        assert_frame_equal(
+            result,
+            data
+        )
+
+    def test_load_json_on_non_existing_table(self):
+        """ Test """
+        self.db.load_json(
+            file='tests/json/test_json_file.json',
+            table_id='load_json_non_existing_table',
+            dataset_id='test',
+            schema_path='tests/schema/test_load_json.json'
+        )
+        import time
+        time.sleep(30)
+
+        result = self.db.execute_sql(
+            "SELECT * FROM test.load_json_non_existing_table"
+        )
+        data = pd.read_json('tests/json/test_json_file.json', lines=True)
+        assert_frame_equal(
+            result,
+            data
+        )
+
+    def test_load_json_on_non_existing_table_without_schema(self):
+        """ Test """
+        with self.assertRaises(KeyError):
+            self.db.load_json(
+                file='tests/json/test_json_file.json',
+                table_id='load_json_non_existing_schema',
+                dataset_id='test'
+                )
+
+
+    def tearDown(self):
+        self.db.delete_table(
+            table_id='load_json',
+            dataset_id='test'
+        )
+        self.db.delete_table(
+            table_id='load_json_non_existing_table',
+            dataset_id='test'
+        )
 if __name__ == "__main__":
     unittest.main()
