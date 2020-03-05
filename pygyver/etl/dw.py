@@ -516,4 +516,4 @@ class BigQueryExecutor:
                     job_config=job_config
                 )
         else:
-            raise KeyError("Please initiate %s.%s", dataset_id, table_id)
+            raise KeyError("Please initiate %s.%s or pass the schema file", dataset_id, table_id)
