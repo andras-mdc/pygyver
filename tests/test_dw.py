@@ -447,29 +447,29 @@ class BigQueryLoadDataframe(unittest.TestCase):
             dataset_id='test'
         )
 
-class BigQueryLoadJSON(unittest.TestCase):
+class BigQueryLoadJSONfile(unittest.TestCase):
     """ Test """
 
     def setUp(self):
         self.db = dw.BigQueryExecutor()
         self.db.initiate_table(
-            table_id='load_json',
+            table_id='load_json_file',
             dataset_id='test',
             schema_path='tests/schema/test_load_json.json'
         )
-    def test_load_json_on_existing_table(self):
+    def test_load_json_file_on_existing_table(self):
         """ Test """
 
-        self.db.load_json(
+        self.db.load_json_file(
             file='tests/json/test_json_file.json',
-            table_id='load_json',
+            table_id='load_json_file',
             dataset_id='test'
         )
         import time
         time.sleep(30)
 
         result = self.db.execute_sql(
-            "SELECT * FROM test.load_json"
+            "SELECT * FROM test.load_json_file"
         )
         data = pd.read_json('tests/json/test_json_file.json', lines=True)
         assert_frame_equal(
@@ -477,11 +477,11 @@ class BigQueryLoadJSON(unittest.TestCase):
             data
         )
 
-    def test_load_json_on_non_existing_table(self):
+    def test_load_json_file_on_non_existing_table(self):
         """ Test """
-        self.db.load_json(
+        self.db.load_json_file(
             file='tests/json/test_json_file.json',
-            table_id='load_json_non_existing_table',
+            table_id='load_json_file_non_existing_table',
             dataset_id='test',
             schema_path='tests/schema/test_load_json.json'
         )
@@ -489,9 +489,152 @@ class BigQueryLoadJSON(unittest.TestCase):
         time.sleep(30)
 
         result = self.db.execute_sql(
-            "SELECT * FROM test.load_json_non_existing_table"
+            "SELECT * FROM test.load_json_file_non_existing_table"
         )
         data = pd.read_json('tests/json/test_json_file.json', lines=True)
+        assert_frame_equal(
+            result,
+            data
+        )
+
+    def test_load_json_file_on_non_existing_table_without_schema(self):
+        """ Test """
+        with self.assertRaises(KeyError):
+            self.db.load_json_file(
+                file='tests/json/test_json_file.json',
+                table_id='load_json_non_existing_schema',
+                dataset_id='test'
+                )
+
+
+    def tearDown(self):
+        self.db.delete_table(
+            table_id='load_json_file',
+            dataset_id='test'
+        )
+        self.db.delete_table(
+            table_id='load_json_file_non_existing_table',
+            dataset_id='test'
+        )
+
+
+class BigQueryLoadJSON(unittest.TestCase):
+    """ Test """
+    def setUp(self):
+        self.db = dw.BigQueryExecutor()
+        self.db.initiate_table(
+            table_id='load_json_flat',
+            dataset_id='test',
+            schema_path='tests/schema/test_load_json_flat.json'
+        )
+        self.db.initiate_table(
+            table_id='load_json_nested',
+            dataset_id='test',
+            schema_path='tests/schema/test_load_json_nested.json'
+        )
+        self.data_flat = [{"name": "John", "age": 30, "car": ''},
+                     {"name": "James", "age": 35, "car": 'Toyota'}]
+        self.data_nested = [
+                {
+                    "name": "John",
+                    "age": 30,
+                    "cars": [{
+                        "car": 'Toyota',
+                        "year": 2003},
+                        {
+                        "car": "BMW",
+                        "year": 2010}]
+                },
+                {
+                    "name": "Jane",
+                    "age": 35,
+                    "cars": [{
+                        "car": 'Fiat',
+                        "year": 2012},
+                        {
+                        "car": "Kia",
+                        "year": 2015}]
+                }
+            ]
+
+    def test_load_json_on_existing_flat_table(self):
+        """ Test """
+
+        self.db.load_json(
+            json= self.data_flat,
+            table_id='load_json_flat',
+            dataset_id='test'
+        )
+        import time
+        time.sleep(15)
+
+        result = self.db.execute_sql(
+            "SELECT * FROM test.load_json_flat"
+        )
+        data = pd.DataFrame(self.data_flat)
+        assert_frame_equal(
+            result,
+            data
+        )
+
+    def test_load_json_on_existing_nested_table(self):
+        """ Test """
+
+        self.db.load_json(
+            json= self.data_nested,
+            table_id='load_json_nested',
+            dataset_id='test'
+        )
+        import time
+        time.sleep(15)
+
+        result = self.db.execute_sql(
+            "SELECT * FROM test.load_json_nested"
+        )
+        data = pd.DataFrame(self.data_nested)
+        result = result[result.columns.sort_values().values]
+        data = data[data.columns.sort_values().values]
+        assert_frame_equal(
+            result,
+            data
+        )
+
+    def test_load_json_on_non_existing_flat_table(self):
+        """ Test """
+        self.db.load_json(
+            json=self.data_flat,
+            table_id='load_json_non_existing_flat_table',
+            dataset_id='test',
+            schema_path='tests/schema/test_load_json_flat.json'
+        )
+        import time
+        time.sleep(30)
+
+        result = self.db.execute_sql(
+            "SELECT * FROM test.load_json_non_existing_flat_table"
+        )
+        data = pd.DataFrame(self.data_flat)
+        assert_frame_equal(
+            result,
+            data
+        )
+    def test_load_json_on_non_existing_nested_table(self):
+        """ Test """
+        self.db.load_json(
+            json=self.data_nested,
+            table_id='load_json_non_existing_nested_table',
+            dataset_id='test',
+            schema_path='tests/schema/test_load_json_nested.json'
+        )
+        import time
+        time.sleep(30)
+
+        result = self.db.execute_sql(
+            "SELECT * FROM test.load_json_non_existing_nested_table"
+        )
+        data = pd.DataFrame(self.data_nested)
+        result = result[result.columns.sort_values().values]
+        data = data[data.columns.sort_values().values]
         assert_frame_equal(
             result,
             data
@@ -501,20 +644,29 @@ class BigQueryLoadJSON(unittest.TestCase):
         """ Test """
         with self.assertRaises(KeyError):
             self.db.load_json(
-                file='tests/json/test_json_file.json',
+                json=self.data_flat,
                 table_id='load_json_non_existing_schema',
                 dataset_id='test'
                 )
 
-
     def tearDown(self):
         self.db.delete_table(
-            table_id='load_json',
+            table_id='load_json_flat',
             dataset_id='test'
         )
         self.db.delete_table(
-            table_id='load_json_non_existing_table',
+            table_id='load_json_nested',
             dataset_id='test'
         )
+        self.db.delete_table(
+            table_id='load_json_non_existing_flat_table',
+            dataset_id='test'
+        )
+        self.db.delete_table(
+            table_id='load_json_non_existing_nested_table',
+            dataset_id='test'
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

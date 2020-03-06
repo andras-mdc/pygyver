@@ -491,7 +491,7 @@ class BigQueryExecutor:
         else:
             raise KeyError("Please initiate %s.%s", dataset_id, table_id)
 
-    def load_json(self, file, table_id,  dataset_id=bq_default_dataset(), schema_path='', write_disposition="WRITE_TRUNCATE"):
+    def load_json_file(self, file, table_id,  dataset_id=bq_default_dataset(), schema_path='', write_disposition="WRITE_TRUNCATE"):
         '''
         '''
         if schema_path != '':
@@ -515,5 +515,32 @@ class BigQueryExecutor:
                     location='US',
                     job_config=job_config
                 )
+        else:
+            raise KeyError("Please initiate %s.%s or pass the schema file", dataset_id, table_id)
+
+    def load_json(self, json, table_id, dataset_id=bq_default_dataset(), schema_path='',
+                           write_disposition="WRITE_TRUNCATE"):
+        '''
+        '''
+        if schema_path != '':
+            self.initiate_table(
+                table_id=table_id,
+                schema_path=schema_path,
+                dataset_id=dataset_id
+            )
+        if self.table_exists(
+                table_id=table_id,
+                dataset_id=dataset_id
+        ):
+            table_ref = self.client.dataset(dataset_id).table(table_id)
+            job_config = bigquery.LoadJobConfig()
+            job_config.write_disposition = set_write_disposition(write_disposition)
+
+            self.client.load_table_from_json(
+                json_rows=json,
+                destination=table_ref,
+                location='US',
+                job_config=job_config
+            )
         else:
             raise KeyError("Please initiate %s.%s or pass the schema file", dataset_id, table_id)
