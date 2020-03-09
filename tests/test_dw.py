@@ -391,9 +391,6 @@ class BigQueryLoadDataframe(unittest.TestCase):
             dataset_id='test'
         )
 
-        import time
-        time.sleep(30)
-
         result = self.db.execute_sql(
             "SELECT * FROM test.load_dataframe"
         )
@@ -407,7 +404,7 @@ class BigQueryLoadDataframe(unittest.TestCase):
         """ Test """
         data = pd.DataFrame(data={'my_date_string': ["20200101", "20200102", "20200103"]})
 
-        with self.assertRaises(KeyError):
+        with self.assertRaises(Exception):
             self.db.load_dataframe(
                 df=data,
                 table_id='load_dataframe_non_existing',
@@ -424,9 +421,6 @@ class BigQueryLoadDataframe(unittest.TestCase):
             dataset_id='test',
             schema_path='tests/schema/test_load_dataframe.json'
         )
-
-        import time
-        time.sleep(30)
 
         result = self.db.execute_sql(
             "SELECT * FROM test.load_dataframe_non_existing_schema"
@@ -465,8 +459,6 @@ class BigQueryLoadJSONfile(unittest.TestCase):
             table_id='load_json_file',
             dataset_id='test'
         )
-        import time
-        time.sleep(30)
 
         result = self.db.execute_sql(
             "SELECT * FROM test.load_json_file"
@@ -485,8 +477,6 @@ class BigQueryLoadJSONfile(unittest.TestCase):
             dataset_id='test',
             schema_path='tests/schema/test_load_json.json'
         )
-        import time
-        time.sleep(30)
 
         result = self.db.execute_sql(
             "SELECT * FROM test.load_json_file_non_existing_table"
@@ -499,7 +489,7 @@ class BigQueryLoadJSONfile(unittest.TestCase):
 
     def test_load_json_file_on_non_existing_table_without_schema(self):
         """ Test """
-        with self.assertRaises(KeyError):
+        with self.assertRaises(Exception):
             self.db.load_json_file(
                 file='tests/json/test_json_file.json',
                 table_id='load_json_non_existing_schema',
@@ -518,7 +508,7 @@ class BigQueryLoadJSONfile(unittest.TestCase):
         )
 
 
-class BigQueryLoadJSON(unittest.TestCase):
+class BigQueryLoadJSONData(unittest.TestCase):
     """ Test """
     def setUp(self):
         self.db = dw.BigQueryExecutor()
@@ -557,16 +547,14 @@ class BigQueryLoadJSON(unittest.TestCase):
                 }
             ]
 
-    def test_load_json_on_existing_flat_table(self):
+    def test_load_json_data_on_existing_flat_table(self):
         """ Test """
 
-        self.db.load_json(
+        self.db.load_json_data(
             json= self.data_flat,
             table_id='load_json_flat',
             dataset_id='test'
         )
-        import time
-        time.sleep(15)
 
         result = self.db.execute_sql(
             "SELECT * FROM test.load_json_flat"
@@ -580,13 +568,11 @@ class BigQueryLoadJSON(unittest.TestCase):
     def test_load_json_on_existing_nested_table(self):
         """ Test """
 
-        self.db.load_json(
+        self.db.load_json_data(
             json= self.data_nested,
             table_id='load_json_nested',
             dataset_id='test'
         )
-        import time
-        time.sleep(15)
 
         result = self.db.execute_sql(
             "SELECT * FROM test.load_json_nested"
@@ -601,14 +587,12 @@ class BigQueryLoadJSON(unittest.TestCase):
 
     def test_load_json_on_non_existing_flat_table(self):
         """ Test """
-        self.db.load_json(
+        self.db.load_json_data(
             json=self.data_flat,
             table_id='load_json_non_existing_flat_table',
             dataset_id='test',
             schema_path='tests/schema/test_load_json_flat.json'
         )
-        import time
-        time.sleep(30)
 
         result = self.db.execute_sql(
             "SELECT * FROM test.load_json_non_existing_flat_table"
@@ -620,14 +604,12 @@ class BigQueryLoadJSON(unittest.TestCase):
         )
     def test_load_json_on_non_existing_nested_table(self):
         """ Test """
-        self.db.load_json(
+        self.db.load_json_data(
             json=self.data_nested,
             table_id='load_json_non_existing_nested_table',
             dataset_id='test',
             schema_path='tests/schema/test_load_json_nested.json'
         )
-        import time
-        time.sleep(30)
 
         result = self.db.execute_sql(
             "SELECT * FROM test.load_json_non_existing_nested_table"
@@ -642,8 +624,8 @@ class BigQueryLoadJSON(unittest.TestCase):
 
     def test_load_json_on_non_existing_table_without_schema(self):
         """ Test """
-        with self.assertRaises(KeyError):
-            self.db.load_json(
+        with self.assertRaises(Exception):
+            self.db.load_json_data(
                 json=self.data_flat,
                 table_id='load_json_non_existing_schema',
                 dataset_id='test'

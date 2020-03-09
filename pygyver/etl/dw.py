@@ -205,10 +205,10 @@ class BigQueryExecutor:
         job_config.create_disposition = bigquery.CreateDisposition.CREATE_IF_NEEDED
         if partition:
             if partition_field == '_PARTITIONTIME':
-                 job_config.time_partitioning = bigquery.TimePartitioning(
-                        type_=bigquery.TimePartitioningType.DAY
-                 )
-                 job_config.clustering_fields = clustering
+                job_config.time_partitioning = bigquery.TimePartitioning(
+                    type_=bigquery.TimePartitioningType.DAY
+                )
+                job_config.clustering_fields = clustering
             elif isinstance(partition_field, str):
                 job_config.time_partitioning = bigquery.table.TimePartitioning(
                     field=partition_field
@@ -239,8 +239,7 @@ class BigQueryExecutor:
                                write_disposition='WRITE_TRUNCATE',
                                partition_dates=None,
                                partition_field="_PARTITIONTIME",
-                               clustering=None
-                               ):
+                               clustering=None):
         """
         Partition to be generated are either passed through partition_dates or automatically generated using existing partitions.
         To filter on a specific partition, the filter DATE(_PARTITIONTIME) = {partition_date} can be used in your sql query.
@@ -466,8 +465,8 @@ class BigQueryExecutor:
 
     def load_dataframe(self, df, table_id, dataset_id=bq_default_dataset(), schema_path='', write_disposition="WRITE_TRUNCATE"):
         '''
+        Loads pandas dataframe to BigQuery.
         '''
-
         if schema_path != '':
             self.initiate_table(
                 table_id=table_id,
@@ -476,23 +475,25 @@ class BigQueryExecutor:
             )
 
         if self.table_exists(
-            table_id=table_id,
-            dataset_id=dataset_id
+                table_id=table_id,
+                dataset_id=dataset_id
         ):
             data = df.rename(columns=lambda cname: cname.replace('.', '_'))
             table_ref = self.client.dataset(dataset_id).table(table_id)
             job_config = bigquery.LoadJobConfig()
             job_config.write_disposition = set_write_disposition(write_disposition)
-            self.client.load_table_from_dataframe(
+            job = self.client.load_table_from_dataframe(
                 data,
                 table_ref,
                 job_config=job_config
             )
+            job.result()
         else:
-            raise KeyError("Please initiate %s.%s", dataset_id, table_id)
+            raise Exception("Please initiate %s.%s or pass the schema file", dataset_id, table_id)
 
-    def load_json_file(self, file, table_id,  dataset_id=bq_default_dataset(), schema_path='', write_disposition="WRITE_TRUNCATE"):
+    def load_json_file(self, file, table_id, dataset_id=bq_default_dataset(), schema_path='', write_disposition="WRITE_TRUNCATE"):
         '''
+        Loads JSON file (new line delimited) to BigQuery.
         '''
         if schema_path != '':
             self.initiate_table(
@@ -509,18 +510,19 @@ class BigQueryExecutor:
             job_config.source_format = bigquery.SourceFormat.NEWLINE_DELIMITED_JSON
             job_config.write_disposition = set_write_disposition(write_disposition)
             with open(file, mode='rb') as data:
-                self.client.load_table_from_file(
+                job = self.client.load_table_from_file(
                     file_obj=data,
                     destination=table_ref,
                     location='US',
                     job_config=job_config
                 )
+                job.result()
         else:
-            raise KeyError("Please initiate %s.%s or pass the schema file", dataset_id, table_id)
+            raise Exception("Please initiate %s.%s or pass the schema file", dataset_id, table_id)
 
-    def load_json(self, json, table_id, dataset_id=bq_default_dataset(), schema_path='',
-                           write_disposition="WRITE_TRUNCATE"):
+    def load_json_data(self, json, table_id, dataset_id=bq_default_dataset(), schema_path='', write_disposition="WRITE_TRUNCATE"):
         '''
+        Loads JSON data to BigQuery.
         '''
         if schema_path != '':
             self.initiate_table(
@@ -536,11 +538,12 @@ class BigQueryExecutor:
             job_config = bigquery.LoadJobConfig()
             job_config.write_disposition = set_write_disposition(write_disposition)
 
-            self.client.load_table_from_json(
+            job = self.client.load_table_from_json(
                 json_rows=json,
                 destination=table_ref,
                 location='US',
                 job_config=job_config
             )
+            job.result()
         else:
-            raise KeyError("Please initiate %s.%s or pass the schema file", dataset_id, table_id)
+            raise Exception("Please initiate %s.%s or pass the schema file", dataset_id, table_id)
