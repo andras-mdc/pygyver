@@ -16,6 +16,7 @@ setuptools.setup(
         'PyYAML==5.1.2',
         'boto3==1.9.218',
         'pyarrow==0.16.0'
+        'facebook-business==6.0.0'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

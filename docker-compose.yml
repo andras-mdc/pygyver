@@ -62,6 +62,7 @@ services:
       - ./vars/env/${ENV}/${ENV}.env
     volumes:
       - ./vars/env/local/access_token.json:/code/access_token.json
+      - ./vars/env/local/facebook_access_token.json:/code/facebook_access_token.json
 
   # for running tests locally
   pygyver-tests-local:
@@ -81,3 +82,4 @@ services:
       - ./vars/env/${ENV}/${ENV}.env
     volumes:
       - ./vars/env/local/access_token.json:/code/access_token.json
+      - ./vars/env/local/facebook_access_token.json:/code/facebook_access_token.json
