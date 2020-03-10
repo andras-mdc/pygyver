@@ -1,0 +1,30 @@
+[
+  {
+      "mode": "NULLABLE",
+      "name": "name",
+      "type": "STRING"
+    },
+  {
+      "mode": "NULLABLE",
+      "name": "age",
+      "type": "INTEGER"
+    },
+  {
+    "fields": [
+      {
+      "mode": "NULLABLE",
+      "name": "car",
+      "type": "STRING"
+      },
+      {
+      "mode": "NULLABLE",
+      "name": "year",
+      "type": "INTEGER"
+    }
+    ],
+    "mode": "REPEATED",
+    "name": "cars",
+    "type": "RECORD"
+  }
+]
+
