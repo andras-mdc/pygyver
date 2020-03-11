@@ -2,8 +2,34 @@
 import os
 import json
 import logging
+import pandas as pd
 from facebook_business.api import FacebookAdsApi
 from facebook_business.adobjects.adaccount import AdAccount
+
+def transform_campaign_budget(campaigns):
+    """
+    Transforms get_campaigns response.
+    """
+    out = []
+    for campaign in campaigns:
+        campaign_dict = dict(campaign)
+        if "lifetime_budget" in campaign_dict:
+            campaign_dict["budget"] = campaign_dict["lifetime_budget"]
+            campaign_dict["budget_type"] = "lifetime_budget"
+            del campaign_dict["lifetime_budget"]
+        elif "daily_budget" in campaign_dict:
+            campaign_dict["budget"] = campaign_dict["daily_budget"]
+            campaign_dict['budget_type'] = "daily_budget"
+            del campaign_dict["daily_budget"]
+        out.append(campaign_dict)
+
+    data = pd.DataFrame(out).rename(
+        columns={
+            "id": "campaign_id",
+            "name": "campaign_name"
+        }
+    )
+    return data
 
 class FacebookDownloader:
     """ Facebook Downloader.
@@ -59,9 +85,9 @@ class FacebookDownloader:
                 'until': end_date
                 }
         }
-        logging.info("Downloading insights for account %s", self.account_id)
-        logging.info("fields: %s", fields)
-        logging.info("params: %s", params)
+        logging.debug("Downloading insights for account %s", self.account_id)
+        logging.debug("fields: %s", fields)
+        logging.debug("params: %s", params)
         campaign_insights = self.account.get_insights(
             params=params,
             fields=fields
@@ -69,4 +95,25 @@ class FacebookDownloader:
 
         for insight in campaign_insights:
             out.append(dict(insight))
+        return out
+
+    def get_active_campaign_budgets(self, account_id):
+        """
+        Fetches active campaign metadata from the Facebook API.
+        Returns a dataframe with the following fields:
+            - account_id
+            - campaign_id
+            - campaign_name
+            - budget_type (daily_budget or lifetime_budget)
+            - budget amount in account currency
+        """
+        self.set_account(account_id)
+        campaigns = self.account.get_campaigns(
+            fields=['account_id', 'name', 'daily_budget', 'lifetime_budget'],
+            params={
+                'effective_status': ["ACTIVE"],
+                'is_completed': False
+            }
+        )
+        out = transform_campaign_budget(campaigns)
         return out
