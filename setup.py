@@ -16,7 +16,10 @@ setuptools.setup(
         'PyYAML==5.1.2',
         'boto3==1.9.218',
         'pyarrow==0.16.0',
-        'facebook-business==6.0.0'
+        'facebook-business==6.0.0',
+        'gspread==3.1.0',
+        'google-api-python-client==1.7.11',
+        'oauth2client==4.1.3'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
