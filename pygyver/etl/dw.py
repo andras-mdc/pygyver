@@ -473,6 +473,9 @@ class BigQueryExecutor:
                 dataset_id=dataset_id,
                 schema_path=schema_path
             )
+            schema = read_table_schema_from_file(schema_path)
+        else:
+            schema = None
 
         if self.table_exists(
                 table_id=table_id,
@@ -480,7 +483,7 @@ class BigQueryExecutor:
         ):
             data = df.rename(columns=lambda cname: cname.replace('.', '_'))
             table_ref = self.client.dataset(dataset_id).table(table_id)
-            job_config = bigquery.LoadJobConfig()
+            job_config = bigquery.LoadJobConfig(schema=schema)
             job_config.write_disposition = set_write_disposition(write_disposition)
             job = self.client.load_table_from_dataframe(
                 data,
@@ -501,12 +504,16 @@ class BigQueryExecutor:
                 schema_path=schema_path,
                 dataset_id=dataset_id
             )
+            schema = read_table_schema_from_file(schema_path)
+        else:
+            schema = None
+
         if self.table_exists(
                 table_id=table_id,
                 dataset_id=dataset_id
         ):
             table_ref = self.client.dataset(dataset_id).table(table_id)
-            job_config = bigquery.LoadJobConfig()
+            job_config = bigquery.LoadJobConfig(schema=schema)
             job_config.source_format = bigquery.SourceFormat.NEWLINE_DELIMITED_JSON
             job_config.write_disposition = set_write_disposition(write_disposition)
             with open(file, mode='rb') as data:
@@ -530,14 +537,17 @@ class BigQueryExecutor:
                 schema_path=schema_path,
                 dataset_id=dataset_id
             )
+            schema = read_table_schema_from_file(schema_path)
+        else:
+            schema = None
+    
         if self.table_exists(
                 table_id=table_id,
                 dataset_id=dataset_id
         ):
             table_ref = self.client.dataset(dataset_id).table(table_id)
-            job_config = bigquery.LoadJobConfig()
+            job_config = bigquery.LoadJobConfig(schema=schema)
             job_config.write_disposition = set_write_disposition(write_disposition)
-
             job = self.client.load_table_from_json(
                 json_rows=json,
                 destination=table_ref,

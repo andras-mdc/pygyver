@@ -549,13 +549,19 @@ class BigQueryLoadJSONData(unittest.TestCase):
 
     def test_load_json_data_on_existing_flat_table(self):
         """ Test """
-
-        self.db.load_json_data(
-            json= self.data_flat,
+        old_schema = self.db.get_table_schema(
             table_id='load_json_flat',
             dataset_id='test'
         )
-
+        self.db.load_json_data(
+            json=self.data_flat,
+            table_id='load_json_flat',
+            dataset_id='test'
+        )
+        new_schema = self.db.get_table_schema(
+            table_id='load_json_flat',
+            dataset_id='test'
+        )
         result = self.db.execute_sql(
             "SELECT * FROM test.load_json_flat"
         )
@@ -563,6 +569,31 @@ class BigQueryLoadJSONData(unittest.TestCase):
         assert_frame_equal(
             result,
             data
+        )
+        self.assertNotEqual(
+            old_schema,
+            new_schema
+        )
+
+    def test_load_json_data_on_existing_flat_table_with_schema(self):
+        """ Test """
+        old_schema = self.db.get_table_schema(
+            table_id='load_json_flat',
+            dataset_id='test'
+        )
+        self.db.load_json_data(
+            json=self.data_flat,
+            table_id='load_json_flat',
+            dataset_id='test',
+            schema_path='tests/schema/test_load_json_flat.json'
+        )
+        new_schema = self.db.get_table_schema(
+            table_id='load_json_flat',
+            dataset_id='test'
+        )
+        self.assertEqual(
+            old_schema,
+            new_schema
         )
 
     def test_load_json_on_existing_nested_table(self):
@@ -600,8 +631,10 @@ class BigQueryLoadJSONData(unittest.TestCase):
         data = pd.DataFrame(self.data_flat)
         assert_frame_equal(
             result,
-            data
+            data,
+            check_like=True
         )
+
     def test_load_json_on_non_existing_nested_table(self):
         """ Test """
         self.db.load_json_data(

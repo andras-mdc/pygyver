@@ -2,7 +2,8 @@
   {
       "mode": "NULLABLE",
       "name": "name",
-      "type": "STRING"
+      "type": "STRING",
+      "description": "Field description"
     },
   {
       "mode": "NULLABLE",
