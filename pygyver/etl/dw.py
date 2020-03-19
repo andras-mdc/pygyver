@@ -19,7 +19,6 @@ from pygyver.etl.lib import set_write_disposition
 from pygyver.etl.toolkit import date_lister
 from pygyver.etl.toolkit import validate_date
 
-
 class BigQueryExecutorError(Exception):
     pass
 
@@ -85,15 +84,25 @@ class BigQueryExecutor:
             project=self.project_id
         )
 
+    def get_dataset_ref(self, dataset_id):
+        return bigquery.dataset.DatasetReference(
+            self.project_id,
+            dataset_id
+            )
+
+    def get_table_ref(self, dataset_id, table_id):
+        dataset_ref = self.get_dataset_ref(dataset_id)
+        return dataset_ref.table(table_id)
+
     def dataset_exists(self, dataset_id=bq_default_dataset()):
         """
         Checks if a BigQuery dataset exists
         Arguments:
         - dataset_id (string): the BigQuery dataset ID
         """
-        dataset = self.client.dataset(dataset_id)
+        dataset_ref = self.get_dataset_ref(dataset_id)
         try:
-            self.client.get_dataset(dataset)
+            self.client.get_dataset(dataset_ref)
             return True
         except NotFound:
             return False
@@ -105,8 +114,7 @@ class BigQueryExecutor:
         - dataset_id (string): the BigQuery dataset ID
         - table_id (string): the BigQuery table ID
         """
-        dataset = self.client.dataset(dataset_id)
-        table_ref = dataset.table(table_id)
+        table_ref = self.get_table_ref(dataset_id, table_id)
         try:
             self.client.get_table(table_ref)
             return True
@@ -120,7 +128,7 @@ class BigQueryExecutor:
         table_id: the BigQuery table ID
         """
         try:
-            table_ref = self.client.dataset(dataset_id).table(table_id)
+            table_ref = self.get_table_ref(dataset_id, table_id)
             self.client.delete_table(table_ref)
             logging.info(
                 'Table %s:%s.%s deleted.',
@@ -155,9 +163,11 @@ class BigQueryExecutor:
                 schema_path=schema_path
             )
         else:
-            dataset = self.client.dataset(dataset_id)
             schema = read_table_schema_from_file(schema_path)
-            table = bigquery.Table(dataset.table(table_id), schema=schema)
+            table = bigquery.Table(
+                self.get_table_ref(dataset_id, table_id), 
+                schema=schema
+                )
             if partition:
                 table.partitioning_type = 'DAY'
                 table.clustering_fields = clustering
@@ -199,7 +209,7 @@ class BigQueryExecutor:
             pass
 
         job_config = bigquery.QueryJobConfig()
-        job_config.destination = self.client.dataset(dataset_id).table(table_id)
+        job_config.destination = self.get_table_ref(dataset_id, table_id)
         job_config.write_disposition = set_write_disposition(write_disposition)
         job_config.use_legacy_sql = use_legacy_sql
         job_config.create_disposition = bigquery.CreateDisposition.CREATE_IF_NEEDED
@@ -339,7 +349,7 @@ class BigQueryExecutor:
         '''
         return SchemaField values
         '''
-        table_ref = self.client.dataset(dataset_id).table(table_id)
+        table_ref = self.get_table_ref(dataset_id, table_id)
         table_schema = self.client.get_table(table_ref).schema
         return table_schema
 
@@ -362,7 +372,7 @@ class BigQueryExecutor:
         field: schema field object
         i.e. SchemaField('postcode', 'STRING', 'NULLABLE', None, ())
         '''
-        table_ref = self.client.dataset(dataset_id).table(table_id)
+        table_ref = self.get_table_ref(dataset_id, table_id)
         table = self.client.get_table(table_ref)  # API request
 
         original_schema = table.schema
@@ -412,7 +422,7 @@ class BigQueryExecutor:
             )
 
     def update_schema(self, table_id, schema_path, dataset_id=bq_default_dataset()):
-        table_ref = self.client.dataset(dataset_id).table(table_id)
+        table_ref = self.get_table_ref(dataset_id, table_id)
         table = self.client.get_table(table_ref)  # API request
         new_schema = read_table_schema_from_file(schema_path)
         if table.schema == new_schema:
@@ -482,7 +492,7 @@ class BigQueryExecutor:
                 dataset_id=dataset_id
         ):
             data = df.rename(columns=lambda cname: cname.replace('.', '_'))
-            table_ref = self.client.dataset(dataset_id).table(table_id)
+            table_ref = self.get_table_ref(dataset_id, table_id)
             job_config = bigquery.LoadJobConfig(schema=schema)
             job_config.write_disposition = set_write_disposition(write_disposition)
             job = self.client.load_table_from_dataframe(
@@ -512,7 +522,7 @@ class BigQueryExecutor:
                 table_id=table_id,
                 dataset_id=dataset_id
         ):
-            table_ref = self.client.dataset(dataset_id).table(table_id)
+            table_ref = self.get_table_ref(dataset_id, table_id)
             job_config = bigquery.LoadJobConfig(schema=schema)
             job_config.source_format = bigquery.SourceFormat.NEWLINE_DELIMITED_JSON
             job_config.write_disposition = set_write_disposition(write_disposition)
@@ -545,7 +555,7 @@ class BigQueryExecutor:
                 table_id=table_id,
                 dataset_id=dataset_id
         ):
-            table_ref = self.client.dataset(dataset_id).table(table_id)
+            table_ref = self.get_table_ref(dataset_id, table_id)
             job_config = bigquery.LoadJobConfig(schema=schema)
             job_config.write_disposition = set_write_disposition(write_disposition)
             job = self.client.load_table_from_json(

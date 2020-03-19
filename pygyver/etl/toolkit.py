@@ -117,11 +117,25 @@ def anonymizer(text):
         new_text = ". ".join(new_text)
     return new_text
 
-def get_yesterday_date():
+def get_date(window, date_format="%Y-%m-%d"):
     """
-    Returns yesterday date in string format ('%Y-%m-%d')
+    Returns date in string format ('%Y-%m-%d') from today using window in days.
+    get_date(window=0) returns today, get_date(widnow=1) returns yesterday...
     """
-    return (datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d')
+    date = datetime.today() - timedelta(days = window)
+    return date.strftime(date_format)
+
+def get_today_date(date_format="%Y-%m-%d"):
+    """
+    Returns today date in string format specified. Defaults to '%Y-%m-%d'.
+    """
+    return get_date(0, date_format)
+
+def get_yesterday_date(date_format="%Y-%m-%d"):
+    """
+    Returns yesterday date in string format specified. Defaults to '%Y-%m-%d'.
+    """
+    return get_date(1, date_format)
 
 def date_lister(start_date, end_date):
     """
