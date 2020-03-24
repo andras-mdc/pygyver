@@ -280,7 +280,7 @@ class BigQueryExecutor:
 
         for date in dates:
             partition_name = self.set_partition_name(table=table_id, date=date)
-            logging.info("Updating partition: ", partition_name)
+            logging.info("Updating partition: %s", partition_name)
             self.create_table(
                 sql=self.apply_partition_filter(
                     sql=sql,
