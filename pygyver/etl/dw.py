@@ -326,10 +326,17 @@ class BigQueryExecutor:
         return partition_dates
 
     def get_existing_partition_query(self, dataset_id, table_id):
-        return self.execute_file(
-            file="pygyver/etl/sql/get_existing_partition.sql",
-            dataset_id=dataset_id,
-            table_id=table_id
+        sql = """ SELECT 
+                    FORMAT_DATE('%Y%m%d', DATE(_PARTITIONTIME)) AS partition_id 
+                  FROM 
+                    {dataset_id}.{table_id} 
+                  GROUP BY 
+                    1 """.format(
+                        dataset_id=dataset_id, 
+                        table_id=table_id
+                        )
+        return self.execute_sql(
+            sql = sql
         )
 
     def get_existing_partition_dates(self, table_id, dataset_id=bq_default_dataset()):
