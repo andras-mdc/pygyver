@@ -234,14 +234,14 @@ class BigQueryExecutor:
             location=location,
             job_config=job_config
         )
-
-        query_job.result()
-        logging.info(
-            'Query results loaded to table %s:%s.%s',
-            self.project_id,
-            dataset_id,
-            table_id
-        )
+        if priority == 'INTERACTIVE':
+            query_job.result()
+            logging.info(
+                'Query results loaded to table %s:%s.%s',
+                self.project_id,
+                dataset_id,
+                table_id
+            )
 
     def create_partition_table(self,
                                table_id,
