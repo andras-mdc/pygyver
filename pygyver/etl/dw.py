@@ -15,7 +15,7 @@ from pygyver.etl.lib import bq_default_dataset
 from pygyver.etl.lib import read_table_schema_from_file
 from pygyver.etl.lib import bq_start_date
 from pygyver.etl.lib import bq_end_date
-from pygyver.etl.lib import set_write_disposition
+from pygyver.etl.lib import set_write_disposition, set_priority
 from pygyver.etl.toolkit import date_lister
 from pygyver.etl.toolkit import validate_date
 
@@ -186,7 +186,9 @@ class BigQueryExecutor:
                      write_disposition='WRITE_TRUNCATE', use_legacy_sql=False,
                      location='US', schema_path='',
                      partition=False,
-                     partition_field='_PARTITIONTIME', clustering=None):
+                     partition_field='_PARTITIONTIME', 
+                     clustering=None,
+                     priority='INTERACTIVE'):
         """ create a bigquery table from a sql query """
 
         if sql is None and file is None:
@@ -213,6 +215,7 @@ class BigQueryExecutor:
         job_config.write_disposition = set_write_disposition(write_disposition)
         job_config.use_legacy_sql = use_legacy_sql
         job_config.create_disposition = bigquery.CreateDisposition.CREATE_IF_NEEDED
+        job_config.priority = set_priority(priority)
         if partition:
             if partition_field == '_PARTITIONTIME':
                 job_config.time_partitioning = bigquery.TimePartitioning(
@@ -249,7 +252,9 @@ class BigQueryExecutor:
                                write_disposition='WRITE_TRUNCATE',
                                partition_dates=None,
                                partition_field="_PARTITIONTIME",
-                               clustering=None):
+                               clustering=None,
+                               priority="INTERACTIVE"
+                               ):
         """
         Partition to be generated are either passed through partition_dates or automatically generated using existing partitions.
         To filter on a specific partition, the filter DATE(_PARTITIONTIME) = {partition_date} can be used in your sql query.
@@ -292,7 +297,8 @@ class BigQueryExecutor:
                 use_legacy_sql=use_legacy_sql,
                 partition=True,
                 partition_field=partition_field,
-                clustering=clustering
+                clustering=clustering,
+                priority=priority
             )
 
     def apply_partition_filter(self, sql, date):

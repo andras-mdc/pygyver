@@ -17,6 +17,15 @@ def set_write_disposition(write_disposition):
     else:
         raise KeyError("{} is not a valid write_disposition key".format(write_disposition))
 
+def set_priority(priority):
+    """ Sets bigquery.QueryPriority based on write_disposition """
+    if priority == 'BATCH':
+        return bigquery.QueryPriority.BATCH
+    elif priority == 'INTERACTIVE':
+        return bigquery.QueryPriority.INTERACTIVE
+    else:
+        raise KeyError("{} is not a valid priority key".format(priority))
+
 def read_table_schema_from_file(path):
     """
     Read table schema from json file.
