@@ -141,7 +141,7 @@ class FacebookDownloader:
                     campaign['daily_budget']
                 )
                 campaign.api_update(
-                    params={'daily_budget': new_budget}
+                    params={'daily_budget': round(new_budget*100)}
                 )
                 logging.info(
                     "New daily_budget for campaign %s: %s",
