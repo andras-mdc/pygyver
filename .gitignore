@@ -1,6 +1,9 @@
 *access_token.json
 .idea/*
 
+# local env
+*local.env
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

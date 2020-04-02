@@ -10,6 +10,7 @@ import nltk
 import pandas as pd
 import yaml
 
+
 def read_sql_file(path_to_file):
     """ Loads SQL file as a string.
     Arguments:
@@ -18,6 +19,7 @@ def read_sql_file(path_to_file):
     full_path = os.path.join(os.environ.get("PROJECT_ROOT"), path_to_file)
     query = open(full_path, 'r').read()
     return query
+
 
 def read_yaml_file(path_to_file):
     """ Loads YAML file as a dictionary.
@@ -29,6 +31,7 @@ def read_yaml_file(path_to_file):
         config = yaml.safe_load(file)
     file.close()
     return config
+
 
 def customer_hash(email):
     """ Hash Email address using sha256 algorithm with salt.
@@ -58,6 +61,7 @@ def customer_hash(email):
     else:
         raise KeyError("Email argument should be a string")
 
+
 def stringify(value):
     """
     Returns the string representation of the value.
@@ -70,11 +74,13 @@ def stringify(value):
         return 'False'
     return str(value)
 
+
 def is_email_address(text):
     """
     Return true if it is a valid email address
     """
     return re.search(r'[\w\.-]+@[\w\.-]+', text)
+
 
 def anonymizer(text):
     """
@@ -117,6 +123,7 @@ def anonymizer(text):
         new_text = ". ".join(new_text)
     return new_text
 
+
 def get_date(window, date_format="%Y-%m-%d"):
     """
     Returns date in string format ('%Y-%m-%d') from today using window in days.
@@ -137,6 +144,7 @@ def get_yesterday_date(date_format="%Y-%m-%d"):
     """
     return get_date(1, date_format)
 
+
 def date_lister(start_date, end_date):
     """
      Returns list of dates between start_date and end_date in string format ('%Y-%m-%d')
@@ -153,6 +161,7 @@ def date_lister(start_date, end_date):
         logging.info(date_list)
     return date_list
 
+
 def validate_date(date, format='%Y-%m-%d', error_msg=None):
     try:
         datetime.strptime(date, format)
@@ -161,6 +170,7 @@ def validate_date(date, format='%Y-%m-%d', error_msg=None):
             raise ValueError("Incorrect data format, should be {}".format(format))
         else:
             raise ValueError(error_msg)
+
 
 def configure_logging(env=None):
     """ Sets logging"""
@@ -190,4 +200,3 @@ def configure_logging(env=None):
             }
         }
     )
-

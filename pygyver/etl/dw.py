@@ -579,3 +579,4 @@ class BigQueryExecutor:
             job.result()
         else:
             raise Exception("Please initiate %s.%s or pass the schema file", dataset_id, table_id)
+    

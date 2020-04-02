@@ -6,6 +6,7 @@ from datetime import date, timedelta
 from google.cloud import bigquery
 from pygyver.etl.toolkit import validate_date
 
+
 def set_write_disposition(write_disposition):
     """ Sets bigquery.WriteDisposition based on write_disposition """
     if write_disposition == 'WRITE_APPEND':
@@ -17,6 +18,7 @@ def set_write_disposition(write_disposition):
     else:
         raise KeyError("{} is not a valid write_disposition key".format(write_disposition))
 
+
 def set_priority(priority):
     """ Sets bigquery.QueryPriority based on write_disposition """
     if priority == 'BATCH':
@@ -25,6 +27,7 @@ def set_priority(priority):
         return bigquery.QueryPriority.INTERACTIVE
     else:
         raise KeyError("{} is not a valid priority key".format(priority))
+
 
 def read_table_schema_from_file(path):
     """
@@ -38,17 +41,20 @@ def read_table_schema_from_file(path):
         json_schema = json.load(file_path)
         return bigquery.schema._parse_schema_resource({'fields': json_schema})
 
+
 def bq_token_file_path():
     """
     Returns GOOGLE_APPLICATION_CREDENTIALS if env is set
     """
     return os.environ.get('GOOGLE_APPLICATION_CREDENTIALS', '')
 
+
 def bq_token_file_path_exists(token_path):
     """
     Returns True if the file exists, False otherwise
     """
     return path.exists(token_path)
+
 
 def bq_token_file_valid():
     """
@@ -67,11 +73,13 @@ def bq_token_file_valid():
     else:
         return True
 
+
 def bq_use_legacy_sql():
     """
     Returns BIGQUERY_LEGACY_SQL if env is set
     """
     return os.environ.get('BIGQUERY_LEGACY_SQL', 'TRUE')
+
 
 def bq_default_project():
     """
@@ -79,17 +87,20 @@ def bq_default_project():
     """
     return os.environ.get('BIGQUERY_PROJECT', '')
 
+
 def bq_default_dataset():
     """
     Returns BIGQUERY_DATASET if env is set
     """
     return os.environ.get('BIGQUERY_DATASET', '')
 
+
 def bq_billing_project():
     """
     Returns BIGQUERY_PROJECT if env is set
     """
     return bq_default_project()
+
 
 def bq_start_date():
     """
@@ -102,6 +113,7 @@ def bq_start_date():
     )
     return start_date
 
+
 def bq_end_date():
     """
     Returns BIGQUERY_LEGACY_SQL if env is set. Defaults to Yesterday.
@@ -113,3 +125,7 @@ def bq_end_date():
         error_msg="Invalid BIGQUERY_END_DATE: {} should be YYYY-MM-DD".format(end_date)
     )
     return end_date
+
+
+def extract_args(batch_content, to_extract: str):
+    return [x.get(to_extract, '') for x in batch_content if x.get(to_extract, '') != '']

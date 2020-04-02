@@ -1,0 +1,12 @@
+[
+    {
+        "mode": "NULLABLE",
+        "name": "col1",
+        "type": "INTEGER"
+      },
+    {
+        "mode": "NULLABLE",
+        "name": "col2",
+        "type": "STRING"
+      }
+]

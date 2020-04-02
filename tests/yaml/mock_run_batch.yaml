@@ -1,0 +1,59 @@
+# first batcch
+- batch:
+  # first table
+  - table:
+      table_id: test_run_batch_table_1
+      dataset_id: test 
+      schema_path: tests/schema/test_run_batch_table_1.json
+      file: tests/sql/table1.sql
+    test:
+      mock_data: tests/mock/table-1
+      # *** not sure is needed
+      date_fields: 
+        - date 
+        - craeted_date
+      datetime_fields: 
+        - timestamp
+        - created_timestamp
+      # data quality checks to apply within the pipeline for the table
+    dq-checks:
+      # Field name
+      - pk:  
+          # type        
+          fields: 
+            - id
+          # what do we assert
+          assert: unique            
+      # *** to be implemented
+      - positive:
+          field: quantity
+          assert: composit_id >= 0
+
+  # second table
+  - table:
+      table_id: test_run_batch_table_2
+      dataset_id: test 
+      schema_path: tests/schema/test_run_batch_table_2.json
+      file: tests/sql/table2.sql
+    test:
+      mock_data: tests/mock/table-2
+      # *** not sure is needed
+      date_fields: 
+        - date 
+        - craeted_date
+      datetime_fields: 
+        - timestamp
+        - created_timestamp
+      # data quality checks to apply within the pipeline for the table
+    dq-checks:
+      # Field name
+      - pk:  
+          # type        
+          fields: 
+            - id
+          # what do we assert
+          assert: unique            
+      # *** to be implemented
+      - positive:
+          field: quantity
+          assert: composit_id >= 0
