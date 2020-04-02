@@ -97,6 +97,15 @@ class FacebookDownloader:
             out.append(dict(insight))
         return out
 
+    def get_active_campaigns(self):
+        return self.account.get_campaigns(
+            fields=['account_id', 'name', 'daily_budget', 'lifetime_budget'],
+            params={
+                'effective_status': ["ACTIVE"],
+                'is_completed': False
+            }
+        )
+
     def get_active_campaign_budgets(self, account_id):
         """
         Fetches active campaign metadata from the Facebook API.
@@ -108,12 +117,36 @@ class FacebookDownloader:
             - budget amount in account currency
         """
         self.set_account(account_id)
-        campaigns = self.account.get_campaigns(
-            fields=['account_id', 'name', 'daily_budget', 'lifetime_budget'],
-            params={
-                'effective_status': ["ACTIVE"],
-                'is_completed': False
-            }
-        )
+        campaigns = self.get_active_campaigns()
         out = transform_campaign_budget(campaigns)
         return out
+
+    def update_daily_budget(self, account_id, campaign_id, new_budget):
+        """
+        Update the budget on the facebook API
+        """
+        self.set_account(account_id)
+        campaigns = self.get_active_campaigns()
+        for campaign in campaigns:
+            if campaign.get_id() == campaign_id:
+                from pygyver.etl.toolkit import configure_logging
+                configure_logging()
+                logging.info(
+                    "Loading new budget for campaign %s",
+                    campaign_id
+                )
+                logging.info(
+                    "Current daily_budget for campaign %s: %s",
+                    campaign_id,
+                    campaign['daily_budget']
+                )
+                campaign.api_update(
+                    params={'daily_budget': new_budget}
+                )
+                logging.info(
+                    "New daily_budget for campaign %s: %s",
+                    campaign_id,
+                    new_budget
+                )
+
+        return campaigns
