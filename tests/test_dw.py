@@ -261,7 +261,6 @@ class BigQueryExecutorDatasetCreation(unittest.TestCase):
             table_id='dataset_creation',
             schema_path='tests/schema/initiate_table.json'
         )
-        self.env = mock.patch.dict('os.environ', {'BIGQUERY_START_DATE': '2020-01-01', 'BIGQUERY_END_DATE': '2020-01-05'})
 
     def create_my_dataset(self):
         """ Test """
