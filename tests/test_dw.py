@@ -243,6 +243,72 @@ class BigQueryExecutorExecutesPatch(unittest.TestCase):
             table_id='table_to_patch'
         )
 
+class BigQueryExecutorDatasetCreation(unittest.TestCase):
+    """
+    Testing different scenarios
+    """
+    def setUp(self):
+        """ Test """
+        try:
+            self.create_my_dataset()
+        except exceptions.Conflict as exc:
+            logging.info(exc)
+        self.db = dw.BigQueryExecutor()
+        if self.db.dataset_exists('a_dataset_that_does_not_exist'):
+            self.db.delete_dataset('a_dataset_that_does_not_exist')
+        self.db.initiate_table(
+            dataset_id='test',
+            table_id='dataset_creation',
+            schema_path='tests/schema/initiate_table.json'
+        )
+        self.env = mock.patch.dict('os.environ', {'BIGQUERY_START_DATE': '2020-01-01', 'BIGQUERY_END_DATE': '2020-01-05'})
+
+    def create_my_dataset(self):
+        """ Test """
+        client = bigquery.Client()
+        dataset_id = "{}.test".format(os.environ['BIGQUERY_PROJECT'])
+        dataset = bigquery.Dataset(dataset_id)
+        dataset.location = "US"
+        client.create_dataset(dataset)
+
+    def test_create_dataset_raises_errors(self):
+        with self.assertRaises(BigQueryExecutorError):
+            self.db.create_table(
+                dataset_id='test'
+            )
+
+    def test_create_dataset(self):
+        self.db.create_dataset(
+            dataset_id='my_normal_dataset'
+        )
+        self.assertTrue(
+            self.db.dataset_exists(
+                dataset_id='my_normal_dataset'
+            ),
+            "Dataset was not created"
+        )
+
+    def test_delete_dataset_raises_errors(self):
+        with self.assertRaises(BigQueryExecutorError):
+            self.db.delete_dataset(
+                dataset_id='test'
+            )
+
+    def test_delete_dataset(self):
+        self.db.delete_dataset(
+            dataset_id='test',
+            delete_contents=True
+        )
+        self.assertFalse(
+            self.db.dataset_exists(
+                dataset_id='test'
+            ),
+            "Dataset was not deleted"
+        )
+        self.db.delete_dataset(
+            dataset_id='my_normal_dataset'
+        )
+
 class BigQueryExecutorTableCreation(unittest.TestCase):
     """
     Testing different scenarios
