@@ -3,6 +3,7 @@ import os
 import unittest
 from unittest import mock
 from pygyver.etl.lib import bq_token_file_valid
+from pygyver.etl.lib import remove_first_slash
 
 
 def bq_token_file_path_exists_mock(token_path):
@@ -40,6 +41,21 @@ class FunctionsinLib(unittest.TestCase):
                 bq_token_file_valid(),
                 "Token file is not valid"
             )
+    
+    def test_remove_first_slash(self):
+        self.assertEqual(
+                remove_first_slash("/sandbox"), "sandbox",
+                "first slash not removed - wrong"
+            )
+        self.assertEqual(
+                remove_first_slash("sandbox"), "sandbox",
+                "no first slash - ok"
+            )
+        self.assertEqual(
+                remove_first_slash(""), "",
+                "empty string - ok"
+            )           
+
 
 
 if __name__ == "__main__":

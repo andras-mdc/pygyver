@@ -12,26 +12,19 @@ pip install pygyver
 
 ## [DS Libraries](../master/utils/README.md)
 
-To access BigQuery you will need following environment variables:
+```
+PROJECT_ROOT=  "root of he project"
 
-- `BIGQUERY_PROJECT` - name of the project in BigQuery. Default project cannot be changed in the code.
-- `BIGQUERY_ACCESS_TOKEN_PATH` - path to the json token file.
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_DEFAULT_REGION=
+AWS_S3_BUCKET=
+AWS_S3_ROOT=
+AWS_S3_PRODUCT_FEED_BUCKET=madecom-product-feed
+
+GOOGLE_APPLICATION_CREDENTIALS=  "path to the json token file."
+BIGQUERY_PROJECT= "default name of the project in BigQuery. Default project cannot be changed in the code."
+
+```
 
 BigQuery functions wrap `bigpyquery` functions to provide higher level API removing boilerplate instructions of the lower level API.
-
-
-
-## [tdd_utility - module](../master/data_prep/README.md)
-
-### class load_data(type,file,schema) 
-Contains methods to extract the equivalent json from csv with nested and repeated records structures
-
-#### Methods
-- to_json()
-    - if successfuls return the json obj extracted from the csv
-
-- to_new_line_delimiter_file(output_file_name)
-    - return 0 if successfuls 
-    - create new line delimiter "output_file_name" file
-
-

@@ -1,6 +1,4 @@
-*access_token*.json
 *.pyc
-*.csv
 .env
 *.pkl
 # python cache files
@@ -29,3 +27,19 @@ meta/*
 vars/build/local/local.env
 vars/env/local/local.env
 .idea/*
+
+# secrets
+*access_token.json
+*secret*
+token/*
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+.DS_store
+
+# venv 
+*venv/*
+.vscode/*
+

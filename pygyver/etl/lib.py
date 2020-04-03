@@ -126,6 +126,26 @@ def bq_end_date():
     )
     return end_date
 
+def remove_first_slash(word=''):
+    if word == '':
+        return word
+    if word[0] == '/':
+        return word[1:]
+    return word
+
+# AWS
+
+def s3_default_bucket():
+    """
+    Returns BIGQUERY_PROJECT if env is set
+    """
+    return os.getenv('AWS_S3_BUCKET', '')
+
+def s3_default_root():
+    """
+    Returns BIGQUERY_PROJECT if env is set
+    """
+    return os.environ.get('AWS_S3_ROOT', '')
 
 def extract_args(batch_content, to_extract: str):
     return [x.get(to_extract, '') for x in batch_content if x.get(to_extract, '') != '']
