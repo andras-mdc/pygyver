@@ -142,7 +142,7 @@ class BigQueryExecutor:
             )
         else:
             try:
-                self.client.create_dataset(dataset_ref)
+                self.client.create_dataset(dataset_id)
                 logging.info(
                     "Created dataset %s in in project %s",
                     dataset_id,
@@ -150,7 +150,6 @@ class BigQueryExecutor:
                 )
             except exceptions.Conflict as error:
                 logging.error(error)
-            )
 
     def table_exists(self, table_id, dataset_id=bq_default_dataset()):
         """
