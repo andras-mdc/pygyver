@@ -626,3 +626,37 @@ class BigQueryExecutor:
         else:
             raise Exception("Please initiate %s.%s or pass the schema file", dataset_id, table_id)
     
+    def count_duplicates(self, table_id, primary_key: set, dataset_id=bq_default_dataset()):
+        data = self.execute_sql(
+            f"""
+            SELECT
+                COALESCE(SUM(dup_count), 0) AS dup_total
+            FROM (
+                SELECT
+                    {", ".join(primary_key)},
+                    (COUNT(*) - 1) AS dup_count
+                FROM
+                    {dataset_id}.{table_id}
+                GROUP BY
+                    {", ".join(primary_key)}
+            )
+            """
+        )        
+        return data['dup_total'].values[0]
+
+    def assert_unique(self, table_id, primary_key: set, dataset_id=bq_default_dataset()):
+        try:
+            assert self.count_duplicates(
+                dataset_id=dataset_id,
+                table_id=table_id,
+                primary_key=primary_key
+            ) == 0
+        except AssertionError:
+            logging.error(
+                'Table %s:%s.%s is not unique on %s',
+                self.project_id,
+                dataset_id,
+                table_id,
+                ", ".join(primary_key)
+            )
+            raise
