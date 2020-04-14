@@ -114,15 +114,16 @@ class BigQueryExecutor:
         - dataset_id (string): the BigQuery dataset ID
         - delete_contents (boolean): removes all content from the dataset if is set to TRUE
         """
+        dataset_ref = self.get_dataset_ref(dataset_id)
         try:
             self.client.delete_dataset(
-                dataset_id,
+                dataset_ref,
                 delete_contents=delete_contents
             )
             logging.info(
-                "Dataset %s:%s deleted",
-                self.project_id,
-                dataset_id
+                "Dataset %s.%s deleted",
+                dataset_id,
+                self.project_id
             )
             time.sleep(1)
         except exceptions.Conflict as error:
@@ -134,6 +135,7 @@ class BigQueryExecutor:
         Arguments:
         - dataset_id (string): the BigQuery dataset ID
         """
+        dataset_ref = self.get_dataset_ref(dataset_id)
         if self.dataset_exists(dataset_id):
             logging.info(
                 "Dataset %s already exists in project %s",
@@ -142,7 +144,7 @@ class BigQueryExecutor:
             )
         else:
             try:
-                self.client.create_dataset(dataset_id)
+                self.client.create_dataset(dataset_ref)
                 logging.info(
                     "Created dataset %s in in project %s",
                     dataset_id,
