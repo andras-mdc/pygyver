@@ -122,8 +122,8 @@ class BigQueryExecutor:
             )
             logging.info(
                 "Dataset %s.%s deleted",
-                dataset_id,
-                self.project_id
+                self.project_id,
+                dataset_id
             )
             time.sleep(1)
         except exceptions.Conflict as error:
