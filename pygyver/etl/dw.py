@@ -88,7 +88,7 @@ class BigQueryExecutor:
         return bigquery.dataset.DatasetReference(
             self.project_id,
             dataset_id
-            )
+        )
 
     def get_table_ref(self, dataset_id, table_id):
         dataset_ref = self.get_dataset_ref(dataset_id)
@@ -106,6 +106,52 @@ class BigQueryExecutor:
             return True
         except NotFound:
             return False
+
+    def delete_dataset(self, dataset_id=bq_default_dataset(), delete_contents=False):
+        """
+        Delete a BigQuery dataset.
+        Arguments:
+        - dataset_id (string): the BigQuery dataset ID
+        - delete_contents (boolean): removes all content from the dataset if is set to TRUE
+        """
+        dataset_ref = self.get_dataset_ref(dataset_id)
+        try:
+            self.client.delete_dataset(
+                dataset_ref,
+                delete_contents=delete_contents
+            )
+            logging.info(
+                "Dataset %s.%s deleted",
+                self.project_id,
+                dataset_id
+            )
+            time.sleep(1)
+        except exceptions.Conflict as error:
+            logging.error(error)
+
+    def create_dataset(self, dataset_id=bq_default_dataset()):
+        """ 
+        Create a BigQuery dataset.
+        Arguments:
+        - dataset_id (string): the BigQuery dataset ID
+        """
+        dataset_ref = self.get_dataset_ref(dataset_id)
+        if self.dataset_exists(dataset_id):
+            logging.info(
+                "Dataset %s already exists in project %s",
+                dataset_id,
+                self.project_id
+            )
+        else:
+            try:
+                self.client.create_dataset(dataset_ref)
+                logging.info(
+                    "Created dataset %s in in project %s",
+                    dataset_id,
+                    self.project_id
+                )
+            except exceptions.Conflict as error:
+                logging.error(error)
 
     def table_exists(self, table_id, dataset_id=bq_default_dataset()):
         """

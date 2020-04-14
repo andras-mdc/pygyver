@@ -42,4 +42,4 @@ __pycache__/
 # venv 
 *venv/*
 .vscode/*
-
+.devcontainer/
