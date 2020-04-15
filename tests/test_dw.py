@@ -763,19 +763,6 @@ class BigQueryCheckPrimaryKey(unittest.TestCase):
             self.bq_client.count_duplicates(
                 dataset_id='test',
                 table_id='bq_check_primary_key',
-                primary_key={'col1', 'col2'}
-            ),
-            0
-        )
-        self.bq_client.assert_unique(
-            dataset_id='test',
-            table_id='bq_check_primary_key',
-            primary_key={'col1', 'col2'}
-        )
-        self.assertEqual(
-            self.bq_client.count_duplicates(
-                dataset_id='test',
-                table_id='bq_check_primary_key',
                 primary_key={'col1'}
             ),
             1
@@ -786,6 +773,18 @@ class BigQueryCheckPrimaryKey(unittest.TestCase):
                 table_id='bq_check_primary_key',
                 primary_key={'col1'}
             )
+        with self.assertLogs(level='WARNING'):
+            self.bq_client.assert_unique(
+                dataset_id='test',
+                table_id='bq_check_primary_key',
+                primary_key={'col1'},
+                ignore_error=True,
+            )
+        self.bq_client.assert_unique(
+            dataset_id='test',
+            table_id='bq_check_primary_key',
+            primary_key={'col1', 'col2'}
+        )
 
 
 if __name__ == "__main__":
