@@ -628,11 +628,10 @@ class BigQueryExecutor:
     
     def count_duplicates(self, table_id, primary_key: set, dataset_id=bq_default_dataset()):
         """
-        Count duplicate rows in table
+        Count duplicate rows in primary key
 
         Arguments:
-        primary_key: a set of one or more column names
-        e.g. {'col1', 'col2'}
+        primary_key: a set of one or more column names, e.g. {'col1', 'col2'}
 
         Returns:
         non-negative integer
@@ -663,7 +662,7 @@ class BigQueryExecutor:
         ignore_error: boolean flag to prevent error being raised, useful for debugging
 
         Returns:
-        - Nothing if there are no duplicate rows when grouped on primary key
+        - Nothing if there are no duplicate rows in primary key
         - Raise and log AssertionError if there are duplicate rows and ignore_error=False (default)
         - Log a warning if there are dupicate rows and ignore_error=True (debugging)
         """
