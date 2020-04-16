@@ -631,6 +631,7 @@ class BigQueryExecutor:
                    source_project_id=bq_default_project(), write_disposition='WRITE_TRUNCATE'):
         """ Copy a BigQuery table.
         Limitations:
+        - Destination project is the default, i.e. specified in `local.env`
         - Destination dataset must reside in the same location as source (US, EU, etc.)
         """
         source_dataset_ref = bigquery.dataset.DatasetReference(source_project_id, source_dataset_id)
