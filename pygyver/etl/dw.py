@@ -629,10 +629,15 @@ class BigQueryExecutor:
     def copy_table(self, source_table_id, dest_table_id,
                    source_dataset_id=bq_default_dataset(), dest_dataset_id=bq_default_dataset(),
                    source_project_id=bq_default_project(), write_disposition='WRITE_TRUNCATE'):
-        """ Copy a BigQuery table.
+        """
+        Copy a BigQuery table
+        
         Limitations:
         - Destination project is the default, i.e. specified in `local.env`
         - Destination dataset must reside in the same location as source (US, EU, etc.)
+
+        Permissions:
+        - The email address specified in `access_token.json` must have read permissions for the source
         """
         source_dataset_ref = bigquery.dataset.DatasetReference(source_project_id, source_dataset_id)
         source_table_ref = source_dataset_ref.table(source_table_id)
