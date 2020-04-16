@@ -551,7 +551,6 @@ class BigQueryLoadJSONfile(unittest.TestCase):
                 dataset_id='test'
                 )
 
-
     def tearDown(self):
         self.db.delete_table(
             table_id='load_json_file',
@@ -561,7 +560,6 @@ class BigQueryLoadJSONfile(unittest.TestCase):
             table_id='load_json_file_non_existing_table',
             dataset_id='test'
         )
-
 
 class BigQueryLoadJSONData(unittest.TestCase):
     """ Test """
@@ -735,6 +733,57 @@ class BigQueryLoadJSONData(unittest.TestCase):
         self.db.delete_table(
             table_id='load_json_non_existing_nested_table',
             dataset_id='test'
+        )
+
+class BigQueryCheckPrimaryKey(unittest.TestCase):
+    """ Test """
+    def setUp(self):
+        """ Test """
+        self.bq_client = dw.BigQueryExecutor()
+        self.bq_client.create_table(
+            dataset_id='test',
+            table_id='bq_check_primary_key',
+            sql="""
+                SELECT 'spam' AS col1, 'ham' AS col2 UNION ALL
+                SELECT 'spam', 'eggs' UNION ALL
+                SELECT 'ham', 'eggs'
+            """
+        )
+
+    def tearDown(self):
+        """ Test """
+        self.bq_client.delete_table(
+            dataset_id='test',
+            table_id='bq_check_primary_key'
+        )
+
+    def test_assert_unique(self):
+        """ Test """
+        self.assertEqual(
+            self.bq_client.count_duplicates(
+                dataset_id='test',
+                table_id='bq_check_primary_key',
+                primary_key={'col1'}
+            ),
+            1
+        )
+        with self.assertRaises(AssertionError):
+            self.bq_client.assert_unique(
+                dataset_id='test',
+                table_id='bq_check_primary_key',
+                primary_key={'col1'}
+            )
+        with self.assertLogs(level='WARNING'):
+            self.bq_client.assert_unique(
+                dataset_id='test',
+                table_id='bq_check_primary_key',
+                primary_key={'col1'},
+                ignore_error=True,
+            )
+        self.bq_client.assert_unique(
+            dataset_id='test',
+            table_id='bq_check_primary_key',
+            primary_key={'col1', 'col2'}
         )
 
 

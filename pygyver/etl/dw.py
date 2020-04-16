@@ -626,3 +626,54 @@ class BigQueryExecutor:
         else:
             raise Exception("Please initiate %s.%s or pass the schema file", dataset_id, table_id)
     
+    def count_duplicates(self, table_id, primary_key: set, dataset_id=bq_default_dataset()):
+        """
+        Count duplicate rows in primary key
+
+        Arguments:
+        primary_key: a set of one or more column names, e.g. {'col1', 'col2'}
+
+        Returns:
+        non-negative integer
+        """
+        data = self.execute_sql(
+            f"""
+            SELECT
+                COALESCE(SUM(dup_count), 0) AS dup_total
+            FROM (
+                SELECT
+                    {', '.join(primary_key)},
+                    (COUNT(*) - 1) AS dup_count
+                FROM
+                    {dataset_id}.{table_id}
+                GROUP BY
+                    {', '.join(primary_key)}
+            )
+            """
+        )
+        return data['dup_total'].values[0]
+
+    def assert_unique(self, table_id, primary_key: set, dataset_id=bq_default_dataset(), ignore_error=False):
+        """
+        Assert uniqueness of primary key in table
+
+        Arguments:
+        primary_key: a set of one or more column names, e.g. {'col1', 'col2'}
+        ignore_error: boolean flag to prevent error being raised, useful for debugging
+
+        Returns:
+        - Nothing if there are no duplicate rows in primary key
+        - Raise and log AssertionError if there are duplicate rows and ignore_error=False (default)
+        - Log a warning if there are dupicate rows and ignore_error=True (debugging)
+        """
+        if self.count_duplicates(table_id, primary_key, dataset_id) != 0:
+            msg = "Table %s:%s.%s is not unique on %s" % (
+                self.project_id,
+                dataset_id,
+                table_id,
+                ', '.join(primary_key)
+            )
+            if ignore_error:
+                logging.warning(msg)
+            else:
+                raise AssertionError(msg)
