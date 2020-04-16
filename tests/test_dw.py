@@ -735,6 +735,69 @@ class BigQueryLoadJSONData(unittest.TestCase):
             dataset_id='test'
         )
 
+class BigQueryTableCopy(unittest.TestCase):
+    """
+    Testing different scenarios
+    """
+    def setUp(self):
+        """ Test """
+        self.bq_client = dw.BigQueryExecutor()
+        self.bq_client.create_table(
+            dataset_id='test',
+            table_id='bq_copy_table_source',
+            schema_path='tests/schema/orig_table.json',
+            sql="SELECT 'Angus MacGyver' AS fullname, 2 AS age"
+        )
+        self.bq_client.create_table(
+            dataset_id='test',
+            table_id='bq_copy_table_source_2',
+            schema_path='tests/schema/table_plus_2.json',
+            sql="SELECT 'Jack Dalton' AS fullname, 4 AS age, 'ABC' AS postcode"
+        )
+
+    def tearDown(self):
+        """ Test """
+        self.bq_client.delete_table(
+            dataset_id='test',
+            table_id='bq_copy_table_source'
+        )
+        self.bq_client.delete_table(
+            dataset_id='test',
+            table_id='bq_copy_table_source_2'
+        )
+        self.bq_client.delete_dataset(
+            'test_bq_copy_table',
+            delete_contents=True
+        )
+
+    def test_copy_table(self):
+        """ Test """
+        self.assertFalse(
+            self.bq_client.dataset_exists('test_bq_copy_table')
+        )
+        self.bq_client.copy_table(
+            source_project_id=os.environ['BIGQUERY_PROJECT'],
+            source_dataset_id='test',
+            source_table_id='bq_copy_table_source_2',
+            dest_dataset_id='test_bq_copy_table',
+            dest_table_id='dest'
+        )
+        self.assertTrue(
+            self.bq_client.table_exists(
+                dataset_id='test_bq_copy_table',
+                table_id='dest'
+            )
+        )
+        self.bq_client.copy_table(
+            source_project_id=os.environ['BIGQUERY_PROJECT'],
+            source_dataset_id='test',
+            source_table_id='bq_copy_table_source',
+            dest_dataset_id='test_bq_copy_table',
+            dest_table_id='dest'
+        )
+        data = self.bq_client.execute_sql("SELECT fullname FROM `test_bq_copy_table.dest`")
+        self.assertEqual(data['fullname'][0], "Angus MacGyver")
+
 class BigQueryCheckPrimaryKey(unittest.TestCase):
     """ Test """
     def setUp(self):

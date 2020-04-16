@@ -626,6 +626,40 @@ class BigQueryExecutor:
         else:
             raise Exception("Please initiate %s.%s or pass the schema file", dataset_id, table_id)
     
+    def copy_table(self, source_table_id, dest_table_id,
+                   source_dataset_id=bq_default_dataset(), dest_dataset_id=bq_default_dataset(),
+                   source_project_id=bq_default_project(), write_disposition='WRITE_TRUNCATE'):
+        """ Copy a BigQuery table.
+        Limitations:
+        - Destination dataset must reside in the same location as source (US, EU, etc.)
+        """
+        source_dataset_ref = bigquery.dataset.DatasetReference(source_project_id, source_dataset_id)
+        source_table_ref = source_dataset_ref.table(source_table_id)
+        dest_table_ref = self.get_table_ref(dest_dataset_id, dest_table_id)
+
+        if not self.dataset_exists(dest_dataset_id):
+            self.create_dataset(dest_dataset_id)
+
+        job_config = bigquery.CopyJobConfig()
+        job_config.write_disposition = set_write_disposition(write_disposition)
+        job_config.create_disposition = bigquery.CreateDisposition.CREATE_IF_NEEDED
+        job = self.client.copy_table(
+            source_table_ref,
+            dest_table_ref,
+            project=source_project_id,
+            job_config=job_config
+        )
+        job.result()
+        logging.info(
+            'Table %s:%s.%s copied to %s:%s.%s',
+            source_project_id,
+            source_dataset_id,
+            source_table_id,
+            self.project_id,
+            dest_dataset_id,
+            dest_table_id
+        )
+    
     def count_duplicates(self, table_id, primary_key: set, dataset_id=bq_default_dataset()):
         """
         Count duplicate rows in primary key
