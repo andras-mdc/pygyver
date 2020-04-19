@@ -227,7 +227,7 @@ class BigQueryExecutor:
                 )
             except exceptions.Conflict as error:
                 logging.error(error)
-
+                
     def create_table(self, table_id, dataset_id=bq_default_dataset(), sql=None, file=None,
                      write_disposition='WRITE_TRUNCATE', use_legacy_sql=False,
                      location='US', schema_path='',
@@ -250,8 +250,7 @@ class BigQueryExecutor:
                 partition=partition
             )
             if write_disposition == "WRITE_TRUNCATE":
-                query = """DELETE FROM {}.{} WHERE 1=1""".format(dataset_id, table_id)
-                self.execute_sql(sql=query, dialect='standard')
+                self.truncate_table(dataset_id=dataset_id, table_id=table_id)
                 write_disposition = "WRITE_EMPTY"
         else:
             pass
@@ -626,9 +625,30 @@ class BigQueryExecutor:
         else:
             raise Exception("Please initiate %s.%s or pass the schema file", dataset_id, table_id)
     
+    def truncate_table(self, table_id, dataset_id=bq_default_dataset()):
+        """
+        Delete all records from table but preserve structure
+        e.g. schema, partitioning, clustering, description, labels, etc.
+        """
+        job_config = bigquery.QueryJobConfig()
+        job_config.destination = self.get_table_ref(dataset_id, table_id)
+        job_config.write_disposition = set_write_disposition("WRITE_TRUNCATE")
+        query_job = self.client.query(
+            query=f"SELECT * FROM `{dataset_id}.{table_id}` LIMIT 0",
+            job_config=job_config
+        )
+        query_job.result()
+        logging.info(
+            'Table %s:%s.%s has been truncated',
+            self.project_id,
+            dataset_id,
+            table_id
+        )
+
     def copy_table(self, source_table_id, dest_table_id,
                    source_dataset_id=bq_default_dataset(), dest_dataset_id=bq_default_dataset(),
-                   source_project_id=bq_default_project(), write_disposition='WRITE_TRUNCATE'):
+                   source_project_id=bq_default_project(), write_disposition='WRITE_TRUNCATE',
+                   truncate=False):
         """
         Copy a BigQuery table
         
@@ -665,7 +685,31 @@ class BigQueryExecutor:
             dest_dataset_id,
             dest_table_id
         )
+        if truncate:
+            self.truncate_table(table_id=dest_table_id, dataset_id=dest_dataset_id)
+
+    def count_rows(self, table_id, dataset_id=bq_default_dataset()):
+        """
+        Count rows in table
+        
+        Returns:
+        non-negative integer
+        """
+        table_ref = self.get_table_ref(dataset_id, table_id)
+        table = self.client.get_table(table_ref)
+        return table.num_rows
     
+    def count_columns(self, table_id, dataset_id=bq_default_dataset()):
+        """
+        Count columns in table
+        
+        Returns:
+        non-negative integer
+        """
+        table_ref = self.get_table_ref(dataset_id, table_id)
+        table = self.client.get_table(table_ref)
+        return len(table.schema)
+
     def count_duplicates(self, table_id, primary_key: set, dataset_id=bq_default_dataset()):
         """
         Count duplicate rows in primary key

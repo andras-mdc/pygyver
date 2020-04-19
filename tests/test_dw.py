@@ -735,7 +735,61 @@ class BigQueryLoadJSONData(unittest.TestCase):
             dataset_id='test'
         )
 
-class BigQueryTableCopy(unittest.TestCase):
+class BigQueryExecutorTableTruncate(unittest.TestCase):
+    """
+    Test
+    """
+    def setUp(self):
+        """ Test """
+        self.bq_client = dw.BigQueryExecutor()
+        self.bq_client.initiate_table(
+            dataset_id='test',
+            table_id='bq_truncate_table',
+            schema_path='tests/schema/orig_table.json',
+            partition=True,
+            clustering=None
+        )
+        self.env = mock.patch.dict('os.environ', {'BIGQUERY_START_DATE': '2020-01-01', 'BIGQUERY_END_DATE': '2020-01-05'})
+        with self.env:
+            self.bq_client.create_partition_table(
+                dataset_id='test',
+                table_id='bq_truncate_table',
+                sql="SELECT 'Angus MacGyver' AS fullname, 2 AS age"
+            )
+
+    def tearDown(self):
+        """ Test """
+        self.bq_client.delete_table(
+            dataset_id='test',
+            table_id='bq_truncate_table'
+        )
+
+    def test_truncate_table(self):
+        """ Test """
+        self.bq_client.truncate_table(
+            dataset_id='test',
+            table_id='bq_truncate_table'
+        )
+        truncated_table = bigquery.Client().get_table(
+            self.bq_client.get_table_ref(
+                dataset_id='test',
+                table_id='bq_truncate_table'
+            )
+        )
+        self.assertEqual(
+            truncated_table.partitioning_type,
+            'DAY'
+        )
+        self.assertEqual(
+            len(truncated_table.schema),
+            2
+        )
+        self.assertEqual(
+            truncated_table.num_rows,
+            0
+        )
+
+class BigQueryExecutorTableCopy(unittest.TestCase):
     """
     Testing different scenarios
     """
@@ -798,14 +852,14 @@ class BigQueryTableCopy(unittest.TestCase):
         data = self.bq_client.execute_sql("SELECT fullname FROM `test_bq_copy_table.dest`")
         self.assertEqual(data['fullname'][0], "Angus MacGyver")
 
-class BigQueryCheckPrimaryKey(unittest.TestCase):
+class BigQueryExecutorCheckDQ(unittest.TestCase):
     """ Test """
     def setUp(self):
         """ Test """
         self.bq_client = dw.BigQueryExecutor()
         self.bq_client.create_table(
             dataset_id='test',
-            table_id='bq_check_primary_key',
+            table_id='bq_check_dq',
             sql="""
                 SELECT 'spam' AS col1, 'ham' AS col2 UNION ALL
                 SELECT 'spam', 'eggs' UNION ALL
@@ -817,15 +871,29 @@ class BigQueryCheckPrimaryKey(unittest.TestCase):
         """ Test """
         self.bq_client.delete_table(
             dataset_id='test',
-            table_id='bq_check_primary_key'
+            table_id='bq_check_dq'
         )
 
-    def test_assert_unique(self):
+    def test_check_dq(self):
         """ Test """
+        self.assertEqual(
+            self.bq_client.count_rows(
+                dataset_id='test',
+                table_id='bq_check_dq'
+            ),
+            3
+        )
+        self.assertEqual(
+            self.bq_client.count_columns(
+                dataset_id='test',
+                table_id='bq_check_dq'
+            ),
+            2
+        )
         self.assertEqual(
             self.bq_client.count_duplicates(
                 dataset_id='test',
-                table_id='bq_check_primary_key',
+                table_id='bq_check_dq',
                 primary_key={'col1'}
             ),
             1
@@ -833,19 +901,19 @@ class BigQueryCheckPrimaryKey(unittest.TestCase):
         with self.assertRaises(AssertionError):
             self.bq_client.assert_unique(
                 dataset_id='test',
-                table_id='bq_check_primary_key',
+                table_id='bq_check_dq',
                 primary_key={'col1'}
             )
         with self.assertLogs(level='WARNING'):
             self.bq_client.assert_unique(
                 dataset_id='test',
-                table_id='bq_check_primary_key',
+                table_id='bq_check_dq',
                 primary_key={'col1'},
                 ignore_error=True,
             )
         self.bq_client.assert_unique(
             dataset_id='test',
-            table_id='bq_check_primary_key',
+            table_id='bq_check_dq',
             primary_key={'col1', 'col2'}
         )
 
