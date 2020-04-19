@@ -227,7 +227,7 @@ class BigQueryExecutor:
                 )
             except exceptions.Conflict as error:
                 logging.error(error)
-                
+
     def create_table(self, table_id, dataset_id=bq_default_dataset(), sql=None, file=None,
                      write_disposition='WRITE_TRUNCATE', use_legacy_sql=False,
                      location='US', schema_path='',
