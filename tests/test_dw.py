@@ -894,7 +894,7 @@ class BigQueryExecutorCheckDQ(unittest.TestCase):
             self.bq_client.count_duplicates(
                 dataset_id='test',
                 table_id='bq_check_dq',
-                primary_key={'col1'}
+                primary_key=['col1']
             ),
             1
         )
@@ -902,19 +902,19 @@ class BigQueryExecutorCheckDQ(unittest.TestCase):
             self.bq_client.assert_unique(
                 dataset_id='test',
                 table_id='bq_check_dq',
-                primary_key={'col1'}
+                primary_key=['col1']
             )
         with self.assertLogs(level='WARNING'):
             self.bq_client.assert_unique(
                 dataset_id='test',
                 table_id='bq_check_dq',
-                primary_key={'col1'},
-                ignore_error=True,
+                primary_key=['col1'],
+                ignore_error=True
             )
         self.bq_client.assert_unique(
             dataset_id='test',
             table_id='bq_check_dq',
-            primary_key={'col1', 'col2'}
+            primary_key=['col1', 'col2']
         )
 
 

@@ -710,12 +710,12 @@ class BigQueryExecutor:
         table = self.client.get_table(table_ref)
         return len(table.schema)
 
-    def count_duplicates(self, table_id, primary_key: set, dataset_id=bq_default_dataset()):
+    def count_duplicates(self, table_id, primary_key: list, dataset_id=bq_default_dataset()):
         """
         Count duplicate rows in primary key
 
         Arguments:
-        primary_key: a set of one or more column names, e.g. {'col1', 'col2'}
+        primary_key: a list of one or more column names, e.g. ['col1', 'col2']
 
         Returns:
         non-negative integer
@@ -737,12 +737,12 @@ class BigQueryExecutor:
         )
         return data['dup_total'].values[0]
 
-    def assert_unique(self, table_id, primary_key: set, dataset_id=bq_default_dataset(), ignore_error=False):
+    def assert_unique(self, table_id, primary_key: list, dataset_id=bq_default_dataset(), ignore_error=False):
         """
         Assert uniqueness of primary key in table
 
         Arguments:
-        primary_key: a set of one or more column names, e.g. {'col1', 'col2'}
+        primary_key: a list of one or more column names, e.g. ['col1', 'col2']
         ignore_error: boolean flag to prevent error being raised, useful for debugging
 
         Returns:
