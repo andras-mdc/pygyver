@@ -12,7 +12,7 @@ setuptools.setup(
     url="https://github.com/madedotcom/pygyver",
     packages=setuptools.find_packages(),
     install_requires=[
-        'nltk==3.4.4',
+        'nltk==3.4.5',
         'PyYAML==5.1.2',
         'boto3==1.9.218',
         'pyarrow==0.16.0',
