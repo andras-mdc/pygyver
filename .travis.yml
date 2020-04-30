@@ -1,0 +1,34 @@
+sudo: required
+language: python
+matrix:
+  include:
+  - python: 3.6
+    env: TOXENV=py36
+  - python: 3.7
+    env: TOXENV=py37
+  - python: 3.8
+    env: TOXENV=py38
+services:
+- docker
+install:
+- pip install tox
+script:
+- make travis
+after_success:
+- codecov
+deploy:
+  provider: pypi
+  skip_existing: true
+  skip_cleanup: true
+  user: __token__
+  password:
+    secure: "QdqQGDTwy7HM1XeZO/aG99wfN/zruGdJWVoH/ly06oTGtiWe2Pr8e9UhGaKzUqFfV5Z65csdFVgfRD6WwfwTV3d6PqfBmjSuJOgt+1U4Hlb2qyXKShI7LLCXxckmHYM6jCndxqsUD58qcuD9QTIugH65NvQN4G9kG3xt7WVc9+F2jQh02W7sLU6m/Pv8brnT0EqgA0G44VBPtCHOo2Zoxd/WPmbMc1YCJJgp3ARvFWWNddZuE1ofeIc5Qu0vEUQFTr9HZomLna3zMlXxFddHV5WxPDib71J3Er76DKFZGG2OJdcArped+Vds0vjueD7nody8D3vvtrLm1+OHFEW4Z95vEYX+k1nvWOkxcsmPm5HfbTu4oLVDDqj56uRCSCCdZZgseii33ZucYRdamE3J3fXn+1+qylZwiqBZ5h9Io5JaeXgCLfGKbkL1JhL9u21akQsCfmK/Rv1/Ww3jKgWbP/1fLQlqm+Geim/XY3ZaLbt62TSL1KiCgXhhy81LljPR17Y3wDvviB/TNATQnaNVGh2E4KB/4NhkduMt3g2XkYLbdUbdQmpe1ImquPyT3T8+T1fykVIO+OvQkoVUWSNXqFKaWnPA3MJgTgJsqSKd4AhHp2mzHb3rmtHIPHHGLiJdq5stZib4o1dfkG0j9PwVLUr+lIaHKabnNJgxX3/jdys="
+  on:
+    tags: true
+    branch: master
+    repo: madedotcom/pygyver
+    distributions: sdist bdist_wheel
+notifications:
+  email:
+    on_success: never
+    on_failure: never

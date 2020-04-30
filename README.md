@@ -1,16 +1,16 @@
 #  pygyver
 
-Contains Data Enginner, Data Scientist and 3rd party integration tools capabilities
+Contains Data Enginner, Data Scientist and 3rd party integration tools capabilities.
 
-## Installation
-py-test-utility can be installed via pip
+## Install
+pygyver can be installed via pip
 
 ```python 
 pip install pygyver
 ```
 
 
-## [DS Libraries](../master/utils/README.md)
+## env var required
 
 ```
 PROJECT_ROOT=  "root of he project"
@@ -20,11 +20,21 @@ AWS_SECRET_ACCESS_KEY=
 AWS_DEFAULT_REGION=
 AWS_S3_BUCKET=
 AWS_S3_ROOT=
-AWS_S3_PRODUCT_FEED_BUCKET=madecom-product-feed
 
-GOOGLE_APPLICATION_CREDENTIALS=  "path to the json token file."
-BIGQUERY_PROJECT= "default name of the project in BigQuery. Default project cannot be changed in the code."
+GOOGLE_APPLICATION_CREDENTIALS="path to the json token file"
+BIGQUERY_PROJECT= "default name of the project in BigQuery"
 
 ```
 
-BigQuery functions wrap `bigpyquery` functions to provide higher level API removing boilerplate instructions of the lower level API.
+## [etl](../master/pygyver/etl/README.md)
+
+## [data_prep](../master/pygyver/data_prep/README.md)
+
+
+## Pypi release
+
+- create a PR
+- ask for code review
+- merge to master branch
+- create a new Release in https://github.com/madedotcom/pygyver/releases
+

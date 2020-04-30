@@ -621,7 +621,8 @@ class BigQueryLoadJSONData(unittest.TestCase):
         data = pd.DataFrame(self.data_flat)
         assert_frame_equal(
             result,
-            data
+            data,
+            check_like=True
         )
         self.assertNotEqual(
             old_schema,

@@ -99,15 +99,15 @@ if(env.BRANCH_NAME == "master" || env.CHANGE_ID) {
             }  
         }
 
-        stage ("push release git tag") {
-          if(env.BRANCH_NAME == "master") {
-            sh "git tag ${DOCKER_TAG}" 
-            pushGitTag()
-          }
-          else {
-            echo "Tag push to Github skipped because not on master branch"
-          }
-        }
+        // stage ("push release git tag") {
+        //   if(env.BRANCH_NAME == "master") {
+        //     sh "git tag ${DOCKER_TAG}" 
+        //     pushGitTag()
+        //   }
+        //   else {
+        //     echo "Tag push to Github skipped because not on master branch"
+        //   }
+        // }
       }
       finally {
         stage ("cleanup") {
@@ -151,9 +151,9 @@ def prepareOneBuildStage(String name) {
   }
 } 
 
-// Push git tag
-def pushGitTag(){
-  sshagent(credentials: ['Github-SSH']){
-    sh('git push -f --tags') 
-  }
-}
+// // Push git tag
+// def pushGitTag(){
+//   sshagent(credentials: ['Github-SSH']){
+//     sh('git push -f --tags') 
+//   }
+// }
