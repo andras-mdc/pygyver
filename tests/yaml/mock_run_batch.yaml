@@ -1,59 +1,72 @@
-# first batcch
-- batch:
-  # first table
-  - table:
-      table_id: test_run_batch_table_1
-      dataset_id: test 
-      schema_path: tests/schema/test_run_batch_table_1.json
-      file: tests/sql/table1.sql
-    test:
-      mock_data: tests/mock/table-1
-      # *** not sure is needed
-      date_fields: 
-        - date 
-        - craeted_date
-      datetime_fields: 
-        - timestamp
-        - created_timestamp
-      # data quality checks to apply within the pipeline for the table
-    dq-checks:
-      # Field name
-      - pk:  
-          # type        
-          fields: 
-            - id
-          # what do we assert
-          assert: unique            
-      # *** to be implemented
-      - positive:
-          field: quantity
-          assert: composit_id >= 0
-
-  # second table
-  - table:
-      table_id: test_run_batch_table_2
-      dataset_id: test 
-      schema_path: tests/schema/test_run_batch_table_2.json
-      file: tests/sql/table2.sql
-    test:
-      mock_data: tests/mock/table-2
-      # *** not sure is needed
-      date_fields: 
-        - date 
-        - craeted_date
-      datetime_fields: 
-        - timestamp
-        - created_timestamp
-      # data quality checks to apply within the pipeline for the table
-    dq-checks:
-      # Field name
-      - pk:  
-          # type        
-          fields: 
-            - id
-          # what do we assert
-          assert: unique            
-      # *** to be implemented
-      - positive:
-          field: quantity
-          assert: composit_id >= 0
+desc: this is a test pipeline
+datasets: [flat_events, staging, data, reporting]
+batches:
+  - batch:
+      desc: create table pk & gd_table in staging
+      tables:
+        - table_desc: table pk
+          create_table:
+            table_id: attr_something_pk
+            dataset_id: staging 
+            schema_path: tests/schema/attr_something_pk.json
+            file: sql/attr_something_pk.sql
+          pk: [col1, col2]
+          mock_data: sql/attr_something_mocked_pk.sql
+        - table_desc: table gd_table
+          create:
+            table_id: gd_table
+            dataset_id: staging 
+            schema_path: tests/schema/gd_table.json
+            file: sql/gd_table.sql
+          pk: [col1]
+          mock_data: sql/gd_table_mocked_pk.sql
+  - batch: 
+      desc: create attributes in staging
+      tables:
+        - table_desc: attr_1_something
+          create_table:
+            table_id: attr_1_something
+            dataset_id: staging 
+            schema_path: tests/schema/attr_1_something.json
+            file: sql/attr_1_something.sql
+          pk: [col1, col2]
+          mock_data: attr_1_something_mocked.sql
+        - table_desc: attr_2_something
+          create_table:
+            table_id: attr_2_something
+            dataset_id: staging 
+            schema_path: tests/schema/attr_1_something.json
+            file: sql/attr_2_something.sql
+          pk: [col1, col2]
+          mock_data: attr_2_something_mocked.sql
+  - batch: 
+      desc: create table in data
+      tables:
+        - table_desc: data_something
+          create_table:
+            table_id: data_something
+            dataset_id: data 
+            schema_path: tests/schema/data_something.json
+            file: sql/data_something.sql
+          pk: [col1, col2]
+          mock_data: data_something_mocked.sql
+  - batch: 
+      desc: create table reporting
+      tables:
+        - table_desc: reporting_something
+          create_table:
+            table_id: reporting_something
+            dataset_id: data 
+            schema_path: tests/schema/reporting_something.json
+            file: sql/reporting_something.sql
+          pk: [col1, col2]
+          mock_data: reporting_something_mocked.sql
+      
+release:
+  release_log: path_to_release_log.yml
+  date: "2020-05-07"
+  desc: "release of order-item to prod"
+  files:
+    - path_to_file1
+    - path_to_file2
+    - path_to_file3

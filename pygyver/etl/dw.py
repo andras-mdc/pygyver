@@ -734,7 +734,7 @@ class BigQueryExecutor:
         )
         return data['dup_total'].values[0]
 
-    def assert_unique(self, table_id, primary_key: list, dataset_id=bq_default_dataset(), ignore_error=False):
+    def assert_unique(self, table_id, primary_key: list, dataset_id=bq_default_dataset(), ignore_error=False, **kwargs):
         """
         Assert uniqueness of primary key in table
 

@@ -81,7 +81,7 @@ Contains methods to extract the equivalent json from csv with nested and repeate
 ### Usage
 
 ```python 
->>> from data_prep import tdd_utility as  tu
+>>> from data_prep import tdd_utility as tu
 >>> mockdata_csv = tu.load_data(
 ...     file="path/to/filename/file.csv", 
 ...     schema="path/to/schema/schema.json") # initialise the object

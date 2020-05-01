@@ -1,14 +1,14 @@
 import time
 import asyncio
+import logging
 import unittest
 from pygyver.etl.dw import BigQueryExecutor
 import pygyver.etl.pipeline as pl
 
 
-class TestPipelineExecutor(unittest.TestCase):
-
-    def setUp(self):
-        self.bq_client = BigQueryExecutor()
+class TestExecute_parallel(unittest.TestCase):
+    # def setUp(self):
+    #     logging.basicConfig(level=logging.DEBUG)
 
     def sleep_2_sec(self, num):
         asyncio.sleep(2)
@@ -21,19 +21,62 @@ class TestPipelineExecutor(unittest.TestCase):
             {"num": "4"}, {"num": "5"}, {"num": "6"},
             {"num": "7"}, {"num": "8"}
             ]
-        result = asyncio.run(
-            pl.execute_parallel(
-                self.sleep_2_sec,
-                list_values)
-            )
+        pl.execute_parallel(
+                    self.sleep_2_sec,
+                    list_values)
+
         end_time = time.time()
         self.assertLess(end_time-start_time, 3, "right execution time")
-        self.assertEqual(len(result), 8, "all executed")
 
-    def test_run_queries(self):
-        args = [{"table_id": "table1", "dataset_id": "test", "file": "tests/sql/table1.sql"},
-                {"table_id": "table2", "dataset_id": "test", "file": "tests/sql/table1.sql"}]
-        asyncio.run(pl.execute_parallel(self.bq_client.create_table, args))
+    def bug(self, **kwargs):
+        for key, value in kwargs.items():
+            if value == "error":
+                raise Exception("error something")
+            else:
+                return 1
+
+    def test_error_raised(self):
+        with self.assertRaises(Exception):
+            pl.execute_parallel(
+                    self.bug,
+                    [{"status": "ok"}, {"status": "ok"}, {"status": "error"}, {"status": "ok"}]
+                )
+
+
+class TestPipelineExecutorCreateTables(unittest.TestCase):
+
+    def setUp(self):
+        self.bq_client = BigQueryExecutor()
+        self.p_ex = pl.PipelineExecutor("tests/yaml/mock_run_batch.yaml")
+
+    def test_create_tables(self):
+        batch = {
+            "desc": "create table1 & table2 in staging",
+            "tables":
+            [
+                {
+                    "table_desc": "table1",
+                    "create_table": {
+                        "table_id": "table1",
+                        "dataset_id": "test",              
+                        "file": "tests/sql/table1.sql"
+                    },
+                    "pk": ["col1", "col2"],
+                    "mock_data": "sql/table1_mocked.sql"
+                },
+                {
+                    "table_desc": "table2",
+                    "create_table": {
+                        "table_id": "table2",
+                        "dataset_id": "test",
+                        "file": "tests/sql/table2.sql"
+                    },
+                    "pk": ["col1", "col2"],
+                    "mock_data": "sql/table1_mocked.sql"
+                }
+            ]
+        }
+        self.p_ex.create_tables(batch)
         self.assertTrue(
             self.bq_client.table_exists(
                 table_id='table1',
@@ -46,17 +89,200 @@ class TestPipelineExecutor(unittest.TestCase):
                 ),
             "Table2 exists")
 
-    def test_create_tables(self):
-        test_pipeline = pl.PipelineExecutor("tests/yaml/mock_run_batch.yaml")
-        test_pipeline.create_tables(test_pipeline.yaml[0])
-        self.assertTrue(self.bq_client.table_exists(table_id='test_run_batch_table_1',dataset_id="test"), "test_run_batch_table_1 exists")
-        self.assertTrue(self.bq_client.table_exists(table_id='test_run_batch_table_2',dataset_id="test"), "test_run_batch_table_2 exists")
+    def test_run_batch(self):
+        batch = {
+            "desc": "create table1 & table2 in staging",
+            "tables":
+            [
+                {
+                    "table_desc": "table1",
+                    "create_table": {
+                        "table_id": "table1",
+                        "dataset_id": "test",              
+                        "file": "tests/sql/table1.sql"
+                    },
+                    "pk": ["col1", "col2"],
+                    "mock_data": "sql/table1_mocked.sql"
+                },
+                {
+                    "table_desc": "table2",
+                    "create_table": {
+                        "table_id": "table2",
+                        "dataset_id": "test",
+                        "file": "tests/sql/table2.sql"
+                    },
+                    "pk": ["col1", "col2"],
+                    "mock_data": "sql/table1_mocked.sql"
+                }
+            ]
+        }
+        self.p_ex.create_tables(batch)
+        self.assertTrue(
+            self.bq_client.table_exists(
+                table_id='table1',
+                dataset_id="test"),
+            "Tables are created")
+        self.assertTrue(
+            self.bq_client.table_exists(
+                table_id='table2',
+                dataset_id="test"
+                ),
+            "Tables are created")
+
+    def tearDown(self):
+        if self.bq_client.table_exists(table_id='table1', dataset_id='test'):
+            self.bq_client.delete_table(table_id='table1', dataset_id='test')
+        if self.bq_client.table_exists(table_id='table2', dataset_id='test'):
+            self.bq_client.delete_table(table_id='table2', dataset_id='test')
+        if self.bq_client.table_exists(table_id='test_run_batch_table_1', dataset_id='test'):
+            self.bq_client.delete_table(table_id='test_run_batch_table_1', dataset_id='test')
+        if self.bq_client.table_exists(table_id='test_run_batch_table_2', dataset_id='test'):
+            self.bq_client.delete_table(table_id='test_run_batch_table_2', dataset_id='test')
+
+
+class TestPipelineExecutorRunChecks(unittest.TestCase):
+
+    def setUp(self):
+        self.bq_client = BigQueryExecutor()
+        self.p_ex = pl.PipelineExecutor("tests/yaml/mock_run_batch.yaml")
+        batch = {
+            "desc": "create table1 & table2 in staging",
+            "tables":
+            [
+                {
+                    "table_desc": "table1",
+                    "create_table": {
+                        "table_id": "table1",
+                        "dataset_id": "test",              
+                        "file": "tests/sql/table1.sql"
+                    },
+                    "pk": ["col1", "col2"],
+                    "mock_data": "sql/table1_mocked.sql"
+                },
+                {
+                    "table_desc": "table2",
+                    "create_table": {
+                        "table_id": "table2",
+                        "dataset_id": "test",
+                        "file": "tests/sql/table2.sql"
+                    },
+                    "pk": ["col1", "col2"],
+                    "mock_data": "sql/table1_mocked.sql"
+                }
+            ]
+        }
+        self.p_ex.create_tables(batch)
+
+    def test_run_checks_raise_exception(self):
+        batch = {
+            "desc": "create table1 & table2 in staging",
+            "tables":
+            [
+                {
+                    "table_desc": "table1",
+                    "create_table": {
+                        "table_id": "table1",
+                        "dataset_id": "test",              
+                        "file": "tests/sql/table1.sql"
+                    },
+                    "pk": ["col1", "col2"],
+                    "mock_data": "sql/table1_mocked.sql"
+                },
+                {
+                    "table_desc": "table2",
+                    "create_table": {
+                        "table_id": "table2",
+                        "dataset_id": "test",
+                        "file": "tests/sql/table2.sql"
+                    },
+                    "pk": ["col1"],
+                    "mock_data": "sql/table1_mocked.sql"
+                }
+            ]
+        }
+        with self.assertRaises(Exception):
+            self.p_ex.run_checks(batch)
+
+    def test_run_checks_success(self):
+        batch = {
+            "desc": "create table1 & table2 in staging",
+            "tables":
+            [
+                {
+                    "table_desc": "table1",
+                    "create_table": {
+                        "table_id": "table1",
+                        "dataset_id": "test",              
+                        "file": "tests/sql/table1.sql"
+                    },
+                    "pk": ["col1", "col2"],
+                    "mock_data": "sql/table1_mocked.sql"
+                },
+                {
+                    "table_desc": "table2",
+                    "create_table": {
+                        "table_id": "table2",
+                        "dataset_id": "test",
+                        "file": "tests/sql/table2.sql"
+                    },
+                    "pk": ["col1", "col2"],
+                    "mock_data": "sql/table1_mocked.sql"
+                }
+            ]
+        }
+        try:
+            self.p_ex.run_checks(batch)
+        except AssertionError:
+            self.fail("run_checks() raised AssertionError unexpectedly!")
+
+    def tearDown(self):
+        if self.bq_client.table_exists(table_id='table1', dataset_id='test'):
+            self.bq_client.delete_table(table_id='table1', dataset_id='test')
+        if self.bq_client.table_exists(table_id='table2', dataset_id='test'):
+            self.bq_client.delete_table(table_id='table2', dataset_id='test')
+        if self.bq_client.table_exists(table_id='test_run_batch_table_1', dataset_id='test'):
+            self.bq_client.delete_table(table_id='test_run_batch_table_1', dataset_id='test')
+        if self.bq_client.table_exists(table_id='test_run_batch_table_2', dataset_id='test'):
+            self.bq_client.delete_table(table_id='test_run_batch_table_2', dataset_id='test')
+
+
+class TestPipelineExecutorRunBatch(unittest.TestCase):
+
+    def setUp(self):
+        self.bq_client = BigQueryExecutor()
+        self.p_ex = pl.PipelineExecutor("tests/yaml/mock_run_batch.yaml")
 
     def test_run_batch(self):
-        test_pipeline = pl.PipelineExecutor("tests/yaml/mock_run_batch.yaml")
-        test_pipeline.run_batch(test_pipeline.yaml[0])
-        self.assertTrue(self.bq_client.table_exists(table_id='test_run_batch_table_1',dataset_id="test"), "test_run_batch_table_1 exists")
-        self.assertTrue(self.bq_client.table_exists(table_id='test_run_batch_table_2',dataset_id="test"), "test_run_batch_table_2 exists")
+        batch = {
+            "desc": "create table1 & table2 in staging",
+            "tables":
+            [
+                {
+                    "table_desc": "table1",
+                    "create_table": {
+                        "table_id": "table1",
+                        "dataset_id": "test",              
+                        "file": "tests/sql/table1.sql"
+                    },
+                    "pk": ["col1", "col2"],
+                    "mock_data": "sql/table1_mocked.sql"
+                },
+                {
+                    "table_desc": "table2",
+                    "create_table": {
+                        "table_id": "table2",
+                        "dataset_id": "test",
+                        "file": "tests/sql/table2.sql"
+                    },
+                    "pk": ["col1", "col2"],
+                    "mock_data": "sql/table1_mocked.sql"
+                }
+            ]
+        }
+        try:
+            self.p_ex.run_batch(batch)
+        except AssertionError:
+            self.fail("run_checks() raised AssertionError unexpectedly!")
 
     def tearDown(self):
         if self.bq_client.table_exists(table_id='table1', dataset_id='test'):

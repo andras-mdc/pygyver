@@ -2,8 +2,10 @@
 import os
 import unittest
 from unittest import mock
+from pygyver.etl.lib import extract_args
 from pygyver.etl.lib import bq_token_file_valid
 from pygyver.etl.lib import remove_first_slash
+
 
 
 def bq_token_file_path_exists_mock(token_path):
@@ -41,7 +43,7 @@ class FunctionsinLib(unittest.TestCase):
                 bq_token_file_valid(),
                 "Token file is not valid"
             )
-    
+
     def test_remove_first_slash(self):
         self.assertEqual(
                 remove_first_slash("/sandbox"), "sandbox",
@@ -54,8 +56,52 @@ class FunctionsinLib(unittest.TestCase):
         self.assertEqual(
                 remove_first_slash(""), "",
                 "empty string - ok"
-            )           
+            )
 
+    def test_extract_args_1_param(self):
+        content = [
+                        {
+                            "table_desc": "table1",
+                            "create_table": {
+                                "table_id": "table1",
+                                "dataset_id": "test",              
+                                "file": "tests/sql/table1.sql"
+                            },
+                            "pk": ["col1", "col2"],
+                            "mock_data": "sql/table1_mocked.sql"
+                        },
+                        {
+                            "table_desc": "table2",
+                            "create_table": {
+                                "table_id": "table2",
+                                "dataset_id": "test",
+                                "file": "tests/sql/table2.sql"
+                            },
+                            "pk": ["col1"],
+                            "mock_data": "sql/table1_mocked.sql"
+                        }
+                    ]        
+        self.assertEqual(
+            extract_args(content, "pk"),
+            [["col1", "col2"], ["col1"]],
+            "extracted ok"
+            )
+        self.assertEqual(
+            extract_args(content, "create_table"),
+            [
+                {
+                    "table_id": "table1",
+                    "dataset_id": "test",
+                    "file": "tests/sql/table1.sql"
+                },
+                {
+                    "table_id": "table2",
+                    "dataset_id": "test",
+                    "file": "tests/sql/table2.sql"
+                }
+            ],
+            "extracted ok"
+            )
 
 
 if __name__ == "__main__":
