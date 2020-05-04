@@ -2,14 +2,14 @@
 import os
 import io
 import json
-import boto3
 import logging
 import pandas as pd
-from pygyver.etl.lib import s3_default_root
+from google.cloud import storage
+from google.oauth2 import service_account
 from botocore.exceptions import ClientError
-from pygyver.etl.lib import s3_default_bucket
-from pygyver.etl.lib import remove_first_slash
-
+import boto3
+from pygyver.etl.lib import gcs_default_project, gcs_default_bucket,  \
+    bq_token_file_valid, bq_token_file_path, s3_default_root, s3_default_bucket, remove_first_slash
 
 def s3_get_file_json(file_name):  # to be removed after the code migration in waxit
     """ Gets file from S3 """
@@ -47,10 +47,10 @@ def s3_get_file_json(file_name):  # to be removed after the code migration in wa
 class S3Executor:
 
     def __init__(
-        self,
-        root=s3_default_root(),
-        bucket_name=s3_default_bucket()
-    ):
+            self,
+            root=s3_default_root(),
+            bucket_name=s3_default_bucket()
+        ):
         # uses credentials in ~/.aws/credentials
         self.client = boto3.client('s3')
         self.resource = boto3.resource('s3')
@@ -96,7 +96,7 @@ class S3Executor:
         if chunksize is None:
             return chunks
 
-        for chunk in chunks:            
+        for chunk in chunks:
             data.append(chunk)
 
         data = pd.concat(data)
@@ -131,7 +131,7 @@ class S3Executor:
         """
         # session = boto3.session.Session()
         bucket_response = self.connection.create_bucket(
-                Bucket=bucket_name)
+            Bucket=bucket_name)
         return bucket_name, bucket_response
 
     def get_objects(self, prefix=''):
@@ -142,7 +142,7 @@ class S3Executor:
         objs = self.bucket.objects.all()
         return list(filter(lambda x: prefix in x.key, objs))
 
-    def ls(self, prefix=''):        
+    def ls(self, prefix=''):
         """
         Param:      prefix
         Returns:    the list of keys that matches the search
@@ -159,7 +159,7 @@ class S3Executor:
 
         dict_list = list(filter(lambda x: prefix in x['Key'], result.get('Contents', [])))
         key_list = [d['Key'] for d in dict_list if 'Key' in d]
-        key_list = list(map(remove_first_slash, key_list))        
+        key_list = list(map(remove_first_slash, key_list))
         return list(set([d.split("/")[deep] for d in key_list if deep < len(d.split("/"))]))
 
     def get_list(self, search=''):
@@ -181,3 +181,123 @@ class S3Executor:
         files = [obj.key for obj in objects if obj.key.endswith(".json")]
         for file in files:
             list_json_files.append(self.get_file(file))
+
+class GCSExecutor:
+    """
+    GCSExecutor
+    """
+    def __init__(
+            self,
+            project_id=gcs_default_project(),
+        ):
+
+        self.client = None
+        self.credentials = None
+        self.project_id = project_id
+        self.auth()
+
+    def auth(self):
+        """
+        Authentificates using the access token
+        """
+        bq_token_file_valid()
+        self.credentials = service_account.Credentials.from_service_account_file(
+            bq_token_file_path()
+        )
+        self.client = storage.Client(
+            credentials=self.credentials,
+            project=self.project_id
+        )
+
+    def set_bucket(self,
+                   gcs_bucket=gcs_default_bucket()
+                  ):
+        """
+        Set the GCS bucket if provided. If not, set GCS_BUCKET env as GCS bucket
+        """
+        self.bucket = self.client.get_bucket(gcs_bucket)
+
+    def df_to_gcs(self,
+                  gcs_path,
+                  df,
+                  gcs_bucket=gcs_default_bucket(),
+                  index=False
+                 ):
+        """
+        Writes pandas Dataframe to csv on GCS
+        gcs_path: path to file in GCS
+        df: pandas Dataframe to be uploaded
+        gcs_bucket: the GCS bucket, by default uses the GCS_BUCKET env
+        index: keeps the Dataframe index in file
+        """
+        self.set_bucket(gcs_bucket=gcs_bucket)
+        self.bucket.blob(gcs_path).upload_from_string(df.to_csv(index=index), 'text/csv')
+
+    def download_file(self,
+                      gcs_path,
+                      file_path,
+                      gcs_bucket=gcs_default_bucket()
+                     ):
+        """
+        Downloads file from GCS
+        gcs_path: path to file in GCS
+        file_path: path to write to, on the local machine
+        gcs_bucket: the GCS bucket, by default uses the GCS_BUCKET env
+        """
+        self.set_bucket(gcs_bucket=gcs_bucket)
+        self.bucket.blob(gcs_path).download_to_filename(file_path)
+
+    def upload_file(self,
+                    file_path,
+                    gcs_path,
+                    gcs_bucket=gcs_default_bucket()
+                   ):
+        """
+        Uploads file to GCS
+        gcs_path: path write to in GCS
+        file_path: path to file on the local machine
+        gcs_bucket: the GCS bucket, by default uses the GCS_BUCKET env
+        """
+        self.set_bucket(gcs_bucket=gcs_bucket)
+        self.bucket.blob(gcs_path).upload_from_filename(file_path)
+
+    def csv_to_df(self,
+                  gcs_path,
+                  gcs_bucket=gcs_default_bucket()
+                 ):
+        """
+        Reads csv from GCS to pandas Dataframe
+        gcs_path: path to file in GCS
+        gcs_bucket: the GCS bucket, by default uses the GCS_BUCKET env
+        """
+        self.set_bucket(gcs_bucket=gcs_bucket)
+        self.bucket.blob(gcs_path).download_to_filename('temp_gcs_file.csv')
+        df = pd.read_csv('temp_gcs_file.csv')
+        os.remove("temp_gcs_file.csv")
+        return df
+
+    def list_files(self,
+                   gcs_directory,
+                   gcs_bucket=gcs_default_bucket()
+                  ):
+        """
+        Returns a list of blobs in GCS directory
+        gcs_directory: path to directory in GCS
+        gcs_bucket: the GCS bucket, by default uses the GCS_BUCKET env
+        """
+        self.set_bucket(gcs_bucket=gcs_bucket)
+        file_list = [file.name for file in self.bucket.list_blobs(prefix=gcs_directory)]
+        return file_list
+
+    def delete_directory(self,
+                         gcs_directory,
+                         gcs_bucket=gcs_default_bucket()
+                        ):
+        """
+        Deletes all files within a GCS directory recursively
+        gcs_directory: path to directory in GCS
+        gcs_bucket: the GCS bucket, by default uses the GCS_BUCKET env
+        """
+        self.set_bucket(gcs_bucket=gcs_bucket)
+        for blob in self.bucket.list_blobs(prefix=gcs_directory):
+            blob.delete()

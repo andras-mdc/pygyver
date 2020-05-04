@@ -153,3 +153,17 @@ def s3_default_root():
 
 def extract_args(content, to_extract: str):
     return [x.get(to_extract, '') for x in content if x.get(to_extract, '') != '']
+
+
+def gcs_default_project():
+    """
+    Returns GOOGLE_CLOUD_PROJECT if env is set
+    """
+    return os.environ.get('GCS_PROJECT', '')
+
+
+def gcs_default_bucket():
+    """
+    Returns GCS_BUCKET if env is set
+    """
+    return os.environ.get('GCS_BUCKET', '')
