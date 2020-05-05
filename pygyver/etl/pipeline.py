@@ -82,6 +82,23 @@ class PipelineExecutor:
         for batch in batch_list:
             self.run_batch(batch)
 
+    def extract_mock_data_from_yaml(self, yaml):
+        """ return the list of unit test: unit test -> sql, cte file path couple"""
+        # extract sql files and mock data
+        batches_content = self.yaml.get('batches', '')
+        batch_list = extract_args(batches_content, 'batch')
+        args = []
+        args_mock = []
+        
+        for batch in batch_list:
+            batch_content = batch.get('tables', '')
+            args = extract_args(batch_content, 'create_table')
+            args_mock = extract_args(batch_content, 'pk')
+
+        for a, b in zip(args, args_mock):
+            a.update({"cte": b})
+        
+        
 
     def run_unit_tests(self, batch):
         # extract sql files and mock data
@@ -90,7 +107,7 @@ class PipelineExecutor:
         for batch in batch_list:
             batch_content = batch.get('tables', '')
             args = extract_args(batch_content, 'create_table')
-            args_mock = extract_args(batch_content, 'pk')
+            args_mock = extract_args(batch_content, 'mock_data')
 
 
     def run_test(self):
