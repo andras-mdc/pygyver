@@ -4,6 +4,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from pygyver.etl.lib import bq_token_file_path
 
+
 def load_gs_to_dataframe(key, sheet_name='', sheet_index=0):
     '''
     Loads Google Spreadsheet to a pandas dataframe

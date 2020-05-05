@@ -57,6 +57,19 @@ class PipelineExecutor:
                     )
         return result
 
+    def load_google_sheets(self, batch):
+        batch_content = batch.get('sheets', '')
+        args = extract_args(batch_content, 'load_google_sheet')
+        if args == []:
+            raise Exception("load_google_sheet in yaml is not well defined")
+        result = execute_parallel(
+                    self.bq.load_google_sheet,
+                    args,
+                    message='Loading table:',
+                    log='table_id'
+                    )
+        return result
+
     def run_checks(self, batch):
         batch_content = batch.get('tables', '')
         args = extract_args(batch_content, 'create_table')
@@ -72,18 +85,27 @@ class PipelineExecutor:
         return result
 
     def run_batch(self, batch):
-        # *** create tables ***
-        self.create_tables(batch)
-        # *** exec pk check
+        ''' batch executor - this is a mvp, it can be widely improved '''
+        # *** check load_google_sheets ***
+        if not (batch.get('tables', '') == '' or extract_args(batch.get('tables', ''),  'load_google_sheet') == ''): 
+            self.create_tables(batch)
+        # *** check create_tables ***
+        if not (batch.get('tables', '') == '' or extract_args(batch.get('tables', ''),  'create_table') == ''): 
+            self.create_tables(batch)
+        # *** exec pk check ***
+        if not (batch.get('tables', '') == '' or extract_args(batch.get('tables', ''),  'create_table') == '' or extract_args(batch.get('tables', ''),  'pk') == ''):  
+            self.create_tables(batch)        
 
     def run(self):
+        # run batches
         batches_content = self.yaml.get('batches', '')
         batch_list = extract_args(batches_content, 'batch')
         for batch in batch_list:
             self.run_batch(batch)
+        # run release (ToDo)
 
     def run_test(self):
-        # unit test
-        # copy table schema from prod
-        # dry run
+        # run unit test (ToDo)
+        # copy table schema from prod (ToDo)
+        # dry run (ToDo)
         pass

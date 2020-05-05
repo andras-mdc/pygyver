@@ -1,21 +1,27 @@
 """ DW Tests """
 import os
-import pandas as pd
-import unittest
-from unittest import mock
 import logging
+import gspread
+import unittest
+import pandas as pd
+from unittest import mock
+from pygyver.etl import dw
 from google.cloud import bigquery
 from google.cloud import exceptions
-from pygyver.etl import dw
+from pandas.testing import assert_frame_equal
+from pygyver.etl.lib import bq_token_file_path
 from pygyver.etl.dw import BigQueryExecutorError
+from oauth2client.service_account import ServiceAccountCredentials
+
 
 def get_existing_partition_query_mock(dataset_id, table_id):
     d = {'partition_id': ["20200101", "20200102", "20200103"]}
     return pd.DataFrame(data=d)
 
+
 class test_read_sql(unittest.TestCase):
     """ Test """
-    def test_class_read_sql(self):
+    def test_class_read_sql(self):        
         """ Test """
         sql = dw.read_sql(
             file="tests/sql/read_sql.sql",
@@ -455,17 +461,6 @@ class BigQueryLoadDataframe(unittest.TestCase):
             data
         )
 
-    def test_load_dataframe_on_non_existing_table_error(self):
-        """ Test """
-        data = pd.DataFrame(data={'my_date_string': ["20200101", "20200102", "20200103"]})
-
-        with self.assertRaises(Exception):
-            self.db.load_dataframe(
-                df=data,
-                table_id='load_dataframe_non_existing',
-                dataset_id='test'
-            )
-
     def test_load_dataframe_on_non_existing_table_with_schema(self):
         """ Test """
         data = pd.DataFrame(data={'my_date_string': ["20200101", "20200102", "20200103"]})
@@ -736,6 +731,7 @@ class BigQueryLoadJSONData(unittest.TestCase):
             dataset_id='test'
         )
 
+
 class BigQueryExecutorTableTruncate(unittest.TestCase):
     """
     Test
@@ -853,6 +849,7 @@ class BigQueryExecutorTableCopy(unittest.TestCase):
         data = self.bq_client.execute_sql("SELECT fullname FROM `test_bq_copy_table.dest`")
         self.assertEqual(data['fullname'][0], "Angus MacGyver")
 
+
 class BigQueryExecutorCheckDQ(unittest.TestCase):
     """ Test """
     def setUp(self):
@@ -919,5 +916,46 @@ class BigQueryExecutorCheckDQ(unittest.TestCase):
         )
 
 
+class BigQueryExecutorLoadGoogleSheet(unittest.TestCase):
+    """ Test """
+    def setUp(self):
+        self.bq_client = dw.BigQueryExecutor()
+        self.scope = [
+            'https://spreadsheets.google.com/feeds',
+            'https://www.googleapis.com/auth/drive'
+            ]
+        self.credentials = ServiceAccountCredentials.from_json_keyfile_name(
+            bq_token_file_path(),
+            self.scope
+            )
+        self.client = gspread.authorize(self.credentials)
+        self.id = self.client.create('test_spreadsheet').id
+        self.test_data = open('tests/csv/test_load_to_gs.csv', 'r').read()
+        self.client.import_csv(self.id, self.test_data)
+
+    def test_load_google_sheet_to_bigquery(self):
+        self.bq_client.load_google_sheet(
+            googlesheet_key=self.id,
+            table_id='table1',
+            dataset_id='test'
+        )
+
+        result = self.bq_client.execute_sql(
+            "SELECT * FROM test.table1"
+        )
+
+        test_df = pd.read_csv('tests/csv/test_load_to_gs.csv')
+        assert_frame_equal(
+            result,
+            test_df
+        )
+
+    def tearDown(self):
+        self.bq_client.delete_table(
+            dataset_id='test',
+            table_id='table1'
+        )
+
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     unittest.main()

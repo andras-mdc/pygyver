@@ -47,7 +47,7 @@ class TestPipelineExecutorCreateTables(unittest.TestCase):
 
     def setUp(self):
         self.bq_client = BigQueryExecutor()
-        self.p_ex = pl.PipelineExecutor("tests/yaml/mock_run_batch.yaml")
+        self.p_ex = pl.PipelineExecutor("tests/yaml/test_run.yaml")
 
     def test_create_tables(self):
         batch = {
@@ -144,7 +144,7 @@ class TestPipelineExecutorRunChecks(unittest.TestCase):
 
     def setUp(self):
         self.bq_client = BigQueryExecutor()
-        self.p_ex = pl.PipelineExecutor("tests/yaml/mock_run_batch.yaml")
+        self.p_ex = pl.PipelineExecutor("tests/yaml/test_run.yaml")
         batch = {
             "desc": "create table1 & table2 in staging",
             "tables":
@@ -246,13 +246,48 @@ class TestPipelineExecutorRunChecks(unittest.TestCase):
             self.bq_client.delete_table(table_id='test_run_batch_table_2', dataset_id='test')
 
 
-class TestPipelineExecutorRunBatch(unittest.TestCase):
+class TestPipelineExecutorLoadGoogleSheets(unittest.TestCase):
 
     def setUp(self):
         self.bq_client = BigQueryExecutor()
-        self.p_ex = pl.PipelineExecutor("tests/yaml/mock_run_batch.yaml")
+        self.p_ex = pl.PipelineExecutor("tests/yaml/test_run.yaml")
 
-    def test_run_batch(self):
+    def test_LoadGoogleSheet(self):
+        batch = {
+            "desc": "load test spreadsheet into bigquery",
+            "sheets": [
+                {
+                    "table_desc": "ref sheet1",
+                    "load_google_sheet": {
+                        "table_id": "ref_sheet1",
+                        "dataset_id": "test",
+                        "googlesheet_key": "19Jmapr9G1nrMcW2QTpY7sOvKYaFXnw5krK6dD0GwEqU",
+                        "googlesheet_link": "https://docs.google.com/spreadsheets/d/19Jmapr9G1nrMcW2QTpY7sOvKYaFXnw5krK6dD0GwEqU/edit#gid=0"
+                    }
+                }
+            ]
+        }
+        self.p_ex.load_google_sheets(batch)
+        self.assertTrue(
+            self.bq_client.table_exists(
+                table_id='ref_sheet1',
+                dataset_id="test"),
+            "ref_sheet1 exists")
+
+    
+
+    def tearDown(self):
+        if self.bq_client.table_exists(table_id='ref_sheet1', dataset_id='test'):
+            self.bq_client.delete_table(table_id='ref_sheet1', dataset_id='test')
+
+
+class TestPipelineExecutorRunBatch(unittest.TestCase):
+    
+    def setUp(self):
+        self.bq_client = BigQueryExecutor()
+        self.p_ex = pl.PipelineExecutor("tests/yaml/test_run.yaml")
+    
+    def test_run_batch_create_tables(self):
         batch = {
             "desc": "create table1 & table2 in staging",
             "tables":
@@ -279,8 +314,61 @@ class TestPipelineExecutorRunBatch(unittest.TestCase):
                 }
             ]
         }
+        self.p_ex.run_batch(batch)
+        self.assertTrue(
+            self.bq_client.table_exists(
+                table_id='table1',
+                dataset_id="test"),
+            "Tables are created")
+        self.assertTrue(
+            self.bq_client.table_exists(
+                table_id='table2',
+                dataset_id="test"
+                ),
+            "Tables are created")
+
+    def test_run_batch_load_google_sheets(self):
+        batch = {
+            "desc": "load test spreadsheet into bigquery",
+            "sheets": [
+                {
+                    "table_desc": "ref sheet1",
+                    "load_google_sheet": {
+                        "table_id": "ref_sheet1",
+                        "dataset_id": "test",
+                        "googlesheet_key": "19Jmapr9G1nrMcW2QTpY7sOvKYaFXnw5krK6dD0GwEqU",
+                        "googlesheet_link": "https://docs.google.com/spreadsheets/d/19Jmapr9G1nrMcW2QTpY7sOvKYaFXnw5krK6dD0GwEqU/edit#gid=0"
+                    }
+                }
+            ]
+        }
+        self.p_ex.load_google_sheets(batch)
+        self.assertTrue(
+            self.bq_client.table_exists(
+                table_id='ref_sheet1',
+                dataset_id="test"),
+            "ref_sheet1 exists")
+
+    def tearDown(self):
+        if self.bq_client.table_exists(table_id='table1', dataset_id='test'):
+            self.bq_client.delete_table(table_id='table1', dataset_id='test')
+        if self.bq_client.table_exists(table_id='table2', dataset_id='test'):
+            self.bq_client.delete_table(table_id='table2', dataset_id='test')
+        if self.bq_client.table_exists(table_id='test_run_batch_table_1', dataset_id='test'):
+            self.bq_client.delete_table(table_id='test_run_batch_table_1', dataset_id='test')
+        if self.bq_client.table_exists(table_id='test_run_batch_table_2', dataset_id='test'):
+            self.bq_client.delete_table(table_id='test_run_batch_table_2', dataset_id='test')
+
+
+class TestPipelineExecutorRun(unittest.TestCase):
+    
+    def setUp(self):
+        self.bq_client = BigQueryExecutor()
+        self.p_ex = pl.PipelineExecutor("tests/yaml/test_run.yaml")
+        
+    def test_run_completed_no_error(self):
         try:
-            self.p_ex.run_batch(batch)
+            self.p_ex.run()
         except AssertionError:
             self.fail("run_checks() raised AssertionError unexpectedly!")
 
@@ -294,6 +382,6 @@ class TestPipelineExecutorRunBatch(unittest.TestCase):
         if self.bq_client.table_exists(table_id='test_run_batch_table_2', dataset_id='test'):
             self.bq_client.delete_table(table_id='test_run_batch_table_2', dataset_id='test')
 
-
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
     unittest.main()
