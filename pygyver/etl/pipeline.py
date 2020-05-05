@@ -82,6 +82,17 @@ class PipelineExecutor:
         for batch in batch_list:
             self.run_batch(batch)
 
+
+    def run_unit_tests(self, batch):
+        # extract sql files and mock data
+        batches_content = self.yaml.get('batches', '')
+        batch_list = extract_args(batches_content, 'batch')
+        for batch in batch_list:
+            batch_content = batch.get('tables', '')
+            args = extract_args(batch_content, 'create_table')
+            args_mock = extract_args(batch_content, 'pk')
+
+
     def run_test(self):
         # unit test
         # copy table schema from prod
