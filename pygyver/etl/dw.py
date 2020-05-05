@@ -760,7 +760,7 @@ class BigQueryExecutor:
             else:
                 raise AssertionError(msg)
 
-    def check_query_output(self, sql, cte, output_table_name='expected_output'):
+    def assert_acceptance(self, sql, cte, output_table_name='expected_output'):
         try:
             sql_extract_output_table = "WITH {} ( SELECT * FROM {} )".format(cte, output_table_name)
 

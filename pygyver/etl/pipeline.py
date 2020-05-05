@@ -1,6 +1,7 @@
 """ Module to ETL data to generate pipelines """
 from __future__ import print_function
 import asyncio
+from pygyver.etl.dw import read_sql 
 from pygyver.etl.lib import extract_args
 from pygyver.etl.dw import BigQueryExecutor
 from pygyver.etl.toolkit import read_yaml_file
@@ -97,18 +98,30 @@ class PipelineExecutor:
             args += extract_args(batch_content, 'create_table')
             args_mock += extract_args(batch_content, 'mock_data')
         
+        return_list = []
         for a, b in zip(args, args_mock):
-            a.update({"cte": b})
+            a.update({"mock_data": b}) 
+            return_list.append( { k : a[k] for k in ['mock_data', 'file'] } )
 
-        return [(item.get('file'),item.get('cte')) for item in args]
+        return return_list
         
+    def extract_unit_test_args(self):
+        unit_test_list = self.extract_unit_tests()
+        for d in unit_test_list:
+            d["sql"] = read_sql(d['file'])
+            d["cte"] = read_sql(d['mock_data'])
+            d.pop(file, None)
+            d.pop(mock_data, None)
+        return unit_test_list
 
     def run_unit_tests(self, batch):
         # extract sql files and mock data
-        pass
+        for sql, cte in self.extract_unit_tests():
+            pass 
 
     def run_test(self):
         # unit test
+        self.run_unit_tests()
         # copy table schema from prod
         # dry run
         pass

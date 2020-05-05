@@ -942,7 +942,7 @@ class BigQueryCheckSql(unittest.TestCase):
                 SELECT a.*, b.price from  `staging.table1` a LEFT JOIN `staging.table2` b on a.id = b.id
                 """
         try:
-            self.bq_client.check_query_output(
+            self.bq_client.assert_acceptance(
                 sql=sql,
                 cte=cte
             )
@@ -951,7 +951,7 @@ class BigQueryCheckSql(unittest.TestCase):
             self.fail("run_checks() raised AssertionError unexpectedly!")
 
 
-    def test_check_sql_output_error(self):
+    def test_assert_acceptance(self):
         """ Test """
         cte = """`staging.table1` AS (
                     SELECT 'A001' AS id,'102461350' AS order_reference,'sofa' AS sku UNION ALL
@@ -968,7 +968,7 @@ class BigQueryCheckSql(unittest.TestCase):
                 SELECT a.*, b.price from  `staging.table1` a LEFT JOIN `staging.table2` b on a.id = b.id
                 """        
         with self.assertRaises(AssertionError):
-            self.bq_client.check_query_output(
+            self.bq_client.assert_acceptance(
                 sql=sql,
                 cte=cte
             )

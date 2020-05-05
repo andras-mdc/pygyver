@@ -306,10 +306,10 @@ class TestPipelineUnitTests(unittest.TestCase):
         self.assertCountEqual( 
             self.p_ex.extract_unit_tests(), 
             [ 
-                ("tests/sql/table1.sql", "sql/table1_mocked.sql"), 
-                ("tests/sql/table2.sql", "sql/table2_mocked.sql"), 
-                ("tests/sql/table3.sql", "sql/table3_mocked.sql"), 
-                ("tests/sql/table4.sql", "sql/table4_mocked.sql")
+                { "file" : "tests/sql/unit_table1.sql", "mock_data": "sql/unit_table1_mocked.sql"}, 
+                { "file" : "tests/sql/unit_table2.sql", "mock_data": "sql/unit_table2_mocked.sql"},
+                { "file" : "tests/sql/unit_table3.sql", "mock_data": "sql/unit_table3_mocked.sql"},
+                { "file" : "tests/sql/unit_table4.sql", "mock_data": "sql/unit_table4_mocked.sql"},
             ], 
             "unit tests well extracted" )
 

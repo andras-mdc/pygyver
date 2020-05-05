@@ -8,20 +8,20 @@ batches:
     create_table:
       table_id: table1
       dataset_id: test
-      file: tests/sql/table1.sql
+      file: tests/sql/unit_table1.sql
     pk:
     - col1
     - col2
-    mock_data: sql/table1_mocked.sql
+    mock_data: sql/unit_table1_mocked.sql
   - table_desc: table2
     create_table:
       table_id: table2
       dataset_id: test
-      file: tests/sql/table2.sql
+      file: tests/sql/unit_table2.sql
     pk:
     - col1
     - col2
-    mock_data: sql/table2_mocked.sql  
+    mock_data: sql/unit_table2_mocked.sql  
 - batch: 
   desc: create table3 & table4 in staging
   tables:
@@ -29,20 +29,20 @@ batches:
     create_table:
       table_id: table3
       dataset_id: test
-      file: tests/sql/table3.sql
+      file: tests/sql/unit_table3.sql
     pk:
     - col1
     - col2
-    mock_data: sql/table3_mocked.sql
+    mock_data: sql/unit_table3_mocked.sql
   - table_desc: table4
     create_table:
       table_id: table4
       dataset_id: test
-      file: tests/sql/table4.sql
+      file: tests/sql/unit_table4.sql
     pk:
     - col1
     - col2
-    mock_data: sql/table4_mocked.sql      
+    mock_data: sql/unit_table4_mocked.sql      
 release:
   release_log: path_to_release_log.yml
   date: "2020-05-07"
