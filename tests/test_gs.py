@@ -31,3 +31,7 @@ class GoogleSpreadsheetLoadDataToDataframe(unittest.TestCase):
             result,
             test_df
         )
+
+
+if __name__ == "__main__":
+    unittest.main()

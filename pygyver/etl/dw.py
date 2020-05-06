@@ -19,9 +19,12 @@ from pygyver.etl.lib import bq_end_date
 from pygyver.etl.lib import set_write_disposition, set_priority
 from pygyver.etl.toolkit import date_lister
 from pygyver.etl.toolkit import validate_date
+from pygyver.etl.gs import load_gs_to_dataframe
+
 
 class BigQueryExecutorError(Exception):
     pass
+
 
 def print_kwargs_params(func):
     def inner(*args, **kwargs):
@@ -34,8 +37,10 @@ def print_kwargs_params(func):
         return func(*args, **kwargs)
     return inner
 
+
 def forbiden_kwargs():
     return ['partition_date']
+
 
 @print_kwargs_params
 def read_sql(file, *args, **kwargs):
@@ -56,6 +61,7 @@ def read_sql(file, *args, **kwargs):
     if len(kwargs) > 0:
         sql = sql.format(**kwargs)
     return sql
+
 
 class BigQueryExecutor:
     """ BigQuery handler
@@ -541,26 +547,31 @@ class BigQueryExecutor:
                 dataset_id=dataset_id,
                 schema_path=schema_path
             )
-            schema = read_table_schema_from_file(schema_path)
+            schema = read_table_schema_from_file(schema_path)            
         else:
             schema = None
 
-        if self.table_exists(
-                table_id=table_id,
-                dataset_id=dataset_id
-        ):
-            data = df.rename(columns=lambda cname: cname.replace('.', '_'))
-            table_ref = self.get_table_ref(dataset_id, table_id)
-            job_config = bigquery.LoadJobConfig(schema=schema)
-            job_config.write_disposition = set_write_disposition(write_disposition)
-            job = self.client.load_table_from_dataframe(
-                data,
-                table_ref,
-                job_config=job_config
+        data = df.rename(columns=lambda cname: cname.replace('.', '_'))
+        table_ref = self.get_table_ref(dataset_id, table_id)
+        job_config = bigquery.LoadJobConfig(schema=schema)
+        job_config.write_disposition = set_write_disposition(write_disposition)    
+        job = self.client.load_table_from_dataframe(
+            data,
+            table_ref,
+            job_config=job_config
+        )
+        job.result()
+      
+
+    def load_google_sheet(self, googlesheet_key, table_id, dataset_id=bq_default_dataset(), **kwargs):
+        df = load_gs_to_dataframe(googlesheet_key)
+        if self.table_exists(table_id, dataset_id):
+            self.delete_table(table_id, dataset_id)
+        self.load_dataframe(
+            df,
+            table_id,
+            dataset_id
             )
-            job.result()
-        else:
-            raise Exception("Please initiate %s.%s or pass the schema file", dataset_id, table_id)
 
     def load_json_file(self, file, table_id, dataset_id=bq_default_dataset(), schema_path='', write_disposition="WRITE_TRUNCATE"):
         '''
@@ -771,3 +782,4 @@ class BigQueryExecutor:
         df = self.execute_sql(composite_sql)        
         assert_frame_equal(df, df_result)
         
+
