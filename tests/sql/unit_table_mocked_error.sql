@@ -8,4 +8,4 @@
   ),
   `expected_output` AS (
     SELECT 'A001' AS id,'102461350' AS order_reference,'sofa' AS sku, 100 AS price UNION ALL
-    SELECT 'A002','1600491918','chair', 200)
+    SELECT 'A002','1600491918','chair', 100)

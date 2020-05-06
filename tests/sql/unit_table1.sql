@@ -1,1 +1,1 @@
-SELECT a.*, b.price from  `staging.table1` a LEFT JOIN `staging.table2` b on a.id = b.id
+sql test 1

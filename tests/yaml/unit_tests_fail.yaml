@@ -19,12 +19,12 @@ batches:
     create_table:
       table_id: table3
       dataset_id: test
-      file: tests/sql/unit_table2.sql
+      file: tests/sql/unit_table_error.sql
     pk:
     - col1
     - col2
     mock_data: 
-      mock_file: tests/sql/unit_table2_mocked.sql
+      mock_file: tests/sql/unit_table_mocked_error.sql
   - table_desc: table4
     create_table:
       table_id: table4
