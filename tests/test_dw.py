@@ -918,6 +918,60 @@ class BigQueryExecutorCheckDQ(unittest.TestCase):
             primary_key=['col1', 'col2']
         )
 
+class BigQueryCheckSql(unittest.TestCase):
+    """ Test """
+    def setUp(self):
+        """ Test """
+        self.bq_client = dw.BigQueryExecutor()
+        
+        
+    def test_check_sql_output_ok(self):
+        """ Test """
+        cte = """`staging.table1` AS (
+                    SELECT 'A001' AS id,'102461350' AS order_reference,'sofa' AS sku UNION ALL
+                    SELECT 'A002','1600491918','chair'
+                ),
+                `staging.table2` AS (
+                    SELECT 'A001' AS id, 100 AS price UNION ALL
+                    SELECT 'A002', 200
+                ),
+                `expected_output` AS (
+                    SELECT 'A001' AS id,'102461350' AS order_reference,'sofa' AS sku, 100 AS price UNION ALL
+                    SELECT 'A002','1600491918','chair', 200) """
+        sql = """
+                SELECT a.*, b.price from  `staging.table1` a LEFT JOIN `staging.table2` b on a.id = b.id
+                """
+        try:
+            self.bq_client.assert_acceptance(
+                sql=sql,
+                cte=cte
+            )
+
+        except AssertionError:
+            self.fail("run_checks() raised AssertionError unexpectedly!")
+
+
+    def test_assert_acceptance(self):
+        """ Test """
+        cte = """`staging.table1` AS (
+                    SELECT 'A001' AS id,'102461350' AS order_reference,'sofa' AS sku UNION ALL
+                    SELECT 'A002','1600491918','chair'
+                ),
+                `staging.table2` AS (
+                    SELECT 'A001' AS id, 100 AS price UNION ALL
+                    SELECT 'A002', 200
+                ),
+                `expected_output` AS (
+                    SELECT 'A001' AS id,'102461350' AS order_reference,'sofa' AS sku, 100 AS price UNION ALL
+                    SELECT 'A003','1600491918','chair', 200) """
+        sql = """
+                SELECT a.*, b.price from  `staging.table1` a LEFT JOIN `staging.table2` b on a.id = b.id
+                """        
+        with self.assertRaises(AssertionError):
+            self.bq_client.assert_acceptance(
+                sql=sql,
+                cte=cte
+            )
 
 if __name__ == "__main__":
     unittest.main()
