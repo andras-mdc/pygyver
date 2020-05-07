@@ -4,6 +4,7 @@ import os
 import logging
 import time
 import pandas as pd
+from pandas._testing import assert_frame_equal
 from google.cloud import bigquery
 from google.cloud.exceptions import NotFound
 from google.oauth2 import service_account
@@ -770,4 +771,15 @@ class BigQueryExecutor:
             else:
                 raise AssertionError(msg)
 
+    def assert_acceptance(self, sql, cte, output_table_name='expected_output'):
+        try:
+            sql_extract_output_table = "WITH {} ( SELECT * FROM {} )".format(cte, output_table_name)
+
+            df_result = self.execute_sql(sql_extract_output_table)
+        except:
+            raise AssertionError("Wrong output table name in CTE")
+        composite_sql = "WITH {} ( {} )".format(cte, sql)
+        df = self.execute_sql(composite_sql)        
+        assert_frame_equal(df, df_result)
+        
 
