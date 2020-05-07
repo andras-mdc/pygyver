@@ -57,7 +57,7 @@ class PipelineExecutor:
                         log='table_id'
                         )
             return result
-
+            
     def load_google_sheets(self, batch):
         batch_content = batch.get('sheets', '')
         args = extract_args(batch_content, 'load_google_sheet')
@@ -95,7 +95,7 @@ class PipelineExecutor:
             self.create_tables(batch)
         # *** exec pk check ***
         if not (batch.get('tables', '') == '' or extract_args(batch.get('tables', ''),  'create_table') == '' or extract_args(batch.get('tables', ''),  'pk') == ''):  
-            self.create_tables(batch)        
+            self.create_tables(batch) 
 
     def run(self):
         # run batches
@@ -147,6 +147,7 @@ class PipelineExecutor:
                         )
             return result
 
+<<<<<<< HEAD
     def dry_run(self):
         self.run()
         
@@ -154,5 +155,12 @@ class PipelineExecutor:
         self.run_unit_tests() # unit test
         # copy table schema from prod
         self.run() # run pipeline on emppty table structure
+=======
+    def run_test(self):
+        # unit test
+        self.run_unit_tests()
+        # copy table schema from prod
+        # dry run
+>>>>>>> c4d77b64a3958c1a97424bf9d9b1cba463618d72
 
 

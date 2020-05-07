@@ -28,6 +28,7 @@ setuptools.setup(
     test_suite="pygyver.tests",
     packages=setuptools.find_packages(),
     install_requires=[
+        'wheel',
         'nltk==3.4.5',
         'boto3==1.9.218',
         'pyarrow==0.16.0',
@@ -37,7 +38,7 @@ setuptools.setup(
         'oauth2client==4.1.3',
         'google-cloud-storage==1.28.0',
         'google-cloud-bigquery>=1.24.0',
-        'pandas>=0.24.2',
+        'pandas>=1.0.0',
         'numpy>=1.17.4',
         'pandas-gbq>=0.9.0'
     ],
