@@ -88,14 +88,14 @@ class PipelineExecutor:
     def run_batch(self, batch):
         ''' batch executor - this is a mvp, it can be widely improved '''
         # *** check load_google_sheets ***
-        if not (batch.get('tables', '') == '' or extract_args(batch.get('tables', ''),  'load_google_sheet') == ''): 
-            self.create_tables(batch)
+        if not (batch.get('sheets', '') == '' or extract_args(batch.get('sheets', ''),  'load_google_sheet') == ''): 
+            self.load_google_sheets(batch)
         # *** check create_tables ***
         if not (batch.get('tables', '') == '' or extract_args(batch.get('tables', ''),  'create_table') == ''): 
             self.create_tables(batch)
         # *** exec pk check ***
         if not (batch.get('tables', '') == '' or extract_args(batch.get('tables', ''),  'create_table') == '' or extract_args(batch.get('tables', ''),  'pk') == ''):  
-            self.create_tables(batch) 
+            self.run_checks(batch) 
 
     def run(self):
         # run batches
