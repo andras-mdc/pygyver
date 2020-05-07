@@ -147,10 +147,12 @@ class PipelineExecutor:
                         )
             return result
 
-    def run_test(self):
-        # unit test
-        self.run_unit_tests()
+    def dry_run(self):
+        self.run()
+        
+    def run_test(self):        
+        self.run_unit_tests() # unit test
         # copy table schema from prod
-        # dry run
+        self.run() # run pipeline on emppty table structure
 
 

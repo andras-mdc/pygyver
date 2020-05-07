@@ -382,7 +382,6 @@ class TestPipelineExecutorRun(unittest.TestCase):
         if self.bq_client.table_exists(table_id='test_run_batch_table_2', dataset_id='test'):
             self.bq_client.delete_table(table_id='test_run_batch_table_2', dataset_id='test')
 
-<<<<<<< HEAD
 
 class TestPipelineUnitTests(unittest.TestCase):
     
@@ -520,8 +519,6 @@ class TestPipelineUnitTestsErrorRaised(unittest.TestCase):
             self.p_ex.run_unit_tests()
 
 
-=======
->>>>>>> 773eadb838cf1ef23c82786f43aabb33b2be8e1e
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     unittest.main()
