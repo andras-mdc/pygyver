@@ -28,6 +28,7 @@ setuptools.setup(
     test_suite="pygyver.tests",
     packages=setuptools.find_packages(),
     install_requires=[
+        'wheel',
         'nltk==3.4.5',
         'boto3==1.9.218',
         'pyarrow==0.16.0',
