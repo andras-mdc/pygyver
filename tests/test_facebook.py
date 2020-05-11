@@ -45,8 +45,8 @@ def transform_campaign_budget_expected_outcome():
     ]
     return pd.DataFrame(data)
 
-class FacebookDownloaderTest(unittest.TestCase):
-    """ Facebook Downloader Test """
+class FacebookExecutorTest(unittest.TestCase):
+    """ Facebook Executor Test """
 
     def test_transform_campaign_budget(self):
         """
