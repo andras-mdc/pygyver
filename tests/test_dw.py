@@ -12,6 +12,7 @@ from pandas.testing import assert_frame_equal
 from pygyver.etl.lib import bq_token_file_path
 from pygyver.etl.dw import BigQueryExecutorError
 from oauth2client.service_account import ServiceAccountCredentials
+from pygyver.etl.storage import GCSExecutor
 
 
 def get_existing_partition_query_mock(dataset_id, table_id):
@@ -731,6 +732,107 @@ class BigQueryLoadJSONData(unittest.TestCase):
             dataset_id='test'
         )
 
+class BigQueryLoadGCS(unittest.TestCase):
+    """ Test """
+
+    def setUp(self):
+        self.gcs = GCSExecutor()
+        self.db = dw.BigQueryExecutor()
+        self.data = pd.DataFrame(
+            data={
+                "first_name": ["Boris", "Emmanuel", "Angela"], 
+                "age": [55, 42, 65]
+                }
+            )
+        self.gcs.df_to_gcs(
+            df=self.data,
+            gcs_path='test-bigquery-load/test.csv'
+        )
+        
+    def test_load_gcs_autodetect(self):
+        """ Test """
+
+        self.db.load_gcs(
+            gcs_path='test-bigquery-load/test.csv',
+            table_id='load_gcs',
+            dataset_id='test'
+        )
+
+        result = self.db.execute_sql(
+            "SELECT * FROM test.load_gcs"
+        )
+
+        assert_frame_equal(
+            result,
+            self.data
+        )
+
+
+    def test_load_gcs_schema(self):
+        """ Test """
+
+        self.db.load_gcs(
+            gcs_path='test-bigquery-load/test.csv',
+            table_id='load_gcs',
+            dataset_id='test',
+            schema_path='tests/schema/test_load_gcs.json'
+        )
+
+        result = self.db.execute_sql(
+            "SELECT * FROM test.load_gcs"
+        )
+
+        assert_frame_equal(
+            result,
+            self.data
+        )
+
+    def tearDown(self):
+        self.db.delete_table(
+            table_id='load_gcs',
+            dataset_id='test'
+        )
+
+class BigQueryExportGCS(unittest.TestCase):
+    """ Test """
+
+    def setUp(self):
+        self.gcs = GCSExecutor()
+        self.db = dw.BigQueryExecutor()
+        self.data = pd.DataFrame(
+            data={
+                "first_name": ["Boris", "Emmanuel", "Angela"], 
+                "age": [55, 42, 65]
+                }
+            )
+        self.db.load_dataframe(
+            df=self.data,
+            dataset_id='test',
+            table_id='export_gcs'
+        )
+        
+    def test_extract_table_to_gcs(self):
+        """ Test """
+        self.db.extract_table_to_gcs(
+            dataset_id='test',
+            table_id='export_gcs',
+            gcs_path='test-bigquery-export/test.csv'
+        )
+
+        result = self.gcs.csv_to_df(
+            gcs_path='test-bigquery-export/test.csv'
+        )
+
+        assert_frame_equal(
+            result,
+            self.data
+        )
+
+    def tearDown(self):
+        self.db.delete_table(
+            dataset_id='test',
+            table_id='export_gcs'
+        )
 
 class BigQueryExecutorTableTruncate(unittest.TestCase):
     """
