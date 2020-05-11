@@ -349,6 +349,7 @@ class TestPipelineExecutorRunBatch(unittest.TestCase):
                 dataset_id="test"),
             "ref_sheet1 exists")
 
+
     def tearDown(self):
         if self.bq_client.table_exists(table_id='table1', dataset_id='test'):
             self.bq_client.delete_table(table_id='table1', dataset_id='test')
@@ -367,20 +368,43 @@ class TestPipelineExecutorRun(unittest.TestCase):
         self.p_ex = pl.PipelineExecutor("tests/yaml/test_run.yaml")
         
     def test_run_completed_no_error(self):
-        try:
-            self.p_ex.run()
-        except AssertionError:
-            self.fail("run_checks() raised AssertionError unexpectedly!")
+        
+        self.p_ex.run()
 
+        self.assertTrue(
+            self.bq_client.table_exists(
+                table_id='ref_sheet1',
+                dataset_id="test"),
+            "googlesheet table1 exists")
+
+        self.assertTrue(
+            self.bq_client.table_exists(
+                table_id='ref_sheet2',
+                dataset_id="test"),
+            "googlesheet table2 exists")
+        
+        self.assertTrue(
+            self.bq_client.table_exists(
+                table_id='table1',
+                dataset_id="test"),
+            "createtable table1 exists")
+
+        self.assertTrue(
+            self.bq_client.table_exists(
+                table_id='table2',
+                dataset_id="test"),
+            "createtable table2 exists")
+        
+        
     def tearDown(self):
         if self.bq_client.table_exists(table_id='table1', dataset_id='test'):
             self.bq_client.delete_table(table_id='table1', dataset_id='test')
         if self.bq_client.table_exists(table_id='table2', dataset_id='test'):
             self.bq_client.delete_table(table_id='table2', dataset_id='test')
-        if self.bq_client.table_exists(table_id='test_run_batch_table_1', dataset_id='test'):
-            self.bq_client.delete_table(table_id='test_run_batch_table_1', dataset_id='test')
-        if self.bq_client.table_exists(table_id='test_run_batch_table_2', dataset_id='test'):
-            self.bq_client.delete_table(table_id='test_run_batch_table_2', dataset_id='test')
+        if self.bq_client.table_exists(table_id='ref_sheet1', dataset_id='test'):
+            self.bq_client.delete_table(table_id='ref_sheet1', dataset_id='test')
+        if self.bq_client.table_exists(table_id='ref_sheet2', dataset_id='test'):
+            self.bq_client.delete_table(table_id='ref_sheet2', dataset_id='test')
 
 
 class TestPipelineUnitTests(unittest.TestCase):

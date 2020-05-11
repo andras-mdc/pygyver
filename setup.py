@@ -29,6 +29,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=[
         'wheel',
+        'PyYAML==5.3.1',
         'nltk==3.4.5',
         'boto3==1.9.218',
         'pyarrow==0.16.0',
