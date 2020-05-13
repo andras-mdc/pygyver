@@ -15,6 +15,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from pygyver.etl.storage import GCSExecutor
 
 
+
 def get_existing_partition_query_mock(dataset_id, table_id):
     d = {'partition_id': ["20200101", "20200102", "20200103"]}
     return pd.DataFrame(data=d)
@@ -886,6 +887,78 @@ class BigQueryExecutorTableTruncate(unittest.TestCase):
         self.assertEqual(
             truncated_table.num_rows,
             0
+        )
+
+class BigQueryExecutorCreateTableStructure(unittest.TestCase):
+    """
+    Testing different scenarios
+    """
+    def setUp(self):
+        """ Test """
+        self.bq_client = dw.BigQueryExecutor()
+
+        if not self.bq_client.dataset_exists('test'):
+            self.bq_client.create_dataset('test')
+
+        self.bq_client.create_table(
+            dataset_id='test',
+            table_id='bq_copy_table_source',
+            schema_path='tests/schema/orig_table.json',
+            sql="SELECT 'Angus MacGyver' AS fullname, 2 AS age"
+        )
+        self.bq_client.create_table(
+            dataset_id='test',
+            table_id='bq_copy_table_target',
+            schema_path='tests/schema/orig_table.json',
+            sql="SELECT 'Angus MacGyver' AS fullname, 2 AS age"
+        )
+
+    def test_copy_table_succeeded(self):
+        self.bq_client.copy_table_structure(
+            source_project_id=self.bq_client.project_id,
+            source_dataset_id='test',
+            source_table_id='bq_copy_table_source',
+            dest_dataset_id='test',
+            dest_table_id='bq_copy_table_source3'
+        )
+        self.assertTrue(
+            self.bq_client.table_exists(
+                dataset_id='test',
+                table_id='bq_copy_table_source3'),
+            "table structure properly copied"
+        )
+    
+    def test_copy_table_does_not_error_and_delete_dest_table(self):
+        try:
+            self.bq_client.copy_table_structure(
+            source_dataset_id='test',
+            source_table_id='does_not_exist',
+            dest_dataset_id='test',
+            dest_table_id='bq_copy_table_target'
+        )
+        except:
+            self.fail("it should not fail!")
+        
+        self.assertTrue(
+            not self.bq_client.table_exists(
+            dataset_id='test',
+            table_id='bq_copy_table_target'),
+            "local table deleted even though not in source project"
+        )
+
+    def tearDown(self):
+        """ Test """
+        self.bq_client.delete_table(
+            dataset_id='test',
+            table_id='bq_copy_table_source'
+        )
+        self.bq_client.delete_table(
+            dataset_id='test',
+            table_id='bq_copy_table_source_2'
+        )
+        self.bq_client.delete_table(
+            dataset_id='test',
+            table_id='bq_copy_table_source_3'
         )
 
 class BigQueryExecutorTableCopy(unittest.TestCase):

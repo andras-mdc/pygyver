@@ -7,6 +7,7 @@ from pygyver.etl.dw import BigQueryExecutor
 from pygyver.etl.toolkit import read_yaml_file
 
 
+
 def async_run(func):
     def async_run(*args, **kwargs):
         asyncio.run(func(*args, **kwargs))
@@ -99,8 +100,7 @@ class PipelineExecutor:
 
     def run(self):
         # run batches
-        batches_content = self.yaml.get('batches', '')
-        batch_list = extract_args(batches_content, 'batch')
+        batch_list = self.yaml.get('batches', '')
         for batch in batch_list:
             self.run_batch(batch)
         # run release (ToDo)
@@ -130,8 +130,6 @@ class PipelineExecutor:
         for d in unit_test_list:
             d["sql"] = read_sql(d['file'])
             d["cte"] = read_sql(d['mock_file'])
-            d.pop("file", None)
-            d.pop("mock_file", None)
         return unit_test_list
 
     def run_unit_tests(self, yaml_content=None):
@@ -143,7 +141,8 @@ class PipelineExecutor:
             result = execute_parallel(
                         self.bq.assert_acceptance,
                         args,
-                        message='Asserting sql',                        
+                        message='Asserting sql',  
+                        log='file'                      
                         )
             return result
 

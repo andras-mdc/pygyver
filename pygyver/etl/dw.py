@@ -112,7 +112,8 @@ class BigQueryExecutor:
             project=self.project_id
         )
 
-    def get_dataset_ref(self, dataset_id):
+
+    def get_dataset_ref(self,  dataset_id, project_id=bq_default_project()):
         """ Returns BigQuery DatasetReference object.
 
         Parameters:
@@ -122,11 +123,11 @@ class BigQueryExecutor:
             bigquery.dataset.DatasetReference object
         """
         return bigquery.dataset.DatasetReference(
-            self.project_id,
+            project_id,
             dataset_id
         )
 
-    def get_table_ref(self, dataset_id, table_id):
+    def get_table_ref(self, dataset_id, table_id, project_id=bq_default_project()):
         """ Returns BigQuery Table reference object.
 
         Parameters:
@@ -136,7 +137,7 @@ class BigQueryExecutor:
         Returns:
             Returns BigQuery Table reference object.
         """
-        dataset_ref = self.get_dataset_ref(dataset_id)
+        dataset_ref = self.get_dataset_ref(dataset_id, project_id)
         return dataset_ref.table(table_id)
 
     def dataset_exists(self, dataset_id=bq_default_dataset()):
@@ -178,7 +179,8 @@ class BigQueryExecutor:
         except exceptions.Conflict as error:
             logging.error(error)
 
-    def create_dataset(self, dataset_id=bq_default_dataset()):
+
+    def create_dataset(self, dataset_id=bq_default_dataset(), project_id=bq_default_project()):
         """ Creates a BigQuery dataset if the dataset does not exists. Otherwise pass.
 
         Parameters:
@@ -202,7 +204,7 @@ class BigQueryExecutor:
             except exceptions.Conflict as error:
                 logging.error(error)
 
-    def table_exists(self, table_id, dataset_id=bq_default_dataset()):
+    def table_exists(self, table_id, dataset_id=bq_default_dataset(), project_id=bq_default_project()):
         """ Checks if a BigQuery table exists.
 
         Parameters:
@@ -287,7 +289,8 @@ class BigQueryExecutor:
                      partition=False,
                      partition_field='_PARTITIONTIME',
                      clustering=None,
-                     priority='INTERACTIVE'):
+                     priority='INTERACTIVE',
+                     **kwargs):
         """ create a bigquery table from a sql query """
 
         if sql is None and file is None:
@@ -515,7 +518,7 @@ class BigQueryExecutor:
                 existing_partition_dates = []
         return existing_partition_dates
 
-    def get_table_schema(self, table_id, dataset_id=bq_default_dataset()):
+    def get_table_schema(self, table_id, dataset_id=bq_default_dataset(), project_id=bq_default_project()):
         """ Gets table schema object
 
         Parameters:
@@ -525,7 +528,7 @@ class BigQueryExecutor:
         Returns:
             Table schema.
         """
-        table_ref = self.get_table_ref(dataset_id, table_id)
+        table_ref = self.get_table_ref(dataset_id, table_id, project_id=project_id)
         table_schema = self.client.get_table(table_ref).schema
         return table_schema
 
@@ -932,6 +935,40 @@ class BigQueryExecutor:
             table_id
         )
 
+    # this is a placeholder - no tests.
+    def copy_table_structure(
+        self, 
+        source_table_id, 
+        dest_table_id,
+        source_dataset_id=bq_default_dataset(), 
+        dest_dataset_id=bq_default_dataset(),
+        source_project_id=bq_default_project(), 
+        dest_project_id=bq_default_project()
+    ):
+        
+
+        if not self.dataset_exists(dest_dataset_id):
+            self.create_dataset(dest_dataset_id)
+
+        if self.table_exists(table_id=dest_table_id, dataset_id=dest_dataset_id):
+            self.delete_table(table_id=dest_table_id, dataset_id=dest_dataset_id)
+        
+        if self.table_exists(table_id=source_table_id, dataset_id=source_dataset_id, project_id=source_project_id):
+            
+            schema = self.get_table_schema(
+                table_id=source_table_id,
+                dataset_id=source_dataset_id,
+                project_id=source_project_id
+            )
+            table_def = "{}.{}.{}".format(dest_project_id, dest_dataset_id, dest_table_id)
+            table = bigquery.Table(table_def, schema=schema)
+            self.client.create_table(table) # Make an API request.
+            logging.info(
+                "Created table {}.{}.{}".format(table.project, table.dataset_id, table.table_id)
+            )
+
+        
+
     def copy_table(self, source_table_id, dest_table_id,
                    source_dataset_id=bq_default_dataset(), dest_dataset_id=bq_default_dataset(),
                    source_project_id=bq_default_project(), write_disposition='WRITE_TRUNCATE'):
@@ -1061,7 +1098,7 @@ class BigQueryExecutor:
             else:
                 raise AssertionError(msg)
 
-    def assert_acceptance(self, sql, cte, output_table_name='expected_output'):
+    def assert_acceptance(self, sql, cte, output_table_name='expected_output', **kwargs):
         try:
             sql_extract_output_table = "WITH {} ( SELECT * FROM {} )".format(cte, output_table_name)
 
