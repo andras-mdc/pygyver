@@ -1100,7 +1100,7 @@ class BigQueryExecutor:
 
     def assert_acceptance(self, sql, cte, output_table_name='expected_output', **kwargs):
         try:
-            sql_extract_output_table = "WITH {} ( SELECT * FROM {} )".format(cte, output_table_name)
+            sql_extract_output_table = "WITH {} ( SELECT * FROM `{}` )".format(cte, output_table_name)
 
             df_result = self.execute_sql(sql_extract_output_table)
         except:
