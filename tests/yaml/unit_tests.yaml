@@ -11,8 +11,6 @@ batches:
     pk:
     - col1
     - col2
-    mock_data: 
-      mock_file: tests/sql/unit_table2_mocked.sql  
 - desc: create table3 & table4 in staging
   tables:
   - table_desc: table3

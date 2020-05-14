@@ -1,6 +1,7 @@
 """ Module to ETL data to generate pipelines """
 from __future__ import print_function
 import asyncio
+import logging
 from pygyver.etl.dw import read_sql 
 from pygyver.etl.lib import extract_args
 from pygyver.etl.dw import BigQueryExecutor
@@ -33,7 +34,7 @@ async def execute_parallel(func, args, message='running task', log=''):
     count = []
     for d in args:
         if log != '':
-            print(f"{message} {d[log]}")
+            logging.info(f"{message} {d[log]}")
         task = asyncio.create_task(execute_func(func, **d))
         tasks.append(task)
         count.append('task')
@@ -113,11 +114,12 @@ class PipelineExecutor:
         # initiate args and argsmock
         args, args_mock = [] , []
 
-        # extract file from create_table 
-        for batch in batch_list:
-            batch_content = batch.get('tables', '')
-            args += extract_args(batch_content, 'create_table')
-            args_mock += extract_args(batch_content, 'mock_data')            
+        # extracts files paths for unit tests 
+        for batch in batch_list:            
+            for table in batch.get('tables', ''):
+                if table.get('create_table', '') != '' and table.get('mock_data', ''):                
+                    args.append(table.get('create_table', ''))
+                    args_mock.append(table.get('mock_data', ''))
         
         return_list = []
         for a, b in zip(args, args_mock):
