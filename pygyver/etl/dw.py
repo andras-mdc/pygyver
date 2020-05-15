@@ -214,7 +214,7 @@ class BigQueryExecutor:
         Returns:
             True is the table exists, False otherwise.
         """
-        table_ref = self.get_table_ref(dataset_id, table_id)
+        table_ref = self.get_table_ref(dataset_id, table_id, project_id)
         try:
             self.client.get_table(table_ref)
             return True
