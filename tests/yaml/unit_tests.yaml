@@ -1,7 +1,8 @@
 desc: this is a test pipeline
 datasets: [flat_events, staging, data, reporting]
 batches:
-- batch: 
+- desc: create table2 in test
+  tables:
   - table_desc: table2
     create_table:
       table_id: table2
@@ -10,10 +11,7 @@ batches:
     pk:
     - col1
     - col2
-    mock_data: 
-      mock_file: tests/sql/unit_table2_mocked.sql  
-- batch: 
-  desc: create table3 & table4 in staging
+- desc: create table3 & table4 in staging
   tables:
   - table_desc: table3
     create_table:

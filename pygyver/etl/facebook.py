@@ -31,8 +31,8 @@ def transform_campaign_budget(campaigns):
     )
     return data
 
-class FacebookDownloader:
-    """ Facebook Downloader.
+class FacebookExecutor:
+    """ Facebook FacebookExecutor.
     Arguments:
         """
     def __init__(self):

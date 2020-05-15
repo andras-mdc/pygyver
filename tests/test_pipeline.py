@@ -505,14 +505,16 @@ class TestPipelineUnitTests(unittest.TestCase):
     def test_extract_unit_test_value(self):
         self.assertCountEqual(
             self.p_ex.extract_unit_test_value(
-                [
-                    { "file" : "tests/sql/unit_table1.sql", "mock_file": "tests/sql/unit_table1_mocked.sql"},
-                    { "file" : "tests/sql/unit_table1.sql", "mock_file": "tests/sql/unit_table1_mocked.sql", "output_table_name": "output_test_table"},
-                ]
+                    [
+                        { "file" : "tests/sql/unit_table1.sql", "mock_file": "tests/sql/unit_table1_mocked.sql"},
+                        { "file" : "tests/sql/unit_table1.sql", "mock_file": "tests/sql/unit_table1_mocked.sql", "output_table_name": "output_test_table"},
+                    ]
                 ), 
             [
-                { "sql" : "sql test 1", "cte": "mock_sql test 1"},
-                { "sql" : "sql test 1", "cte": "mock_sql test 1", "output_table_name": "output_test_table"}
+                { "sql" : "sql test 1", "cte": "mock_sql test 1",
+                "file" : "tests/sql/unit_table1.sql", "mock_file": "tests/sql/unit_table1_mocked.sql"},
+                { "sql" : "sql test 1", "cte": "mock_sql test 1", "output_table_name": "output_test_table",
+                "file" : "tests/sql/unit_table1.sql", "mock_file": "tests/sql/unit_table1_mocked.sql", "output_table_name": "output_test_table"}
             ],
             "unit tests values well extracted" )
 
