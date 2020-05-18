@@ -200,3 +200,23 @@ def configure_logging(env=None):
             }
         }
     )
+
+def convert_list_for_sql(my_list):
+    """ Convert a python list to a SQL list. 
+    The function is primarly used when trying to format SQL queries by passing an argument.
+
+    Arguments:
+        my_list: list of elements to be used in a SQL query
+
+    Example:
+        1. convert_list_for_sql([1, 2, 3]) returns '1, 2, 3'
+        2. convert_list_for_sql(['Simone', 'Dan']) returns ''Simone', 'Dan''
+    """
+    final_list = []
+    for item in my_list:
+        if isinstance(item, str):
+            _item = '\'{}\''.format(item)
+        else:
+            _item = item
+        final_list.append(_item)
+    return ", ".join([str(item) for item in final_list])

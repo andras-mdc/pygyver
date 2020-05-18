@@ -3,6 +3,7 @@ import os
 import re
 import logging
 import time
+import json
 import pandas as pd
 from pandas._testing import assert_frame_equal
 from google.cloud import bigquery
@@ -875,6 +876,48 @@ class BigQueryExecutor:
             dataset_id,
             table_id
         )
+
+    def insert_rows_json(self, dataset_id, table_id, rows):
+        """ Insert rows into a table via the streaming API. 
+        Requires the table to exists in BigQuery.
+
+        Arguments:
+            - dataset_id (string): BigQuery dataset ID
+            - table_id (string): BigQuery table ID
+            - rows (one of: list of tuples, list of dictonaries): Row data to be inserted.
+            If a list of tuples is given, each tuple should contain data for each schema
+            field on the current table and in the same order as the schema fields.
+            If a list of dictionaries is given, the keys must include all required fields
+            in the schema. Keys which do not correspond to a field in the schema are ignored.
+        """
+        table_ref = self.get_table_ref(
+            dataset_id=dataset_id,
+            table_id=table_id
+        )
+        try:
+            error_response = self.client.insert_rows_json(
+                table_ref,
+                rows,
+                ignore_unknown_values=True
+            )
+            if error_response == []:
+                logging.info(
+                    'Loaded %s row(s) into %s:%s.%s',
+                    len(rows),
+                    self.project_id,
+                    dataset_id,
+                    table_id
+                )
+            else:
+                if hasattr(error_response, 'errors'):
+                    for error in error_response.errors:
+                        logging.warning(' - ' + error)
+                        logging.warning(' - ' + rows)
+                else:
+                    logging.warning(json.dumps(error_response))
+
+        except Exception:
+            logging.exception('BigQuery Exception', exc_info=True)
 
     def extract_table_to_gcs(self, dataset_id, table_id, gcs_path, gcs_bucket=gcs_default_bucket(), location='US', shard=False):
         """ Extract BigQuery table into Google Cloud Storage.

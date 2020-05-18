@@ -558,6 +558,46 @@ class BigQueryLoadJSONfile(unittest.TestCase):
             dataset_id='test'
         )
 
+class BigQueryInsertJSONRows(unittest.TestCase):
+    """ Test """
+    def setUp(self):
+        self.db = dw.BigQueryExecutor()
+        self.db.initiate_table(
+            table_id='insert_json_rows',
+            dataset_id='test',
+            schema_path='tests/schema/test_insert_json_rows.json'
+        )
+        self.data = [
+            {"name": "John", "age": 30, "car": ''},
+            {"name": "James", "age": 35, "car": 'Toyota'}
+        ]
+
+    def test_insert_json_rows(self):
+        """ Test """
+        self.assertEqual(
+            self.db.execute_sql(
+                "select count(*) AS row_count FROM test.insert_json_rows"
+            )['row_count'][0],
+            0
+        )
+        self.db.insert_rows_json(
+            dataset_id='test',
+            table_id='insert_json_rows',
+            rows=self.data
+        )
+        self.assertEqual(
+             self.db.execute_sql(
+                "select count(*) AS row_count FROM test.insert_json_rows"
+            )['row_count'][0],
+            2
+        )
+        
+    def tearDown(self):
+        self.db.delete_table(
+            dataset_id='test',
+            table_id='insert_json_rows'      
+        )  
+
 class BigQueryLoadJSONData(unittest.TestCase):
     """ Test """
     def setUp(self):
