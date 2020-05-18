@@ -1,8 +1,6 @@
 #!/bin/bash
 
 # exit on error
-set -e
-
 # print command
 set -ex
 
@@ -20,3 +18,6 @@ if [ "$1" == "pygyver-tests" ]; then
     echo "Finished "$2" tests."
     exit $?
 fi
+
+# interpret any other arguments as commands
+exec "$@"

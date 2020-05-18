@@ -1024,6 +1024,46 @@ class BigQueryExecutorTableCopy(unittest.TestCase):
         data = self.bq_client.execute_sql("SELECT fullname FROM `test_bq_copy_table.dest`")
         self.assertEqual(data['fullname'][0], "Angus MacGyver")
 
+class BigQueryExecutorListFunctions(unittest.TestCase):
+    """ Test """
+    def setUp(self):
+        """ Test """
+        self.bq_client = dw.BigQueryExecutor()
+
+    def tearDown(self):
+        """ Test """
+        self.bq_client.delete_dataset(
+            'test_bq_list_functions',
+            delete_contents=True
+        )
+
+    def test_list_datasets(self):
+        datasets = self.bq_client.list_datasets()
+        datasets.append('test_bq_list_functions')
+        expected_outcome = sorted(datasets)
+
+        self.bq_client.create_dataset('test_bq_list_functions')
+        self.assertEqual(
+            self.bq_client.list_datasets(),
+            expected_outcome
+        )
+
+    def test_list_tables(self):
+        self.bq_client.create_dataset('test_bq_list_functions')
+        self.bq_client.initiate_table(
+            dataset_id='test_bq_list_functions',
+            table_id='bq_list_tables_Z',
+            schema_path='tests/schema/initiate_table.json'
+        )
+        self.bq_client.initiate_table(
+            dataset_id='test_bq_list_functions',
+            table_id='bq_list_tables_A',
+            schema_path='tests/schema/initiate_table.json'
+        )
+        self.assertEqual(
+            self.bq_client.list_tables('test_bq_list_functions'),
+            ['bq_list_tables_A', 'bq_list_tables_Z']
+        )
 
 class BigQueryExecutorCheckDQ(unittest.TestCase):
     """ Test """

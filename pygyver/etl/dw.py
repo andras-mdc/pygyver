@@ -1016,6 +1016,47 @@ class BigQueryExecutor:
             dest_table_id
         )
 
+    def list_datasets(self, project_id=bq_default_project(), include_all=False):
+        """ Lists datasets in project
+
+        Parameters:
+            project_id (string): BigQuery project ID
+            include_all (boolean): True if results include hidden datasets. Defaults to False.
+
+        Returns:
+            A sorted list of dataset ids
+
+        Permissions:
+            The email address specified in `access_token.json` must have read permissions for the project
+        """
+        try:
+            datasets = list(self.client.list_datasets(project=project_id, include_all=include_all))
+            dataset_ids = [dataset.dataset_id for dataset in datasets]
+            return dataset_ids
+        except NotFound as error:
+            logging.error(error)
+
+    def list_tables(self, dataset_id=bq_default_dataset(), project_id=bq_default_project()):
+        """ Lists tables in dataset
+
+        Parameters:
+            project_id (string): BigQuery project ID
+            dataset_id (string): BigQuery dataset ID
+
+        Returns:
+            A sorted list of table ids
+
+        Permissions:
+            The email address specified in `access_token.json` must have read permissions for the project
+        """
+        try:
+            dataset_ref = self.get_dataset_ref(dataset_id, project_id)
+            tables = self.client.list_tables(dataset_ref)
+            table_ids = [table.table_id for table in tables]
+            return table_ids
+        except NotFound as error:
+            logging.error(error)
+
     def count_rows(self, table_id, dataset_id=bq_default_dataset()):
         """ Count rows in table
 
