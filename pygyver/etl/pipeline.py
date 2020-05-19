@@ -47,6 +47,7 @@ class PipelineExecutor:
         self.yaml = read_yaml_file(yaml_file)
         self.bq = BigQueryExecutor()
         self.unit_test_list = self.extract_unit_tests()
+        self.prod_project_id = 'copper-actor-127213'
 
     def create_tables(self, batch):
         batch_content = batch.get('tables', '')
@@ -147,6 +148,33 @@ class PipelineExecutor:
                         log='file'                      
                         )
             return result
+
+    def copy_prod_structure(self, table_list=''):
+        args = []
+        if table_list == '':
+            table_list = self.yaml.get('table_list', '')
+        # extract args        
+        for table in table_list:
+            args.append(
+                {
+                    "source_project_id" : self.prod_project_id,
+                    "source_dataset_id" : table.split(".")[0], 
+                    "source_table_id": table.split(".")[1],
+                    "dest_dataset_id" : table.split(".")[0], 
+                    "dest_table_id": table.split(".")[1]
+                }                                    
+            )            
+
+        # copy tables structure
+        if args != []:            
+            result = execute_parallel(
+                        self.bq.copy_table_structure,
+                        args,
+                        message='copy table structure for: ',  
+                        log='source_table_id'                      
+                        )
+            return result
+
 
     def run_test(self):
         # unit test

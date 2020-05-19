@@ -544,6 +544,27 @@ class TestPipelineUnitTestsErrorRaised(unittest.TestCase):
         with self.assertRaises(AssertionError):
             self.p_ex.run_unit_tests()
 
+class TestPipelineCopyTableStructure(unittest.TestCase):
+
+    def setUp(self):
+        self.bq_client = BigQueryExecutor()
+        self.p_ex = pl.PipelineExecutor("tests/yaml/unit_tests_fail.yaml")    
+        if self.bq_client.table_exists(dataset_id='reporting', table_id='out_product'):
+            self.bq_client.delete_table(dataset_id='reporting', table_id='out_product')
+        if self.bq_client.table_exists(dataset_id='reporting', table_id='out_saleorder'):
+            self.bq_client.delete_table(dataset_id='reporting', table_id='out_saleorder')
+
+    def test_copy_prod_structure(self):
+        self.p_ex.copy_prod_structure(['reporting.out_product', 'reporting.out_saleorder'])
+        self.assertTrue(
+            self.bq_client.table_exists(dataset_id='reporting', table_id='out_product') and
+            self.bq_client.table_exists(dataset_id='reporting', table_id='out_saleorder'),
+            "all table's structure are copied"
+        )
+
+    
+    
+
 
 if __name__ == '__main__':
     unittest.main()

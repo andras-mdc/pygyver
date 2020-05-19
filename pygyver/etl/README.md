@@ -26,6 +26,7 @@ desc:
 datasets:
 batches:    
 release:
+table_list:
 ```
 
 ### desc
@@ -34,10 +35,23 @@ pipeline description
 
 ### dataset
 
-list of dataset used in the pipeline
+list of dataset referenced in the pipeline
 
 ```
 ['dataset1', 'dataset2', 'dataset3']
+```
+### table_list
+
+list of all the tables either referenced or created in the pipeline
+
+- table structures get copied from Prod to Local
+
+```
+table_list:
+- flat_events.order_placed_v2
+- staging.saleorder
+- data.saleorder
+- reporting.out_saleorder
 ```
 
 ### batches

@@ -47,3 +47,6 @@ release:
     - path_to_file1
     - path_to_file2
     - path_to_file3
+table_list:
+  - test.table1
+  - test.table2
