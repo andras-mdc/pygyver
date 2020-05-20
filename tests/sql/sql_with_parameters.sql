@@ -1,0 +1,1 @@
+SELECT {who} AS fullname, 2 AS age

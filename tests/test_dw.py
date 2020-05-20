@@ -13,7 +13,7 @@ from pygyver.etl.lib import bq_token_file_path
 from pygyver.etl.dw import BigQueryExecutorError
 from oauth2client.service_account import ServiceAccountCredentials
 from pygyver.etl.storage import GCSExecutor
-
+from pandas.testing import assert_frame_equal
 
 
 def get_existing_partition_query_mock(dataset_id, table_id):
@@ -431,7 +431,39 @@ class BigQueryExecutorTableCreation(unittest.TestCase):
             table_id='my_normal_table'
         )
 
-from pandas.testing import assert_frame_equal
+    def test_create_table_with_param(self):
+        self.db.create_table(
+            dataset_id='test',
+            table_id='my_param_table',
+            schema_path='tests/schema/orig_table.json',            
+            file="tests/sql/sql_with_parameters.sql",
+            who="'Angus MacGyver'",
+        )
+        self.assertTrue(
+            self.db.table_exists(
+                dataset_id='test',
+                table_id='my_param_table'
+            ),
+            "Table was not created"
+        )
+        df1 = self.db.execute_sql("select * from test.my_param_table")
+        df2 = self.db.execute_sql("SELECT 'Angus MacGyver' AS fullname, 2 AS age")       
+        self.assertTrue(
+            df1.equals(df2),
+            "parameter for create table: ok"
+        )
+
+    def tearDown(self):
+        self.db.delete_table(
+            dataset_id='test',
+            table_id='my_param_table'
+        )
+        self.db.delete_table(
+            dataset_id='test',
+            table_id='my_normal_table'
+        )
+
+
 
 class BigQueryLoadDataframe(unittest.TestCase):
     """ Test """

@@ -297,7 +297,7 @@ class BigQueryExecutor:
         if sql is None and file is None:
             raise BigQueryExecutorError("EIther sql or file must be provided")
         if sql is None:
-            sql = read_sql(file)
+            sql = read_sql(file, **kwargs)
 
         if schema_path != '':
             self.initiate_table(
