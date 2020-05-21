@@ -1212,16 +1212,20 @@ class BigQueryCheckSql(unittest.TestCase):
     def test_check_sql_output_ok(self):
         """ Test """
         cte = """`staging.table1` AS (
-                    SELECT 'A001' AS id,'102461350' AS order_reference,'sofa' AS sku UNION ALL
-                    SELECT 'A002','1600491918','chair'
+                    SELECT 'A001' AS id, '102461350' AS order_reference, 'sofa' AS sku UNION ALL
+                    SELECT 'A003' AS id,'1600491919' AS order_reference, 'sofa' AS sku UNION ALL
+                    SELECT 'A002' AS id,'1600491918' AS order_reference, 'chair' AS sku
                 ),
                 `staging.table2` AS (
-                    SELECT 'A001' AS id, 100 AS price UNION ALL
-                    SELECT 'A002', 200
+                    SELECT  100 AS price, 'A001' AS id, UNION ALL
+                    SELECT  200 AS price, 'A002' AS id UNION ALL
+                    SELECT  300 AS price, 'A003' AS id 
                 ),
                 `expected_output` AS (
-                    SELECT 'A001' AS id,'102461350' AS order_reference,'sofa' AS sku, 100 AS price UNION ALL
-                    SELECT 'A002','1600491918','chair', 200) """
+                    SELECT 'A001' AS id,'sofa' AS sku, 100 AS price, '102461350' AS order_reference UNION ALL
+                    SELECT 'A002' AS id,'chair' AS sku, 200 AS price, '1600491918' AS order_reference UNION ALL
+                    SELECT 'A003' AS id,'sofa' AS sku, 300 AS price, '1600491919' AS order_reference  
+                )"""
         sql = """
                 SELECT a.*, b.price from  `staging.table1` a LEFT JOIN `staging.table2` b on a.id = b.id
                 """
@@ -1235,7 +1239,7 @@ class BigQueryCheckSql(unittest.TestCase):
             self.fail("run_checks() raised AssertionError unexpectedly!")
 
 
-    def test_assert_acceptance(self):
+    def test_assert_acceptance_ko(self):
         """ Test """
         cte = """`staging.table1` AS (
                     SELECT 'A001' AS id,'102461350' AS order_reference,'sofa' AS sku UNION ALL

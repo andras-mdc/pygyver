@@ -1188,7 +1188,9 @@ class BigQueryExecutor:
 
             df_result = self.execute_sql(sql_extract_output_table)
         except:
-            raise AssertionError("Wrong output table name in CTE")
+            raise AssertionError("Bad SQL or CTE")
         composite_sql = "WITH {} ( {} )".format(cte, sql)
         df = self.execute_sql(composite_sql)
-        assert_frame_equal(df, df_result)
+        df = df.apply(lambda x: x.sort_values().values)
+        df_result = df_result.apply(lambda x: x.sort_values().values)
+        assert_frame_equal(df, df_result, check_like=True)    
