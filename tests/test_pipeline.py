@@ -422,8 +422,7 @@ class TestPipelineUnitTests(unittest.TestCase):
                                 {
                                 "table_desc": "table1",
                                 "create_table": {
-                                    "table_id": "table1",
-                                    "dataset_id": "test",
+                                    "table_id": "table1",                                    
                                     "file": "tests/sql/unit_table1.sql"
                                 },
                                 "pk": [
@@ -437,8 +436,7 @@ class TestPipelineUnitTests(unittest.TestCase):
                                 {
                                 "table_desc": "table2",
                                 "create_table": {
-                                    "table_id": "table2",
-                                    "dataset_id": "test",
+                                    "table_id": "table2",                                    
                                     "file": "tests/sql/unit_table2.sql"
                                 },
                                 "pk": [
@@ -458,8 +456,7 @@ class TestPipelineUnitTests(unittest.TestCase):
                                 {
                                 "table_desc": "table3",
                                 "create_table": {
-                                    "table_id": "table3",
-                                    "dataset_id": "test",
+                                    "table_id": "table3",                                    
                                     "file": "tests/sql/unit_table3.sql"
                                 },
                                 "pk": [
@@ -473,8 +470,7 @@ class TestPipelineUnitTests(unittest.TestCase):
                                 {
                                 "table_desc": "table4",
                                 "create_table": {
-                                    "table_id": "table4",
-                                    "dataset_id": "test",
+                                    "table_id": "table4",                                    
                                     "file": "tests/sql/unit_table4.sql"
                                 },
                                 "pk": [
@@ -494,10 +490,10 @@ class TestPipelineUnitTests(unittest.TestCase):
         self.assertCountEqual( 
             self.p_ex.extract_unit_tests(list_batches), 
             [ 
-                { "file" : "tests/sql/unit_table1.sql", "mock_file": "sql/unit_table1_mocked.sql"}, 
-                { "file" : "tests/sql/unit_table2.sql", "mock_file": "sql/unit_table2_mocked.sql"},
-                { "file" : "tests/sql/unit_table3.sql", "mock_file": "sql/unit_table3_mocked.sql"},
-                { "file" : "tests/sql/unit_table4.sql", "mock_file": "sql/unit_table4_mocked.sql", "output_table_name": "output_test_table"},
+                { "table_id": "table1", "file" : "tests/sql/unit_table1.sql", "mock_file": "sql/unit_table1_mocked.sql"}, 
+                { "table_id": "table2", "file" : "tests/sql/unit_table2.sql", "mock_file": "sql/unit_table2_mocked.sql"},
+                { "table_id": "table3", "file" : "tests/sql/unit_table3.sql", "mock_file": "sql/unit_table3_mocked.sql"},
+                { "table_id": "table4", "file" : "tests/sql/unit_table4.sql", "mock_file": "sql/unit_table4_mocked.sql", "output_table_name": "output_test_table"},
             ], 
             "unit tests well extracted" )
        
@@ -517,6 +513,22 @@ class TestPipelineUnitTests(unittest.TestCase):
                 "file" : "tests/sql/unit_table1.sql", "mock_file": "tests/sql/unit_table1_mocked.sql", "output_table_name": "output_test_table"}
             ],
             "unit tests values well extracted" )
+
+    def test_extract_unit_test_value_with_sql_param(self):
+        self.assertCountEqual(
+            self.p_ex.extract_unit_test_value(
+                    [
+                        { "file" : "tests/sql/sql_with_parameters.sql", "mock_file": "tests/sql/unit_table1_mocked.sql", "who": "'Angus MacGyver'"},
+                        { "file" : "tests/sql/unit_table1.sql", "mock_file": "tests/sql/unit_table1_mocked.sql", "output_table_name": "output_test_table"},
+                    ]
+                ), 
+            [
+                { "sql" : "SELECT 'Angus MacGyver' AS fullname, 2 AS age", "cte": "mock_sql test 1",
+                "file" : "tests/sql/sql_with_parameters.sql", "mock_file": "tests/sql/unit_table1_mocked.sql",  "who": "'Angus MacGyver'"},
+                { "sql" : "sql test 1", "cte": "mock_sql test 1", "output_table_name": "output_test_table",
+                "file" : "tests/sql/unit_table1.sql", "mock_file": "tests/sql/unit_table1_mocked.sql", "output_table_name": "output_test_table"}
+            ],
+            "unit tests values well extracted" ) 
 
     def test_run_unit_tests_ok(self):        
         try:
@@ -561,9 +573,6 @@ class TestPipelineCopyTableStructure(unittest.TestCase):
             self.bq_client.table_exists(dataset_id='reporting', table_id='out_saleorder'),
             "all table's structure are copied"
         )
-
-    
-    
 
 
 if __name__ == '__main__':

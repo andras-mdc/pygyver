@@ -124,15 +124,15 @@ class PipelineExecutor:
         
         return_list = []
         for a, b in zip(args, args_mock):
-            a.update(b)            
-            return_list.append( dict(filter(lambda i:i[0] in ['mock_file', 'file', 'output_table_name'], a.items())))
-
-        return return_list
+            a.update(b)                        
+        return args
         
-    def extract_unit_test_value(self, unit_test_list):        
+    def extract_unit_test_value(self, unit_test_list):                
         for d in unit_test_list:
-            d["sql"] = read_sql(d['file'])
-            d["cte"] = read_sql(d['mock_file'])
+            file = d.pop('file')
+            d["sql"] = read_sql(file=file, **d)
+            d["cte"] = read_sql(file=d['mock_file'], **d)      
+            d["file"] = file     
         return unit_test_list
 
     def run_unit_tests(self, yaml_content=None):
