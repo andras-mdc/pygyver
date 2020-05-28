@@ -1,6 +1,6 @@
 """ Module to ETL data to generate pipelines """
 from __future__ import print_function
-import time 
+import random
 import copy
 import asyncio
 import logging
@@ -77,27 +77,27 @@ def extract_unit_tests(batch_list=None):
 class PipelineExecutor:
     def __init__(self, yaml_file, dry_run=False):
         self.yaml = read_yaml_file(yaml_file)
-        self.dry_run_timestamp = None
+        self.dry_run_dataset_prefix = None
         if dry_run:
-            self.dry_run_timestamp = round(time.time())
-            add_dataset_id_prefix(self.yaml, self.dry_run_timestamp)
+            self.dry_run_dataset_prefix = random.sample(range(1,1000000000),1)[0]
+            add_dataset_id_prefix(self.yaml, self.dry_run_dataset_prefix)
         self.bq = BigQueryExecutor()
         # self.unit_test_list = extract_unit_tests()
         self.prod_project_id = 'copper-actor-127213'
     
     def dry_run_clean(self):
-        if self.dry_run_timestamp is not None:
+        if self.dry_run_dataset_prefix is not None:
             if bq_default_project() != self.prod_project_id:
                 for table in self.yaml.get('table_list', ''):
-                    if self.bq.dataset_exists(dataset_id= str(self.dry_run_timestamp) + "_" + table.split(".")[0]):
-                        self.bq.delete_dataset(dataset_id=str(self.dry_run_timestamp) + "_" + table.split(".")[0], delete_contents=True)
+                    if self.bq.dataset_exists(dataset_id= str(self.dry_run_dataset_prefix) + "_" + table.split(".")[0]):
+                        self.bq.delete_dataset(dataset_id=str(self.dry_run_dataset_prefix) + "_" + table.split(".")[0], delete_contents=True)
 
     def create_tables(self, batch):
         args = [] # initiate args
         batch_content = batch.get('tables', '')
         args = extract_args(batch_content, 'create_table')
         for a in args:
-            a.update({"dry_run_timestamp": self.dry_run_timestamp})
+            a.update({"dry_run_dataset_prefix": self.dry_run_dataset_prefix})
         if args != []:            
             result = execute_parallel(
                         self.bq.create_table,
@@ -125,8 +125,8 @@ class PipelineExecutor:
         args, args_pk = [] , [] # initiate args
         batch_content = batch.get('tables', '')
         args = extract_args(batch_content, 'create_table') # adding create_table args to args
-        for a in args: # adding dry_run_timestamp to args
-            a.update({"dry_run_timestamp": self.dry_run_timestamp})
+        for a in args: # adding dry_run_dataset_prefix to args
+            a.update({"dry_run_dataset_prefix": self.dry_run_dataset_prefix})
         args_pk = extract_args(batch_content, 'pk')
         for a, b in zip(args, args_pk): # adding pk args to args
             a.update({"primary_key": b})
@@ -182,7 +182,7 @@ class PipelineExecutor:
                     "source_project_id" : self.prod_project_id,
                     "source_dataset_id" : table.split(".")[0], 
                     "source_table_id": table.split(".")[1],
-                    "dest_dataset_id" : str(self.dry_run_timestamp) + "_" + table.split(".")[0], 
+                    "dest_dataset_id" : str(self.dry_run_dataset_prefix) + "_" + table.split(".")[0], 
                     "dest_table_id": table.split(".")[1]
                 }                                    
             )            

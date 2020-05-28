@@ -69,12 +69,12 @@ def read_sql(file, *args, **kwargs):
     file = open(path_to_file, 'r')
     sql = file.read()
     file.close()
-    if kwargs.get('dry_run_timestamp', None) is not None:
+    if kwargs.get('dry_run_dataset_prefix', None) is not None:
         for index, dataset in enumerate(sql.split("`")):
             if index%2==1 and "." in dataset:
                 sql = sql.replace(
                     "`" + sql.split("`")[index] + "`", 
-                    "`" + str(kwargs.get('dry_run_timestamp', None)) + "_" +  sql.split("`")[index] + "`", 
+                    "`" + str(kwargs.get('dry_run_dataset_prefix', None)) + "_" +  sql.split("`")[index] + "`", 
                     1
                 )                                 
     

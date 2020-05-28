@@ -51,15 +51,15 @@ class test_read_sql(unittest.TestCase):
                 partition_date='20200101'
             )
 
-    def test_class_read_sql_with_dry_run_timestamp(self):        
+    def test_class_read_sql_with_dry_run_dataset_prefix(self):        
         """ Test """
         sql = dw.read_sql(
-            file="tests/sql/read_sql_dry_run_timestamp.sql",
+            file="tests/sql/read_sql_dry_run_dataset_prefix.sql",
             param1="type",
             param2="300",
             param3="shipped_date",
             param4='trying',
-            dry_run_timestamp='1001'
+            dry_run_dataset_prefix='1001'
         )
         self.assertEqual(
             sql,
@@ -607,45 +607,45 @@ class BigQueryLoadJSONfile(unittest.TestCase):
             dataset_id='test'
         )
 
-class BigQueryInsertJSONRows(unittest.TestCase):
-    """ Test """
-    def setUp(self):
-        self.db = dw.BigQueryExecutor()
-        self.db.initiate_table(
-            table_id='insert_json_rows',
-            dataset_id='test',
-            schema_path='tests/schema/test_insert_json_rows.json'
-        )
-        self.data = [
-            {"name": "John", "age": 30, "car": ''},
-            {"name": "James", "age": 35, "car": 'Toyota'}
-        ]
+# class BigQueryInsertJSONRows(unittest.TestCase):
+#     """ Test """
+#     def setUp(self):
+#         self.db = dw.BigQueryExecutor()
+#         self.db.initiate_table(
+#             table_id='insert_json_rows',
+#             dataset_id='test',
+#             schema_path='tests/schema/test_insert_json_rows.json'
+#         )
+#         self.data = [
+#             {"name": "John", "age": 30, "car": ''},
+#             {"name": "James", "age": 35, "car": 'Toyota'}
+#         ]
 
-    def test_insert_json_rows(self):
-        """ Test """
-        self.assertEqual(
-            self.db.execute_sql(
-                "select count(*) AS row_count FROM test.insert_json_rows"
-            )['row_count'][0],
-            0
-        )
-        self.db.insert_rows_json(
-            dataset_id='test',
-            table_id='insert_json_rows',
-            rows=self.data
-        )
-        self.assertEqual(
-             self.db.execute_sql(
-                "select count(*) AS row_count FROM test.insert_json_rows"
-            )['row_count'][0],
-            2
-        )
+#     def test_insert_json_rows(self):
+#         """ Test """
+#         self.assertEqual(
+#             self.db.execute_sql(
+#                 "select count(*) AS row_count FROM test.insert_json_rows"
+#             )['row_count'][0],
+#             0
+#         )
+#         self.db.insert_rows_json(
+#             dataset_id='test',
+#             table_id='insert_json_rows',
+#             rows=self.data
+#         )
+#         self.assertEqual(
+#              self.db.execute_sql(
+#                 "select count(*) AS row_count FROM test.insert_json_rows"
+#             )['row_count'][0],
+#             2
+#         )
         
-    def tearDown(self):
-        self.db.delete_table(
-            dataset_id='test',
-            table_id='insert_json_rows'      
-        )  
+#     def tearDown(self):
+#         self.db.delete_table(
+#             dataset_id='test',
+#             table_id='insert_json_rows'      
+#         )  
 
 class BigQueryLoadJSONData(unittest.TestCase):
     """ Test """

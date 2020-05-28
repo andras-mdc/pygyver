@@ -7,8 +7,6 @@ import pygyver.etl.pipeline as pl
 from pygyver.etl.lib import add_dataset_id_prefix
 
 
-
-
 class TestPipelineExtractuUnitTests(unittest.TestCase):
     
     def test_extract_unit_tests(self):   
@@ -552,8 +550,8 @@ class TestPipelineCopyTableStructure(unittest.TestCase):
     def setUp(self):
         self.bq_client = BigQueryExecutor()
         self.p_ex = pl.PipelineExecutor("tests/yaml/unit_tests_fail.yaml")    
-        self.p_ex.dry_run_timestamp = 1001
-        add_dataset_id_prefix(self.p_ex.yaml, self.p_ex.dry_run_timestamp)
+        self.p_ex.dry_run_dataset_prefix = 1001
+        add_dataset_id_prefix(self.p_ex.yaml, self.p_ex.dry_run_dataset_prefix)
 
         if self.bq_client.table_exists(dataset_id='reporting', table_id='out_product'):
             self.bq_client.delete_table(dataset_id='reporting', table_id='out_product')
@@ -572,8 +570,8 @@ class TestPipelineDryRun(unittest.TestCase):
     def setUp(self):
         self.bq_client = BigQueryExecutor()
         self.p_ex = pl.PipelineExecutor("tests/yaml/test_dry_run.yaml")
-        self.p_ex.dry_run_timestamp = 1001
-        add_dataset_id_prefix(self.p_ex.yaml, self.p_ex.dry_run_timestamp)
+        self.p_ex.dry_run_dataset_prefix = 1001
+        add_dataset_id_prefix(self.p_ex.yaml, self.p_ex.dry_run_dataset_prefix)
 
     def test_dry_run(self):
         self.p_ex.run()
