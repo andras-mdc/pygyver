@@ -6,7 +6,6 @@ BigQuery functions wrap `google.cloud.bigquery` functions to provide higher leve
 
 ### 
 
-
 #  Class PipelineExecutor
 
 Tool to build and run pipelines, it wraps pygyver.etl.dw, pygyver.etl.storage classes and more.
@@ -134,4 +133,28 @@ release:
     - path_to_file1
     - path_to_file2
     - path_to_file3
+```
+
+# Usage
+
+- for running the Pipeline
+
+```
+import pytest
+pipeline = PipelineExecutor(
+    "path_to_pipeline_folder/pipeline_name.yaml")     # initiate PipelineExecutor for Run
+pipeline.run()                                        # run the pipeline
+```
+
+- for ci-cd (testing)
+
+```
+pipeline = PipelineExecutor(
+    "order_items/order_items.yaml", 
+    dry_run=True
+    )                                                 # initiate PipelineExecutor for testing
+pipeline.run_unit_tests()                             # runs unit tests
+pipeline.copy_prod_structure()                        # copy table structure from prod
+pipeline.run()                                        # run the pipeline on empty tables (dry_run)
+pipeline.dry_run_clean()                              # cleans the dev/test environment
 ```

@@ -7,6 +7,7 @@ from google.cloud import bigquery
 from pygyver.etl.toolkit import validate_date
 
 
+
 def set_write_disposition(write_disposition):
     """ Sets bigquery.WriteDisposition based on write_disposition """
     if write_disposition == 'WRITE_APPEND':
@@ -167,3 +168,23 @@ def gcs_default_bucket():
     Returns GCS_BUCKET if env is set
     """
     return os.environ.get('GCS_BUCKET', '')
+
+
+def add_dataset_id_prefix(obj, prefix):
+
+    if isinstance(obj, list):        
+        for i in obj:
+            add_dataset_id_prefix(i, prefix)
+
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if isinstance(v, list):
+                for i in v:
+                    add_dataset_id_prefix(i, prefix)
+
+            if isinstance(v, dict):
+                add_dataset_id_prefix(v, prefix)
+            else:
+                if k == 'dataset_id': 
+                    obj[k] =  str(prefix) + '_' + obj[k]
+

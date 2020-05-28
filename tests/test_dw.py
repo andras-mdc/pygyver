@@ -51,6 +51,23 @@ class test_read_sql(unittest.TestCase):
                 partition_date='20200101'
             )
 
+    def test_class_read_sql_with_dry_run_timestamp(self):        
+        """ Test """
+        sql = dw.read_sql(
+            file="tests/sql/read_sql_dry_run_timestamp.sql",
+            param1="type",
+            param2="300",
+            param3="shipped_date",
+            param4='trying',
+            dry_run_timestamp='1001'
+        )
+        self.assertEqual(
+            sql,
+            'select type, shipped_date from `1001_data.table1` and `1001_data.table2` and `1001_data.table3` where amount > 300',
+            "read_sql add suffix to dataset: ok"
+        )
+
+        
 class BigQueryExecutorDatasets(unittest.TestCase):
     """ Test """
     def setUp(self):

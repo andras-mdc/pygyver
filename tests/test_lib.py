@@ -2,9 +2,10 @@
 import os
 import unittest
 from unittest import mock
-from pygyver.etl.lib import extract_args
 from pygyver.etl.lib import bq_token_file_valid
+from pygyver.etl.lib import extract_args
 from pygyver.etl.lib import remove_first_slash
+from pygyver.etl.lib import add_dataset_id_prefix
 
 
 
@@ -103,6 +104,57 @@ class FunctionsinLib(unittest.TestCase):
             "extracted ok"
             )
 
+    def test_add_dataset_id_prefix(self):
+        self.yaml = {
+                        "desc": "test",
+                        "tables":
+                        [
+                            {
+                                "table_desc": "table1",
+                                "create_table": {
+                                    "table_id": "table1",
+                                    "dataset_id": "test",              
+                                },                      
+                            },
+                            {
+                                "table_desc": "table2",
+                                "create_table": {
+                                    "table_id": "table2",
+                                    "dataset_id": "test",                                    
+                                },                                    
+                            }
+                        ]
+                    }
+        add_dataset_id_prefix(
+                    self.yaml,
+                    prefix='1234'
+                )
+        self.assertEqual(
+                self.yaml
+                , 
+                {
+                    "desc": "test",
+                    "tables":
+                    [
+                        {
+                            "table_desc": "table1",
+                            "create_table": {
+                                "table_id": "table1",
+                                "dataset_id": "1234_test",              
+                            },                      
+                        },
+                        {
+                            "table_desc": "table2",
+                            "create_table": {
+                                "table_id": "table2",
+                                "dataset_id": "1234_test",                                    
+                            },                                    
+                        }
+                    ]                
+                },
+                "prefix properly added to dataset_id"
+            )
+   
 
 if __name__ == "__main__":
     unittest.main()

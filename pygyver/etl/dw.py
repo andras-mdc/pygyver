@@ -69,6 +69,15 @@ def read_sql(file, *args, **kwargs):
     file = open(path_to_file, 'r')
     sql = file.read()
     file.close()
+    if kwargs.get('dry_run_timestamp', None) is not None:
+        for index, dataset in enumerate(sql.split("`")):
+            if index%2==1 and "." in dataset:
+                sql = sql.replace(
+                    "`" + sql.split("`")[index] + "`", 
+                    "`" + str(kwargs.get('dry_run_timestamp', None)) + "_" +  sql.split("`")[index] + "`", 
+                    1
+                )                                 
+    
     if len(kwargs) > 0:
         sql = sql.format(**kwargs)
     return sql
@@ -298,6 +307,9 @@ class BigQueryExecutor:
             raise BigQueryExecutorError("EIther sql or file must be provided")
         if sql is None:
             sql = read_sql(file, **kwargs)
+
+        if not self.dataset_exists(dataset_id=dataset_id):
+            self.create_dataset(dataset_id=dataset_id)
 
         if schema_path != '':
             self.initiate_table(
@@ -1148,7 +1160,7 @@ class BigQueryExecutor:
                     {', '.join(primary_key)},
                     (COUNT(*) - 1) AS dup_count
                 FROM
-                    {dataset_id}.{table_id}
+                    `{dataset_id}.{table_id}`
                 GROUP BY
                     {', '.join(primary_key)}
             )

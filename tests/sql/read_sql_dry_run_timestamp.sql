@@ -1,0 +1,1 @@
+select {param1}, {param3} from `data.table1` and `data.table2` and `data.table3` where amount > {param2}
