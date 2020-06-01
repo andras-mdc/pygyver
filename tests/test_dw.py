@@ -1318,6 +1318,121 @@ class BigQueryExecutorLoadGoogleSheet(unittest.TestCase):
             table_id='table1'
         )
 
+
+class BigQueryExecutorGetTableClusteringFields(unittest.TestCase):
+    """ Test """
+    def setUp(self):
+        self.db = dw.BigQueryExecutor()
+    
+    def test_get_table_clustering_fields_table1(self):
+        self.db.initiate_table(
+            dataset_id='test',
+            table_id='table1',
+            schema_path='tests/schema/initiate_table.json'
+        )
+        clustering_fields = self.db.get_table_clustering_fields(
+            dataset_id='test',
+            table_id='table1'
+        )
+        self.assertIsNone(
+            clustering_fields,
+            "Clustering fields is not None"
+        )
+
+    def test_get_table_clustering_fields_table2(self):
+        self.db.initiate_table(
+            dataset_id='test',
+            table_id='table2',
+            schema_path='tests/schema/initiate_table.json',
+            partition=True
+        )
+        clustering_fields = self.db.get_table_clustering_fields(
+            dataset_id='test',
+            table_id='table2'
+        )
+        self.assertIsNone(
+            clustering_fields,
+            "Clustering fields is not None"
+        )
+
+    def test_get_table_clustering_fields_table3(self):
+        self.db.initiate_table(
+            dataset_id='test',
+            table_id='table3',
+            schema_path='tests/schema/initiate_table.json',
+            partition=True,
+            clustering=['survey_id', 'language_code']
+        )
+        clustering_fields = self.db.get_table_clustering_fields(
+            dataset_id='test',
+            table_id='table3'
+        )
+        self.assertEqual(
+            clustering_fields,
+            ['survey_id', 'language_code'],
+            "Clustering fields is not ['survey_id', 'language_code']"
+        )
+
+    def tearDown(self):
+        self.db.delete_table(
+            dataset_id='test',
+            table_id='table1'
+        )
+        self.db.delete_table(
+            dataset_id='test',
+            table_id='table2'
+        )
+        self.db.delete_table(
+            dataset_id='test',
+            table_id='table3'
+        )
+
+class BigQueryExecutorGetTablePartititonType(unittest.TestCase):
+    """ Test """
+    def setUp(self):
+        self.db = dw.BigQueryExecutor()
+    
+    def test_get_table_clustering_fields_table1(self):
+        self.db.initiate_table(
+            dataset_id='test',
+            table_id='table1',
+            schema_path='tests/schema/initiate_table.json'
+        )
+        partition_type = self.db.get_table_partitioning_type(
+            dataset_id='test',
+            table_id='table1'
+        )
+        self.assertIsNone(
+            partition_type,
+            "Partition Type is not None"
+        )
+
+    def test_get_table_clustering_fields_table2(self):
+        self.db.initiate_table(
+            dataset_id='test',
+            table_id='table2',
+            schema_path='tests/schema/initiate_table.json',
+            partition=True
+        )
+        partition_type = self.db.get_table_partitioning_type(
+            dataset_id='test',
+            table_id='table2'
+        )
+        self.assertEqual(
+            partition_type,
+            "DAY"
+        )
+
+    def tearDown(self):
+        self.db.delete_table(
+            dataset_id='test',
+            table_id='table1'
+        )
+        self.db.delete_table(
+            dataset_id='test',
+            table_id='table2'
+        )
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     unittest.main()
