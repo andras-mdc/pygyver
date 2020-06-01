@@ -116,6 +116,22 @@ class PipelineExecutor:
                         )
             return result
 
+    def create_partition_tables(self, batch):
+        args = [] # initiate args
+        batch_content = batch.get('tables', '')
+        args = extract_args(content=batch_content, to_extract='create_partition_table', kwargs=self.kwargs)
+        for a in args:
+            apply_kwargs(a, self.kwargs)
+            a.update({"dry_run_dataset_prefix": self.dry_run_dataset_prefix})
+        if args != []:            
+            result = execute_parallel(
+                        self.bq.create_partition_table,
+                        args,
+                        message='Creating partition table:',
+                        log='table_id'
+                        )
+            return result
+ 
     def load_google_sheets(self, batch):
         args = [] # initiate args
         batch_content = batch.get('sheets', '')
@@ -150,14 +166,17 @@ class PipelineExecutor:
     def run_batch(self, batch):
         ''' batch executor - this is a mvp, it can be widely improved '''
         # *** check load_google_sheets ***
-        if not (batch.get('sheets', '') == '' or extract_args(batch.get('sheets', ''),  'load_google_sheet') == ''): 
+        if not (batch.get('sheets', '') == '' or extract_args(batch.get('sheets', ''),  'load_google_sheet') == ''):
             self.load_google_sheets(batch)
         # *** check create_tables ***
         if not (batch.get('tables', '') == '' or extract_args(batch.get('tables', ''),  'create_table') == ''): 
             self.create_tables(batch)
+        # *** check create_partition_tables ***
+        if not (batch.get('tables', '') == '' or extract_args(batch.get('tables', ''),  'create_partition_table') == ''): 
+            self.create_partition_tables(batch)
         # *** exec pk check ***
         if not (batch.get('tables', '') == '' or extract_args(batch.get('tables', ''),  'create_table') == '' or extract_args(batch.get('tables', ''),  'pk') == ''):  
-            self.run_checks(batch) 
+            self.run_checks(batch)
 
     def run(self):
         # run batches
@@ -213,5 +232,3 @@ class PipelineExecutor:
         self.run_unit_tests()
         # copy table schema from prod
         # dry run
-
-

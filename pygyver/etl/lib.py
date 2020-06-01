@@ -159,10 +159,11 @@ def extract_args(content, to_extract: str, kwargs={}):
     return [x.get(to_extract, '') for x in content if x.get(to_extract, '') != '']
 
 def apply_kwargs(orig, kwargs):
-    for key_, value_ in orig.items():
-        for kwargs_key, kwargs_value in kwargs.items():
-            if '$' + kwargs_key == value_:
-                orig.update({key_: kwargs_value})
+    if orig is not None:
+        for key_, value_ in orig.items():
+            for kwargs_key, kwargs_value in kwargs.items():
+                if '$' + kwargs_key == value_:
+                    orig.update({key_: kwargs_value})
 
 def gcs_default_project():
     """

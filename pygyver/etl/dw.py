@@ -366,7 +366,9 @@ class BigQueryExecutor:
                                partition_dates=None,
                                partition_field="_PARTITIONTIME",
                                clustering=None,
-                               priority="INTERACTIVE"
+                               priority="INTERACTIVE",
+                               schema_path="",
+                               **kwargs
                               ):
         """
         Partition to be generated are either passed through partition_dates or automatically generated using existing partitions.
@@ -376,6 +378,15 @@ class BigQueryExecutor:
             raise BigQueryExecutorError("EIther sql or file must be provided")
         if sql is None:
             sql = read_sql(file)
+
+        if schema_path != "":
+            self.initiate_table(
+                dataset_id=dataset_id,
+                table_id=table_id,
+                schema_path=schema_path,
+                partition=True,
+                clustering=clustering
+            )
 
         if not self.table_exists(dataset_id=dataset_id, table_id=table_id):
             raise BigQueryExecutorError("To create a partition, please initiate the table first using initiate_table.")

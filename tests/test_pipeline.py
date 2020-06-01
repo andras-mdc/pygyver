@@ -2,10 +2,10 @@ import time
 import asyncio
 import logging
 import unittest
+from unittest import mock
 from pygyver.etl.dw import BigQueryExecutor
 import pygyver.etl.pipeline as pl
 from pygyver.etl.lib import add_dataset_id_prefix
-
 
 class TestPipelineExtractuUnitTests(unittest.TestCase):
     
@@ -136,11 +136,26 @@ class TestPipelineExtractuUnitTests(unittest.TestCase):
 class TestPipelineUnitTestsErrorRaised(unittest.TestCase):
     
     def setUp(self):
+        self.db = BigQueryExecutor()
         self.p_ex = pl.PipelineExecutor("tests/yaml/unit_tests_fail.yaml")
 
     def test_run_unit_tests_error(self):
         with self.assertRaises(AssertionError):
             self.p_ex.run_unit_tests()
+    
+    def tearDown(self):
+        self.db.delete_table(
+            table_id='table2',
+            dataset_id='test'
+        )
+        self.db.delete_table(
+            table_id='table3',
+            dataset_id='test'
+        )
+        self.db.delete_table(
+            table_id='table4',
+            dataset_id='test'
+        )
 
 class TestExecute_parallel(unittest.TestCase):
     # def setUp(self):
@@ -184,6 +199,20 @@ class TestPipelineExecutorCreateTables(unittest.TestCase):
     def setUp(self):
         self.bq_client = BigQueryExecutor()
         self.p_ex = pl.PipelineExecutor("tests/yaml/test_run.yaml")
+        self.env = mock.patch.dict('os.environ', {'BIGQUERY_START_DATE': '2020-01-01', 'BIGQUERY_END_DATE': '2020-01-05'})
+        self.bq_client.initiate_table(
+            dataset_id='test',
+            table_id="table3",
+            schema_path='tests/schema/table1.json',
+            partition=True
+        )
+        self.bq_client.initiate_table(
+            dataset_id='test',
+            table_id="table4",
+            schema_path='tests/schema/table2.json',
+            partition=True
+        )
+
 
     def test_create_tables(self):
         batch = {
@@ -224,6 +253,48 @@ class TestPipelineExecutorCreateTables(unittest.TestCase):
                 dataset_id="test"
                 ),
             "Table2 exists")
+
+    def test_create_partition_tables(self):
+        batch = {
+            "desc": "create table1 & table2 in staging",
+            "tables":
+            [
+                {
+                    "table_desc": "table3",
+                    "create_partition_table": {
+                        "table_id": "table3",
+                        "dataset_id": "test",              
+                        "file": "tests/sql/table1.sql"
+                    },
+                    "pk": ["col1", "col2"],
+                    "mock_data": "sql/table1_mocked.sql"
+                },
+                {
+                    "table_desc": "table4",
+                    "create_partition_table": {
+                        "table_id": "table4",
+                        "dataset_id": "test",
+                        "file": "tests/sql/table2.sql"
+                    },
+                    "pk": ["col1", "col2"],
+                    "mock_data": "sql/table1_mocked.sql"
+                }
+            ]
+        }
+        with self.env:
+            self.p_ex.create_partition_tables(batch)
+        self.assertTrue(
+            self.bq_client.table_exists(
+                table_id='table3',
+                dataset_id="test"),
+            "Table3 exists")
+        self.assertTrue(
+            self.bq_client.table_exists(
+                table_id='table4',
+                dataset_id="test"
+                ),
+            "Table4 exists")
+
 
     def test_run_batch(self):
         batch = {
@@ -270,6 +341,10 @@ class TestPipelineExecutorCreateTables(unittest.TestCase):
             self.bq_client.delete_table(table_id='table1', dataset_id='test')
         if self.bq_client.table_exists(table_id='table2', dataset_id='test'):
             self.bq_client.delete_table(table_id='table2', dataset_id='test')
+        if self.bq_client.table_exists(table_id='table3', dataset_id='test'):
+            self.bq_client.delete_table(table_id='table3', dataset_id='test')
+        if self.bq_client.table_exists(table_id='table4', dataset_id='test'):
+            self.bq_client.delete_table(table_id='table4', dataset_id='test')
         if self.bq_client.table_exists(table_id='test_run_batch_table_1', dataset_id='test'):
             self.bq_client.delete_table(table_id='test_run_batch_table_1', dataset_id='test')
         if self.bq_client.table_exists(table_id='test_run_batch_table_2', dataset_id='test'):
