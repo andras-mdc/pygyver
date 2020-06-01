@@ -585,6 +585,29 @@ class TestPipelineDryRun(unittest.TestCase):
     def tearDown(self):
         self.p_ex.dry_run_clean()
 
+class TestPipelineDryRunWithArgs(unittest.TestCase):
+
+    def setUp(self):
+        self.bq_client = BigQueryExecutor()
+        self.p_ex = pl.PipelineExecutor(
+            yaml_file= "tests/yaml/test_dry_run_with_args.yaml",
+            dry_run=True,
+            my_string_arg='one',
+            my_dataset_arg='my_dataset_dry_run_with_args'
+        )
+
+    def test_dry_run(self):
+        self.p_ex.run()
+        self.assertTrue(
+            self.bq_client.table_exists(
+                dataset_id='my_dataset_dry_run_with_args',
+                table_id='table1'
+            )
+        )
+    
+    def tearDown(self):
+        self.p_ex.dry_run_clean()
+
 
 if __name__ == '__main__':
     unittest.main()

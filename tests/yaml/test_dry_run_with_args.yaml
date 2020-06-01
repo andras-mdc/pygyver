@@ -1,0 +1,25 @@
+desc: this is a dry run test pipeline
+batches:
+  - desc: create table1 & table2 in staging       
+    tables:
+    - table_desc: table1
+      create_table:
+        table_id: table1
+        dataset_id: $my_dataset_arg
+        file: tests/sql/table1.sql
+      pk:
+      - col1
+      - col2
+    - table_desc: table2
+      create_table:
+        table_id: table2
+        dataset_id: test
+        file: tests/sql/dry_run_test_select_with_args.sql
+        my_string: $my_string_arg
+        my_dataset: $my_dataset_arg
+      pk:
+      - col1
+      - col2
+table_list:
+  - $my_dataset_arg.table1
+  - test.table2

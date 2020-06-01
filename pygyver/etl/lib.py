@@ -152,9 +152,17 @@ def s3_default_root():
     return os.environ.get('AWS_S3_ROOT', '')
 
 
-def extract_args(content, to_extract: str):
+def extract_args(content, to_extract: str, kwargs={}):
+    if len(kwargs) > 0:
+        for x in content:
+            apply_kwargs(x.get(to_extract), kwargs)
     return [x.get(to_extract, '') for x in content if x.get(to_extract, '') != '']
 
+def apply_kwargs(orig, kwargs):
+    for key_, value_ in orig.items():
+        for kwargs_key, kwargs_value in kwargs.items():
+            if '$' + kwargs_key == value_:
+                orig.update({key_: kwargs_value})
 
 def gcs_default_project():
     """
@@ -170,20 +178,21 @@ def gcs_default_bucket():
     return os.environ.get('GCS_BUCKET', '')
 
 
-def add_dataset_id_prefix(obj, prefix):
+def add_dataset_id_prefix(obj, prefix, kwargs={}):
 
     if isinstance(obj, list):        
         for i in obj:
-            add_dataset_id_prefix(i, prefix)
+            add_dataset_id_prefix(i, prefix, kwargs)
 
     if isinstance(obj, dict):
         for k, v in obj.items():
             if isinstance(v, list):
                 for i in v:
-                    add_dataset_id_prefix(i, prefix)
+                    add_dataset_id_prefix(i, prefix, kwargs)
 
             if isinstance(v, dict):
-                add_dataset_id_prefix(v, prefix)
+                apply_kwargs(v, kwargs)
+                add_dataset_id_prefix(v, prefix, kwargs)
             else:
                 if k == 'dataset_id': 
                     obj[k] =  str(prefix) + '_' + obj[k]

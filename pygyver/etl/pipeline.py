@@ -4,7 +4,8 @@ import random
 import copy
 import asyncio
 import logging
-from pygyver.etl.dw import read_sql 
+from pygyver.etl.dw import read_sql
+from pygyver.etl.lib import apply_kwargs
 from pygyver.etl.lib import extract_args
 from pygyver.etl.dw import BigQueryExecutor
 from pygyver.etl.toolkit import read_yaml_file
@@ -55,16 +56,17 @@ def extract_unit_test_value(unit_test_list):
     return utl
 
 
-def extract_unit_tests(batch_list=None):
+def extract_unit_tests(batch_list=None, kwargs={}):
     """ return the list of unit test: unit test -> file, mock_file, output_table_name(opt) """
 
     # initiate args and argsmock
     args, args_mock = [] , []
 
     # extracts files paths for unit tests 
-    for batch in batch_list:            
+    for batch in batch_list:
+        apply_kwargs(batch, kwargs)       
         for table in batch.get('tables', ''):
-            if table.get('create_table', '') != '' and table.get('mock_data', ''):                
+            if table.get('create_table', '') != '' and table.get('mock_data', '') != '':                
                 args.append(table.get('create_table', ''))
                 args_mock.append(table.get('mock_data', ''))
     
@@ -75,12 +77,13 @@ def extract_unit_tests(batch_list=None):
     
 
 class PipelineExecutor:
-    def __init__(self, yaml_file, dry_run=False):
+    def __init__(self, yaml_file, dry_run=False, *args, **kwargs):
+        self.kwargs = kwargs
         self.yaml = read_yaml_file(yaml_file)
         self.dry_run_dataset_prefix = None
         if dry_run:
             self.dry_run_dataset_prefix = random.sample(range(1,1000000000),1)[0]
-            add_dataset_id_prefix(self.yaml, self.dry_run_dataset_prefix)
+            add_dataset_id_prefix(obj=self.yaml, prefix=self.dry_run_dataset_prefix, kwargs=self.kwargs)
         self.bq = BigQueryExecutor()
         # self.unit_test_list = extract_unit_tests()
         self.prod_project_id = 'copper-actor-127213'
@@ -89,16 +92,22 @@ class PipelineExecutor:
         if self.dry_run_dataset_prefix is not None:
             if bq_default_project() != self.prod_project_id:
                 for table in self.yaml.get('table_list', ''):
-                    if self.bq.dataset_exists(dataset_id= str(self.dry_run_dataset_prefix) + "_" + table.split(".")[0]):
-                        self.bq.delete_dataset(dataset_id=str(self.dry_run_dataset_prefix) + "_" + table.split(".")[0], delete_contents=True)
+                    dict_ = {
+                        "dataset_id": table.split(".")[0]
+                    }
+                    apply_kwargs(dict_, self.kwargs)
+                    dataset_id = dict_['dataset_id']
+                    if self.bq.dataset_exists(dataset_id= str(self.dry_run_dataset_prefix) + "_" + dataset_id):
+                        self.bq.delete_dataset(dataset_id=str(self.dry_run_dataset_prefix) + "_" + dataset_id, delete_contents=True)
 
     def create_tables(self, batch):
         args = [] # initiate args
         batch_content = batch.get('tables', '')
-        args = extract_args(batch_content, 'create_table')
+        args = extract_args(content=batch_content, to_extract='create_table', kwargs=self.kwargs)
         for a in args:
+            apply_kwargs(a, self.kwargs)
             a.update({"dry_run_dataset_prefix": self.dry_run_dataset_prefix})
-        if args != []:            
+        if args != []:
             result = execute_parallel(
                         self.bq.create_table,
                         args,
@@ -106,7 +115,7 @@ class PipelineExecutor:
                         log='table_id'
                         )
             return result
-            
+
     def load_google_sheets(self, batch):
         args = [] # initiate args
         batch_content = batch.get('sheets', '')
@@ -154,13 +163,14 @@ class PipelineExecutor:
         # run batches
         batch_list = self.yaml.get('batches', '')
         for batch in batch_list:
+            apply_kwargs(batch, self.kwargs)
             self.run_batch(batch)
         # run release (ToDo)
 
     def run_unit_tests(self, batch_list=None):
         batch_list = batch_list or self.yaml.get('batches', '')
         # extract unit tests
-        list_unit_test = extract_unit_tests(batch_list)
+        list_unit_test = extract_unit_tests(batch_list, self.kwargs)
         args = extract_unit_test_value(list_unit_test)
         if args != []:            
             result = execute_parallel(
@@ -177,15 +187,15 @@ class PipelineExecutor:
             table_list = self.yaml.get('table_list', '')
         # extract args        
         for table in table_list:
-            args.append(
-                {
-                    "source_project_id" : self.prod_project_id,
-                    "source_dataset_id" : table.split(".")[0], 
-                    "source_table_id": table.split(".")[1],
-                    "dest_dataset_id" : str(self.dry_run_dataset_prefix) + "_" + table.split(".")[0], 
-                    "dest_table_id": table.split(".")[1]
-                }                                    
-            )            
+            _dict = {
+                "source_project_id" : self.prod_project_id,
+                "source_dataset_id" : table.split(".")[0], 
+                "source_table_id": table.split(".")[1],
+                "dest_dataset_id" : str(self.dry_run_dataset_prefix) + "_" + table.split(".")[0], 
+                "dest_table_id": table.split(".")[1]
+                }
+            apply_kwargs(_dict, self.kwargs)    
+            args.append(_dict)
 
         # copy tables structure
         if args != []:            
