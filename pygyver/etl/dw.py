@@ -44,6 +44,10 @@ def forbiden_kwargs():
     return ['partition_date']
 
 
+class SafeDict(dict):
+    def __missing__(self, key):
+        return '{' + key + '}'
+
 @print_kwargs_params
 def read_sql(file, *args, **kwargs):
     ''' Read SQL file and apply arguments/keywors arguments.
@@ -79,7 +83,7 @@ def read_sql(file, *args, **kwargs):
                 )                                 
     
     if len(kwargs) > 0:
-        sql = sql.format(**kwargs)
+        sql = sql.format_map(SafeDict(**kwargs))
     return sql
 
 

@@ -51,6 +51,14 @@ class test_read_sql(unittest.TestCase):
                 partition_date='20200101'
             )
 
+    def test_class_read_sql_extra_arg(self):        
+        """ Test """
+        sql = dw.read_sql(
+            file="tests/sql/read_sql_extra_arg.sql",
+            param1="type",
+            param2="300"
+        )
+
     def test_class_read_sql_with_dry_run_dataset_prefix(self):        
         """ Test """
         sql = dw.read_sql(
