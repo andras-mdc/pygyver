@@ -66,9 +66,11 @@ def extract_unit_tests(batch_list=None, kwargs={}):
     for batch in batch_list:
         apply_kwargs(batch, kwargs)       
         for table in batch.get('tables', ''):
-            if (table.get('create_table', '') != '' or table.get('create_partition_table', '') != '') and table.get('mock_data', '') != '':           
-                args.append(table.get('create_table', ''))
-                args.append(table.get('create_partition_table', ''))
+            if (table.get('create_table', '') != '' or table.get('create_partition_table', '') != '') and table.get('mock_data', '') != '':
+                if table.get('create_table', '') != '':    
+                    args.append(table.get('create_table', ''))
+                if table.get('create_partition_table', '') != '':
+                    args.append(table.get('create_partition_table', ''))
                 args_mock.append(table.get('mock_data', ''))
     
     return_list = []
