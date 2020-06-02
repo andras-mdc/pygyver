@@ -1,0 +1,1 @@
+SELECT {who} AS fullname, 2 AS age, TIMESTAMP("2020-01-01 00:00:00") AS _PARTITIONTIME where DATE(_PARTITIONTIME) = PARSE_DATE("%Y%m%d", '{partition_date}')
