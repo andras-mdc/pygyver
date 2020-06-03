@@ -77,11 +77,11 @@ def read_sql(file, *args, **kwargs):
         for index, dataset in enumerate(sql.split("`")):
             if index%2==1 and "." in dataset:
                 sql = sql.replace(
-                    "`" + sql.split("`")[index] + "`", 
-                    "`" + str(kwargs.get('dry_run_dataset_prefix', None)) + "_" +  sql.split("`")[index] + "`", 
+                    "`" + sql.split("`")[index] + "`",
+                    "`" + str(kwargs.get('dry_run_dataset_prefix', None)) + "_" +  sql.split("`")[index] + "`",
                     1
-                )                                 
-    
+                )
+
     if len(kwargs) > 0:
         sql = sql.format_map(SafeDict(**kwargs))
     return sql
@@ -280,7 +280,7 @@ class BigQueryExecutor:
         else:
             schema = read_table_schema_from_file(schema_path)
             table = bigquery.Table(
-                self.get_table_ref(dataset_id, table_id),
+                self.get_table_ref(dataset_id, table_id, project_id = self.project_id),
                 schema=schema
                 )
             if partition:
@@ -511,11 +511,11 @@ class BigQueryExecutor:
         Returns:
             DataFrame of existing partitions
         """
-        sql = """ SELECT 
+        sql = """ SELECT
                     FORMAT_DATE('%Y%m%d', DATE(_PARTITIONTIME)) AS partition_id
-                  FROM 
-                    {dataset_id}.{table_id} 
-                  GROUP BY 
+                  FROM
+                    {dataset_id}.{table_id}
+                  GROUP BY
                     1 """.format(
                         dataset_id=dataset_id,
                         table_id=table_id
@@ -893,7 +893,7 @@ class BigQueryExecutor:
             uri_out = uri
 
         job_config = bigquery.LoadJobConfig()
-        
+
         if schema_path != '':
             self.initiate_table(
                 table_id=table_id,
@@ -933,7 +933,7 @@ class BigQueryExecutor:
         )
 
     def insert_rows_json(self, dataset_id, table_id, rows):
-        """ Insert rows into a table via the streaming API. 
+        """ Insert rows into a table via the streaming API.
         Requires the table to exists in BigQuery.
 
         Arguments:
@@ -1035,24 +1035,24 @@ class BigQueryExecutor:
 
     # this is a placeholder - no tests.
     def copy_table_structure(
-        self, 
-        source_table_id, 
+        self,
+        source_table_id,
         dest_table_id,
-        source_dataset_id=bq_default_dataset(), 
+        source_dataset_id=bq_default_dataset(),
         dest_dataset_id=bq_default_dataset(),
-        source_project_id=bq_default_project(), 
+        source_project_id=bq_default_project(),
         dest_project_id=bq_default_project()
     ):
-        
+
 
         if not self.dataset_exists(dest_dataset_id):
             self.create_dataset(dest_dataset_id)
 
         if self.table_exists(table_id=dest_table_id, dataset_id=dest_dataset_id):
             self.delete_table(table_id=dest_table_id, dataset_id=dest_dataset_id)
-        
+
         if self.table_exists(table_id=source_table_id, dataset_id=source_dataset_id, project_id=source_project_id):
-            
+
             schema = self.get_table_schema(
                 table_id=source_table_id,
                 dataset_id=source_dataset_id,
@@ -1079,7 +1079,7 @@ class BigQueryExecutor:
                 "Created table {}.{}.{}".format(table.project, table.dataset_id, table.table_id)
             )
 
-        
+
 
     def copy_table(self, source_table_id, dest_table_id,
                    source_dataset_id=bq_default_dataset(), dest_dataset_id=bq_default_dataset(),
@@ -1262,4 +1262,4 @@ class BigQueryExecutor:
         df = self.execute_sql(composite_sql)
         df = df.apply(lambda x: x.sort_values().values)
         df_result = df_result.apply(lambda x: x.sort_values().values)
-        assert_frame_equal(df, df_result, check_like=True)    
+        assert_frame_equal(df, df_result, check_like=True)
