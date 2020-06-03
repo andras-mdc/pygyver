@@ -514,7 +514,7 @@ class BigQueryExecutor:
         sql = """ SELECT
                     FORMAT_DATE('%Y%m%d', DATE(_PARTITIONTIME)) AS partition_id
                   FROM
-                    {dataset_id}.{table_id}
+                    `{dataset_id}.{table_id}`
                   GROUP BY
                     1 """.format(
                         dataset_id=dataset_id,
