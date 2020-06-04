@@ -763,6 +763,7 @@ class BigQueryExecutor:
             self.initiate_table(
                 table_id=table_id,
                 dataset_id=dataset_id,
+                project_id=project_id,
                 schema_path=schema_path
             )
             schema = read_table_schema_from_file(schema_path)
@@ -770,7 +771,7 @@ class BigQueryExecutor:
             schema = None
 
         data = df.rename(columns=lambda cname: cname.replace('.', '_'))
-        table_ref = self.get_table_ref(dataset_id, table_id)
+        table_ref = self.get_table_ref(dataset_id, table_id,project_id=project_id)
         job_config = bigquery.LoadJobConfig(schema=schema)
         job_config.write_disposition = set_write_disposition(write_disposition)
         job = self.client.load_table_from_dataframe(
