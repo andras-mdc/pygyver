@@ -154,7 +154,7 @@ class BigQueryExecutor:
         dataset_ref = self.get_dataset_ref(dataset_id, project_id)
         return dataset_ref.table(table_id)
 
-    def dataset_exists(self, dataset_id=bq_default_dataset()):
+    def dataset_exists(self, dataset_id=bq_default_dataset(),project_id=bq_default_project()):
         """ Checks if a BigQuery dataset exists.
 
         Parameters:
@@ -170,7 +170,7 @@ class BigQueryExecutor:
         except NotFound:
             return False
 
-    def delete_dataset(self, dataset_id=bq_default_dataset(), delete_contents=False):
+    def delete_dataset(self, dataset_id=bq_default_dataset(),project_id=bq_default_project(),delete_contents=False):
         """ Deletes a BigQuery dataset.
 
         Parameters:
@@ -235,7 +235,7 @@ class BigQueryExecutor:
         except NotFound:
             return False
 
-    def delete_table(self, table_id, dataset_id=bq_default_dataset()):
+    def delete_table(self, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project()):
         """ Delete a BigQuery table.
 
         Parameters:
@@ -255,7 +255,7 @@ class BigQueryExecutor:
         except NotFound as error:
             logging.error(error)
 
-    def initiate_table(self, table_id, schema_path, dataset_id=bq_default_dataset(), partition=False, clustering=None):
+    def initiate_table(self, table_id, schema_path, dataset_id=bq_default_dataset(),project_id=bq_default_project(), partition=False, clustering=None):
         """ Initiate a BigQuery table. If the table already exists, compares the schema_path and apply a patch if there is a schema change.
 
         Parameters:
@@ -266,13 +266,15 @@ class BigQueryExecutor:
             clustering (list): List of clustering fields. Defaults to None.
         """
         if self.table_exists(
+                project_id=project_id,
                 dataset_id=dataset_id,
                 table_id=table_id):
             logging.info("Table %s.%s already exists in project %s",
                          dataset_id,
                          table_id,
-                         self.project_id)
+                         project_id)
             self.apply_patch(
+                project_id=project_id,
                 dataset_id=dataset_id,
                 table_id=table_id,
                 schema_path=schema_path
@@ -280,7 +282,7 @@ class BigQueryExecutor:
         else:
             schema = read_table_schema_from_file(schema_path)
             table = bigquery.Table(
-                self.get_table_ref(dataset_id, table_id, project_id = self.project_id),
+                self.get_table_ref(dataset_id, table_id, project_id = project_id),
                 schema=schema
                 )
             if partition:
@@ -292,12 +294,12 @@ class BigQueryExecutor:
                     'Created table %s.%s in in project %s',
                     dataset_id,
                     table_id,
-                    self.project_id
+                    project_id
                 )
             except exceptions.Conflict as error:
                 logging.error(error)
 
-    def create_table(self, table_id, dataset_id=bq_default_dataset(), sql=None, file=None,
+    def create_table(self, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project(), sql=None, file=None,
                      write_disposition='WRITE_TRUNCATE', use_legacy_sql=False,
                      location='US', schema_path='',
                      partition=False,
@@ -363,6 +365,7 @@ class BigQueryExecutor:
     def create_partition_table(self,
                                table_id,
                                dataset_id=bq_default_dataset(),
+                               project_id=bq_default_project(),
                                sql=None,
                                file=None,
                                use_legacy_sql=False,
@@ -588,7 +591,7 @@ class BigQueryExecutor:
         clustering_fields = self.client.get_table(table_ref).clustering_fields
         return clustering_fields
 
-    def identify_new_fields(self, table_id, schema_path, dataset_id=bq_default_dataset()):
+    def identify_new_fields(self, table_id, schema_path, dataset_id=bq_default_dataset(),project_id=bq_default_project()):
         """ Identify new fields in based on a schema file.
 
         Parameters:
@@ -611,7 +614,7 @@ class BigQueryExecutor:
                 list_field.append(schema_field)
         return list_field
 
-    def append_field(self, table_id, field, dataset_id=bq_default_dataset()):
+    def append_field(self, table_id, field, dataset_id=bq_default_dataset(),project_id=bq_default_project()):
         """ Append fields to a BigQuery table.
 
         Parameters:
@@ -632,7 +635,7 @@ class BigQueryExecutor:
         assert len(table.schema) == len(original_schema) + 1 == len(new_schema)
         return 0
 
-    def apply_patch(self, table_id, schema_path, dataset_id=bq_default_dataset()):
+    def apply_patch(self, table_id, schema_path, dataset_id=bq_default_dataset(),project_id=bq_default_project()):
         """ Apply a patch to a BigQuery Table if required.
 
         Parameters:
@@ -676,7 +679,7 @@ class BigQueryExecutor:
             )
             )
 
-    def update_schema(self, table_id, schema_path, dataset_id=bq_default_dataset()):
+    def update_schema(self, table_id, schema_path, dataset_id=bq_default_dataset(),project_id=bq_default_project()):
         """ Perform a schema update. Used to update descriptions.
 
         Parameters:
@@ -746,7 +749,7 @@ class BigQueryExecutor:
         )
         return data
 
-    def load_dataframe(self, df, table_id, dataset_id=bq_default_dataset(), schema_path='', write_disposition="WRITE_TRUNCATE"):
+    def load_dataframe(self, df, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project(), schema_path='', write_disposition="WRITE_TRUNCATE"):
         """ Loads DataFrame to BigQuery table.
 
         Parameters:
@@ -778,7 +781,7 @@ class BigQueryExecutor:
         job.result()
 
 
-    def load_google_sheet(self, googlesheet_key, table_id, dataset_id=bq_default_dataset(), **kwargs):
+    def load_google_sheet(self, googlesheet_key, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project(), **kwargs):
         """ Loads Google Sheet to BigQuery table. If the table already exists, overwrites.
 
         Parameters:
@@ -795,7 +798,7 @@ class BigQueryExecutor:
             dataset_id
             )
 
-    def load_json_file(self, file, table_id, dataset_id=bq_default_dataset(), schema_path='', write_disposition="WRITE_TRUNCATE"):
+    def load_json_file(self, file, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project(), schema_path='', write_disposition="WRITE_TRUNCATE"):
         """ Loads JSON file to BigQuery table.
 
         Parameters:
@@ -834,7 +837,7 @@ class BigQueryExecutor:
         else:
             raise Exception("Please initiate %s.%s or pass the schema file", dataset_id, table_id)
 
-    def load_json_data(self, json, table_id, dataset_id=bq_default_dataset(), schema_path='', write_disposition="WRITE_TRUNCATE"):
+    def load_json_data(self, json, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project(), schema_path='', write_disposition="WRITE_TRUNCATE"):
         """ Loads JSON data to BigQuery table.
 
         Parameters:
@@ -871,7 +874,7 @@ class BigQueryExecutor:
         else:
             raise Exception("Please initiate %s.%s or pass the schema file", dataset_id, table_id)
 
-    def load_gcs(self, dataset_id, table_id, gcs_path, gcs_bucket=gcs_default_bucket(), location='US', schema_path='', header=True, write_disposition='WRITE_TRUNCATE'):
+    def load_gcs(self, dataset_id, table_id, gcs_path, gcs_bucket=gcs_default_bucket(),project_id=bq_default_project(), location='US', schema_path='', header=True, write_disposition='WRITE_TRUNCATE'):
         """ Loads Google Cloud Storage CSV file into a BigQuery table.
 
         Parameters:
@@ -932,7 +935,7 @@ class BigQueryExecutor:
             table_id
         )
 
-    def insert_rows_json(self, dataset_id, table_id, rows):
+    def insert_rows_json(self, dataset_id, table_id, rows,project_id=bq_default_project()):
         """ Insert rows into a table via the streaming API.
         Requires the table to exists in BigQuery.
 
@@ -974,7 +977,7 @@ class BigQueryExecutor:
         except Exception:
             logging.exception('BigQuery Exception', exc_info=True)
 
-    def extract_table_to_gcs(self, dataset_id, table_id, gcs_path, gcs_bucket=gcs_default_bucket(), location='US', shard=False):
+    def extract_table_to_gcs(self, dataset_id, table_id, gcs_path,project_id=bq_default_project(), gcs_bucket=gcs_default_bucket(), location='US', shard=False):
         """ Extract BigQuery table into Google Cloud Storage.
 
         Parameters:
@@ -1011,7 +1014,7 @@ class BigQueryExecutor:
             uri
         )
 
-    def truncate_table(self, table_id, dataset_id=bq_default_dataset()):
+    def truncate_table(self, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project()):
         """ Delete all records from table but preserve structure e.g. schema, partitioning, clustering, description, labels, etc.
 
         Parameters:
@@ -1169,7 +1172,7 @@ class BigQueryExecutor:
         except NotFound as error:
             logging.error(error)
 
-    def count_rows(self, table_id, dataset_id=bq_default_dataset()):
+    def count_rows(self, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project()):
         """ Count rows in table
 
         Parameters:
@@ -1183,7 +1186,7 @@ class BigQueryExecutor:
         table = self.client.get_table(table_ref)
         return table.num_rows
 
-    def count_columns(self, table_id, dataset_id=bq_default_dataset()):
+    def count_columns(self, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project()):
         """ Count columns in table
 
         Parameters:
@@ -1197,7 +1200,7 @@ class BigQueryExecutor:
         table = self.client.get_table(table_ref)
         return len(table.schema)
 
-    def count_duplicates(self, table_id, primary_key: list, dataset_id=bq_default_dataset()):
+    def count_duplicates(self, table_id, primary_key: list, dataset_id=bq_default_dataset(),project_id=bq_default_project()):
         """ Count duplicate rows in primary key
 
         Parameters:
@@ -1225,7 +1228,7 @@ class BigQueryExecutor:
         )
         return data['dup_total'].values[0]
 
-    def assert_unique(self, table_id, primary_key: list, dataset_id=bq_default_dataset(), ignore_error=False, **kwargs):
+    def assert_unique(self, table_id, primary_key: list, dataset_id=bq_default_dataset(),project_id=bq_default_project(), ignore_error=False, **kwargs):
         """ Assert uniqueness of primary key in table
 
         Parameters:
