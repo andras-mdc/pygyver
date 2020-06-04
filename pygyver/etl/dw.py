@@ -127,7 +127,7 @@ class BigQueryExecutor:
         )
 
 
-    def get_dataset_ref(self,  dataset_id, project_id=bq_default_project()):
+    def get_dataset_ref(self,  dataset_id, project=bq_default_project()):
         """ Returns BigQuery DatasetReference object.
 
         Parameters:
@@ -137,7 +137,7 @@ class BigQueryExecutor:
             bigquery.dataset.DatasetReference object
         """
         return bigquery.dataset.DatasetReference(
-            project_id,
+            project,
             dataset_id
         )
 
@@ -151,7 +151,7 @@ class BigQueryExecutor:
         Returns:
             Returns BigQuery Table reference object.
         """
-        dataset_ref = self.get_dataset_ref(dataset_id, project_id)
+        dataset_ref = self.get_dataset_ref(dataset_id, project = project_id)
         return dataset_ref.table(table_id)
 
     def dataset_exists(self, dataset_id=bq_default_dataset(),project_id=bq_default_project()):
@@ -605,7 +605,8 @@ class BigQueryExecutor:
         list_field = []
         schema_a = self.get_table_schema(
             table_id=table_id,
-            dataset_id=dataset_id
+            dataset_id=dataset_id,
+            project_id=project_id
         )
         schema_b = read_table_schema_from_file(schema_path)
         field_list_a = [schema_field.name for schema_field in schema_a]
@@ -649,6 +650,7 @@ class BigQueryExecutor:
         logging.info("Attempting patch")
         logging.info("Checking for new fields...")
         new_fields = self.identify_new_fields(
+            project_id=project_id,
             dataset_id=dataset_id,
             table_id=table_id,
             schema_path=schema_path
@@ -668,12 +670,14 @@ class BigQueryExecutor:
 
         logging.info("Checking for schema update...")
         self.update_schema(
+            project_id=project_id,
             dataset_id=dataset_id,
             table_id=table_id,
             schema_path=schema_path
         )
         return len(
             self.get_table_schema(
+                project_id=project_id,
                 dataset_id=dataset_id,
                 table_id=table_id
             )
@@ -690,7 +694,7 @@ class BigQueryExecutor:
         Raises:
             BadRequest if the update fails.
         """
-        table_ref = self.get_table_ref(dataset_id, table_id)
+        table_ref = self.get_table_ref(dataset_id, table_id,project_id = project_id)
         table = self.client.get_table(table_ref)  # API request
         new_schema = read_table_schema_from_file(schema_path)
         if table.schema == new_schema:
@@ -1166,7 +1170,7 @@ class BigQueryExecutor:
             The email address specified in `access_token.json` must have read permissions for the project
         """
         try:
-            dataset_ref = self.get_dataset_ref(dataset_id, project_id)
+            dataset_ref = self.get_dataset_ref(dataset_id, project = project_id)
             tables = self.client.list_tables(dataset_ref)
             table_ids = [table.table_id for table in tables]
             return table_ids
