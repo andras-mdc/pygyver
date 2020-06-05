@@ -127,7 +127,7 @@ class BigQueryExecutor:
         )
 
 
-    def get_dataset_ref(self,  dataset_id, project=bq_default_project()):
+    def get_dataset_ref(self,  dataset_id, project_id=bq_default_project()):
         """ Returns BigQuery DatasetReference object.
 
         Parameters:
@@ -137,8 +137,8 @@ class BigQueryExecutor:
             bigquery.dataset.DatasetReference object
         """
         return bigquery.dataset.DatasetReference(
-            project,
-            dataset_id
+            project = project_id,
+            dataset_id = dataset_id
         )
 
     def get_table_ref(self, dataset_id, table_id, project_id=bq_default_project()):
@@ -151,7 +151,7 @@ class BigQueryExecutor:
         Returns:
             Returns BigQuery Table reference object.
         """
-        dataset_ref = self.get_dataset_ref(dataset_id, project = project_id)
+        dataset_ref = self.get_dataset_ref(dataset_id, project_id = project_id)
         return dataset_ref.table(table_id)
 
     def dataset_exists(self, dataset_id=bq_default_dataset(),project_id=bq_default_project()):
@@ -186,7 +186,7 @@ class BigQueryExecutor:
             )
             logging.info(
                 "Dataset %s.%s deleted",
-                self.project_id,
+                project_id,
                 dataset_id
             )
             time.sleep(1)
@@ -205,7 +205,7 @@ class BigQueryExecutor:
             logging.info(
                 "Dataset %s already exists in project %s",
                 dataset_id,
-                self.project_id
+                project_id
             )
         else:
             try:
@@ -213,7 +213,7 @@ class BigQueryExecutor:
                 logging.info(
                     "Created dataset %s in in project %s",
                     dataset_id,
-                    self.project_id
+                    project_id
                 )
             except exceptions.Conflict as error:
                 logging.error(error)
@@ -247,7 +247,7 @@ class BigQueryExecutor:
             self.client.delete_table(table_ref)
             logging.info(
                 'Table %s:%s.%s deleted.',
-                self.project_id,
+                project_id,
                 dataset_id,
                 table_id
             )
@@ -310,7 +310,7 @@ class BigQueryExecutor:
         """ create a bigquery table from a sql query """
 
         if sql is None and file is None:
-            raise BigQueryExecutorError("EIther sql or file must be provided")
+            raise BigQueryExecutorError("Either sql or file must be provided")
         if sql is None:
             sql = read_sql(file, **kwargs)
 
@@ -357,7 +357,7 @@ class BigQueryExecutor:
         query_job.result()
         logging.info(
             'Query results loaded to table %s:%s.%s',
-            self.project_id,
+            project_id,
             dataset_id,
             table_id
         )
@@ -935,7 +935,7 @@ class BigQueryExecutor:
         logging.info(
             'Loaded %s loaded to %s:%s.%s',
             uri,
-            self.project_id,
+            project_id,
             dataset_id,
             table_id
         )
@@ -967,7 +967,7 @@ class BigQueryExecutor:
                 logging.info(
                     'Loaded %s row(s) into %s:%s.%s',
                     len(rows),
-                    self.project_id,
+                    project_id,
                     dataset_id,
                     table_id
                 )
@@ -1013,7 +1013,7 @@ class BigQueryExecutor:
 
         logging.info(
             'Table %s:%s.%s loaded to %s',
-            self.project_id,
+            project_id,
             dataset_id,
             table_id,
             uri
@@ -1036,7 +1036,7 @@ class BigQueryExecutor:
         query_job.result()
         logging.info(
             'Table %s:%s.%s has been truncated',
-            self.project_id,
+            project_id,
             dataset_id,
             table_id
         )
@@ -1249,7 +1249,7 @@ class BigQueryExecutor:
         """
         if self.count_duplicates(table_id, primary_key, dataset_id) != 0:
             msg = "Table %s:%s.%s is not unique on %s" % (
-                self.project_id,
+                project_id,
                 dataset_id,
                 table_id,
                 ', '.join(primary_key)
