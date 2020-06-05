@@ -198,7 +198,7 @@ class BigQueryExecutor:
             logging.error(error)
 
 
-    def create_dataset(self, dataset_id=bq_default_dataset(), project_id=bq_default_project()):
+    def create_dataset(self, dataset_id=bq_default_dataset(), project_id=bq_default_project(), **kwargs):
         """ Creates a BigQuery dataset if the dataset does not exists. Otherwise pass.
 
         Parameters:
@@ -318,12 +318,10 @@ class BigQueryExecutor:
         """ create a bigquery table from a sql query """
 
         if sql is None and file is None:
-            raise BigQueryExecutorError("Either sql or file must be provided")
+            raise BigQueryExecutorError("EIther sql or file must be provided")
+
         if sql is None:
             sql = read_sql(file, **kwargs)
-
-        if not self.dataset_exists(dataset_id=dataset_id,project_id=project_id):
-            self.create_dataset(dataset_id=dataset_id,project_id=project_id)
 
         if schema_path != '':
             self.initiate_table(
@@ -392,7 +390,7 @@ class BigQueryExecutor:
         if sql is None and file is None:
             raise BigQueryExecutorError("EIther sql or file must be provided")
         if sql is None:
-            sql = read_sql(file)
+            sql = read_sql(file, **kwargs)
 
         if schema_path != "":
             self.initiate_table(
@@ -1119,7 +1117,7 @@ class BigQueryExecutor:
             if not clustering_fields is None:
                 table.clustering_fields = clustering_fields
             if not partition_type is None:
-                table.partition_type = partition_type
+                table.partitioning_type = partition_type
             self.client.create_table(table) # Make an API request.
             logging.info(
                 "Created table {}.{}.{}".format(table.project, table.dataset_id, table.table_id)

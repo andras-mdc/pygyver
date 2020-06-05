@@ -6,7 +6,7 @@ from pygyver.etl.lib import bq_token_file_valid
 from pygyver.etl.lib import extract_args
 from pygyver.etl.lib import remove_first_slash
 from pygyver.etl.lib import add_dataset_id_prefix
-
+from pygyver.etl.lib import apply_kwargs
 
 
 def bq_token_file_path_exists_mock(token_path):
@@ -154,7 +154,6 @@ class FunctionsinLib(unittest.TestCase):
                 },
                 "prefix properly added to dataset_id"
             )
-   
 
 if __name__ == "__main__":
     unittest.main()
