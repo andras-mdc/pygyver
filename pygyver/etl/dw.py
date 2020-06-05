@@ -132,7 +132,7 @@ class BigQueryExecutor:
 
         Parameters:
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
 
         Returns:
             bigquery.dataset.DatasetReference object
@@ -146,7 +146,7 @@ class BigQueryExecutor:
         """ Returns BigQuery Table reference object.
 
         Parameters:
-        	table_id (string): BigQuery table ID.
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
 
@@ -161,7 +161,7 @@ class BigQueryExecutor:
 
         Parameters:
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
 
         Returns:
             True is the dataset exists, False otherwise
@@ -178,7 +178,7 @@ class BigQueryExecutor:
 
         Parameters:
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             delete_contents (bool): If True, delete all the tables in the dataset.
             If False and the dataset contains tables, the request will fail. Default is False.
         """
@@ -203,7 +203,7 @@ class BigQueryExecutor:
 
         Parameters:
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
         """
         dataset_ref = self.get_dataset_ref(dataset_id,project_id=project_id)
         if self.dataset_exists(dataset_id,project_id=project_id):
@@ -228,7 +228,7 @@ class BigQueryExecutor:
 
         Parameters:
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             table_id (string): BigQuery table ID.
 
         Returns:
@@ -246,7 +246,7 @@ class BigQueryExecutor:
 
         Parameters:
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             table_id (string): BigQuery table ID.
         """
         try:
@@ -267,7 +267,7 @@ class BigQueryExecutor:
 
         Parameters:
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             table_id (string): BigQuery table ID.
             schema_path (string: Path to the BigQuery table schema from the PROJECT_ROOT environement variable.
             partition (bool): Specify whether the BigQuery table is partioned. Default to False.
@@ -325,10 +325,11 @@ class BigQueryExecutor:
 
         if schema_path != '':
             self.initiate_table(
-                dataset_id=dataset_id,
                 table_id=table_id,
                 schema_path=schema_path,
-                partition=partition
+                partition=partition, 
+                dataset_id=dataset_id, 
+                project_id=project_id
             )
             if write_disposition == "WRITE_TRUNCATE":
                 self.truncate_table(dataset_id=dataset_id, table_id=table_id,project_id=project_id)
@@ -518,7 +519,7 @@ class BigQueryExecutor:
 
         Parameters:
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             table_id (string): BigQuery table ID.
 
         Returns:
@@ -542,7 +543,7 @@ class BigQueryExecutor:
 
         Parameters:
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             table_id (string): BigQuery table ID.
 
         Returns:
@@ -565,7 +566,7 @@ class BigQueryExecutor:
 
         Parameters:
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             table_id (string): BigQuery table ID.
 
         Returns:
@@ -580,7 +581,7 @@ class BigQueryExecutor:
 
         Parameters:
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             table_id (string): BigQuery table ID.
 
         Returns:
@@ -595,7 +596,7 @@ class BigQueryExecutor:
 
         Parameters:
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             table_id (string): BigQuery table ID.
 
         Returns:
@@ -610,7 +611,7 @@ class BigQueryExecutor:
 
         Parameters:
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             table_id (string): BigQuery table ID.
             schema_path (string): Path to the schema to compare to.
 
@@ -635,7 +636,7 @@ class BigQueryExecutor:
 
         Parameters:
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             table_id (string): BigQuery table ID.
             field (string): Schema field object.
 
@@ -657,7 +658,7 @@ class BigQueryExecutor:
 
         Parameters:
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             table_id (string): BigQuery table ID.
             schema_path (string): Path to schema file to compare to.
 
@@ -706,7 +707,7 @@ class BigQueryExecutor:
 
         Parameters:
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             table_id (string): BigQuery table ID.
             schema_path (string): Path to schema file to compare to.
 
@@ -778,7 +779,7 @@ class BigQueryExecutor:
         Parameters:
             df (pd.DataFrame): Pandas DataFrame
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             table_id (string): BigQuery table ID.
             schema_path (string): Path to schema file.
             write_disposition (string): Write disposition. Can be one of WRITE_TRUNCATE, WRITE_APPEND or WRITE_EMPTY.
@@ -812,7 +813,7 @@ class BigQueryExecutor:
         Parameters:
             googlesheet_key (string): Google Sheet Key
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             table_id (string): BigQuery table ID.
         """
         df = load_gs_to_dataframe(googlesheet_key)
@@ -832,7 +833,7 @@ class BigQueryExecutor:
             file (string): Path to JSON file.
             project_id (string): BigQuery Project ID.
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             table_id (string): BigQuery table ID.
             schema_path (string): Path to schema file.
             write_disposition (string): Write disposition. Can be one of WRITE_TRUNCATE, WRITE_APPEND or WRITE_EMPTY.
@@ -874,7 +875,7 @@ class BigQueryExecutor:
         Parameters:
             json (string): JSON data.
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             table_id (string): BigQuery table ID.
             schema_path (string): Path to schema file.
             write_disposition (string): Write disposition. Can be one of WRITE_TRUNCATE, WRITE_APPEND or WRITE_EMPTY.
@@ -913,7 +914,7 @@ class BigQueryExecutor:
 
         Parameters:
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             table_id (string): BigQuery table ID.
             gcs_bucket (string): Google Cloud Storage Bucket.
             gcs_path (string): Google Cloud Storage Path.
@@ -977,6 +978,7 @@ class BigQueryExecutor:
         Requires the table to exists in BigQuery.
 
         Arguments:
+            - project_id (string): BigQuery project ID
             - dataset_id (string): BigQuery dataset ID
             - table_id (string): BigQuery table ID
             - rows (one of: list of tuples, list of dictonaries): Row data to be inserted.
@@ -1020,7 +1022,7 @@ class BigQueryExecutor:
 
         Parameters:
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             table_id (string): BigQuery table ID.
             gcs_bucket (string): Google Cloud Storage Bucket.
             gcs_path (string): Google Cloud Storage Path.
@@ -1059,7 +1061,7 @@ class BigQueryExecutor:
 
         Parameters:
             dataset_id (string): BigQuery dataset ID.
-			project_id (string): BigQuery project ID.
+            project_id (string): BigQuery project ID.
             table_id (string): BigQuery table ID.
         """
         job_config = bigquery.QueryJobConfig()
@@ -1217,7 +1219,8 @@ class BigQueryExecutor:
         """ Count rows in table
 
         Parameters:
-            dataset_id (string): BigQuery dataset ID
+            project_id (string): BigQuery project ID.
+            dataset_id (string): BigQuery dataset ID.
             table_id (string): BigQuery table ID.
 
         Returns:
@@ -1231,7 +1234,8 @@ class BigQueryExecutor:
         """ Count columns in table
 
         Parameters:
-            dataset_id (string): BigQuery dataset ID
+            project_id (string): BigQuery project ID.
+            dataset_id (string): BigQuery dataset ID.
             table_id (string): BigQuery table ID.
 
         Returns:
@@ -1245,7 +1249,8 @@ class BigQueryExecutor:
         """ Count duplicate rows in primary key
 
         Parameters:
-            dataset_id (string): BigQuery dataset ID
+            project_id (string): BigQuery project ID.
+            dataset_id (string): BigQuery dataset ID.
             table_id (string): BigQuery table ID.
             primary_key: a list of one or more column names, e.g. ['col1', 'col2']
 
@@ -1274,7 +1279,8 @@ class BigQueryExecutor:
         """ Assert uniqueness of primary key in table
 
         Parameters:
-            dataset_id (string): BigQuery dataset ID
+            project_id (string): BigQuery project ID.
+            dataset_id (string): BigQuery dataset ID.
             table_id (string): BigQuery table ID.
             primary_key: a list of one or more column names, e.g. ['col1', 'col2']
             ignore_error: boolean flag to prevent error being raised, useful for debugging
