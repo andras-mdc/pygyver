@@ -225,9 +225,10 @@ class BigQueryExecutor:
         """ Checks if a BigQuery table exists.
 
         Parameters:
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            table_id (string): BigQuery table ID.
+            
 
         Returns:
             True is the table exists, False otherwise.
@@ -243,9 +244,10 @@ class BigQueryExecutor:
         """ Delete a BigQuery table.
 
         Parameters:
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            table_id (string): BigQuery table ID.
+            
         """
         try:
             table_ref = self.get_table_ref(dataset_id, table_id,project_id=project_id)
@@ -264,9 +266,9 @@ class BigQueryExecutor:
         """ Initiate a BigQuery table. If the table already exists, compares the schema_path and apply a patch if there is a schema change.
 
         Parameters:
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            table_id (string): BigQuery table ID.
             schema_path (string: Path to the BigQuery table schema from the PROJECT_ROOT environement variable.
             partition (bool): Specify whether the BigQuery table is partioned. Default to False.
             clustering (list): List of clustering fields. Defaults to None.
@@ -516,9 +518,9 @@ class BigQueryExecutor:
         """ Gets existing partitions from BigQuery as dataframe.
 
         Parameters:
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            table_id (string): BigQuery table ID.
 
         Returns:
             DataFrame of existing partitions
@@ -540,9 +542,9 @@ class BigQueryExecutor:
         """ Gets existing partitions.
 
         Parameters:
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            table_id (string): BigQuery table ID.
 
         Returns:
             List of existing partition dates.
