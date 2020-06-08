@@ -1012,7 +1012,7 @@ class BigQueryExecutorCreateTableStructure(unittest.TestCase):
 
     def test_copy_table_succeeded(self):
         self.bq_client.copy_table_structure(
-            source_project_id=self.bq_client.project_id,
+            source_project_id=os.environ['BIGQUERY_PROJECT'],
             source_dataset_id='test',
             source_table_id='bq_copy_table_source',
             dest_dataset_id='test',

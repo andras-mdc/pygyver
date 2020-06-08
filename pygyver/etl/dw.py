@@ -111,7 +111,6 @@ class BigQueryExecutor:
         """
         self.client = None
         self.credentials = None
-        self.project_id = project_id
         self.auth()
 
     def auth(self):
@@ -122,8 +121,7 @@ class BigQueryExecutor:
             bq_token_file_path()
         )
         self.client = bigquery.Client(
-            credentials=self.credentials,
-            project=self.project_id
+            credentials=self.credentials
         )
 
 
@@ -189,7 +187,7 @@ class BigQueryExecutor:
                 delete_contents=delete_contents
             )
             logging.info(
-                "Dataset %s.%s deleted",
+                "Dataset %s:%s deleted",
                 project_id,
                 dataset_id
             )
@@ -867,7 +865,7 @@ class BigQueryExecutor:
                 )
                 job.result()
         else:
-            raise Exception("Please initiate %s.%s or pass the schema file", dataset_id, table_id)
+            raise Exception("Please initiate %s:%s.%s or pass the schema file",project_id ,dataset_id, table_id)
 
     def load_json_data(self, json, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project(), schema_path='', write_disposition="WRITE_TRUNCATE"):
         """ Loads JSON data to BigQuery table.
@@ -907,7 +905,7 @@ class BigQueryExecutor:
             )
             job.result()
         else:
-            raise Exception("Please initiate %s.%s or pass the schema file", dataset_id, table_id)
+            raise Exception("Please initiate %s:%s.%s or pass the schema file",project_id,dataset_id, table_id)
 
     def load_gcs(self, dataset_id, table_id, gcs_path, gcs_bucket=gcs_default_bucket(),project_id=bq_default_project(), location='US', schema_path='', header=True, write_disposition='WRITE_TRUNCATE'):
         """ Loads Google Cloud Storage CSV file into a BigQuery table.
