@@ -121,6 +121,7 @@ class BigQueryExecutor:
             bq_token_file_path()
         )
         self.client = bigquery.Client(
+            project = bq_default_project(),
             credentials=self.credentials
         )
 
@@ -514,7 +515,7 @@ class BigQueryExecutor:
                     partition_dates.append(partition_date)
         return partition_dates
 
-    def get_existing_partition_query(self, dataset_id, table_id):
+    def get_existing_partition_query(self, dataset_id, table_id,project_id = bq_default_project()):
         """ Gets existing partitions from BigQuery as dataframe.
 
         Parameters:
@@ -535,7 +536,8 @@ class BigQueryExecutor:
                         table_id=table_id
                         )
         return self.execute_sql(
-            sql=sql
+            sql=sql, 
+            project_id=project_id
         )
 
     def get_existing_partition_dates(self, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project()):
@@ -565,9 +567,10 @@ class BigQueryExecutor:
         """ Gets table schema object
 
         Parameters:
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            table_id (string): BigQuery table ID.
+            
 
         Returns:
             Table schema.
@@ -580,9 +583,9 @@ class BigQueryExecutor:
         """ Gets table partitioning_type
 
         Parameters:
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            table_id (string): BigQuery table ID.
 
         Returns:
             partitioning_type is the table is partioned, None otherwise.
@@ -595,9 +598,9 @@ class BigQueryExecutor:
         """ Gets table clustering_fields
 
         Parameters:
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            table_id (string): BigQuery table ID.
 
         Returns:
             list of clustering fields is the table has cluster fields, None otherwise.
@@ -610,9 +613,9 @@ class BigQueryExecutor:
         """ Identify new fields in based on a schema file.
 
         Parameters:
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            table_id (string): BigQuery table ID.
             schema_path (string): Path to the schema to compare to.
 
         Returns:
@@ -635,9 +638,9 @@ class BigQueryExecutor:
         """ Append fields to a BigQuery table.
 
         Parameters:
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            table_id (string): BigQuery table ID.
             field (string): Schema field object.
 
         """
@@ -657,9 +660,9 @@ class BigQueryExecutor:
         """ Apply a patch to a BigQuery Table if required.
 
         Parameters:
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            table_id (string): BigQuery table ID.
             schema_path (string): Path to schema file to compare to.
 
         Returns:
@@ -706,9 +709,9 @@ class BigQueryExecutor:
         """ Perform a schema update. Used to update descriptions.
 
         Parameters:
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            table_id (string): BigQuery table ID.
             schema_path (string): Path to schema file to compare to.
 
         Raises:
@@ -778,9 +781,9 @@ class BigQueryExecutor:
 
         Parameters:
             df (pd.DataFrame): Pandas DataFrame
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            table_id (string): BigQuery table ID.
             schema_path (string): Path to schema file.
             write_disposition (string): Write disposition. Can be one of WRITE_TRUNCATE, WRITE_APPEND or WRITE_EMPTY.
         """
@@ -812,9 +815,9 @@ class BigQueryExecutor:
 
         Parameters:
             googlesheet_key (string): Google Sheet Key
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            table_id (string): BigQuery table ID.
         """
         df = load_gs_to_dataframe(googlesheet_key)
         if self.table_exists(table_id, dataset_id,project_id=project_id):
@@ -832,9 +835,9 @@ class BigQueryExecutor:
         Parameters:
             file (string): Path to JSON file.
             project_id (string): BigQuery Project ID.
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            table_id (string): BigQuery table ID.
             schema_path (string): Path to schema file.
             write_disposition (string): Write disposition. Can be one of WRITE_TRUNCATE, WRITE_APPEND or WRITE_EMPTY.
         """
@@ -874,9 +877,9 @@ class BigQueryExecutor:
 
         Parameters:
             json (string): JSON data.
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            table_id (string): BigQuery table ID.
             schema_path (string): Path to schema file.
             write_disposition (string): Write disposition. Can be one of WRITE_TRUNCATE, WRITE_APPEND or WRITE_EMPTY.
         """
@@ -913,9 +916,9 @@ class BigQueryExecutor:
         """ Loads Google Cloud Storage CSV file into a BigQuery table.
 
         Parameters:
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            table_id (string): BigQuery table ID.
             gcs_bucket (string): Google Cloud Storage Bucket.
             gcs_path (string): Google Cloud Storage Path.
             location (string): Defaults to 'US'.
@@ -1021,9 +1024,9 @@ class BigQueryExecutor:
         """ Extract BigQuery table into Google Cloud Storage.
 
         Parameters:
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            table_id (string): BigQuery table ID.
             gcs_bucket (string): Google Cloud Storage Bucket.
             gcs_path (string): Google Cloud Storage Path.
             location (string): Defaults to 'US'.
@@ -1060,9 +1063,9 @@ class BigQueryExecutor:
         """ Delete all records from table but preserve structure e.g. schema, partitioning, clustering, description, labels, etc.
 
         Parameters:
+            table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            table_id (string): BigQuery table ID.
         """
         job_config = bigquery.QueryJobConfig()
         job_config.destination = self.get_table_ref(dataset_id, table_id,project_id=project_id)
@@ -1136,6 +1139,7 @@ class BigQueryExecutor:
             source_project_id (string): Source BigQuery Project ID.
             source_dataset_id (string): Source BigQuery Dataset ID.
             source_table_id (string): Source BigQuery table ID.
+            dest_project_id (string): Source BigQuery Project ID.
             dest_dataset_id (string): Destination BigQuery Dataset ID.
             dest_table_id (string): Destination BigQuery table ID.
             write_disposition (string): Write disposition. Can be one of WRITE_TRUNCATE, WRITE_APPEND or WRITE_EMPTY.
@@ -1147,8 +1151,7 @@ class BigQueryExecutor:
         Permissions:
             The email address specified in `access_token.json` must have read permissions for the source
         """
-        source_dataset_ref = bigquery.dataset.DatasetReference(source_project_id, source_dataset_id)
-        source_table_ref = source_dataset_ref.table(source_table_id)
+        source_table_ref = self.get_table_ref(source_dataset_id, source_table_id,project_id=source_project_id)
         dest_table_ref = self.get_table_ref(dest_dataset_id, dest_table_id,project_id=dest_project_id)
 
         if not self.dataset_exists(dest_dataset_id):
