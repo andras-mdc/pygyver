@@ -269,7 +269,7 @@ class BigQueryExecutor:
                        dataset_id=bq_default_dataset(),
                        project_id=bq_default_project(),
                        partition=False,
-                       partition_field="_PARTITIONTIME",
+                       partition_field='_PARTITIONTIME',
                        clustering=None):
         """ Initiate a BigQuery table. If the table already exists, compares the schema_path and apply a patch if there is a schema change.
 
@@ -279,7 +279,7 @@ class BigQueryExecutor:
             project_id (string): BigQuery project ID.
             schema_path (string: Path to the BigQuery table schema from the PROJECT_ROOT environement variable.
             partition (bool): Specify whether the BigQuery table is partioned. Default to False.
-            partition_field (string): Specify partition_field if table partioned. Defaults to "_PARTITIONTIME"
+            partition_field (string): Specify partition_field if table partioned. Defaults to "_PARTITIONTIME".
             clustering (list): List of clustering fields. Defaults to None.
         """
         if self.table_exists(
@@ -303,10 +303,14 @@ class BigQueryExecutor:
                 schema=schema
                 )
             if partition:
-                table.time_partitioning = bigquery.TimePartitioning(
-                    type_=bigquery.TimePartitioningType.DAY
-                    field=partition_field
-                )
+                table.partitioning_type = 'DAY'
+                if partition_field and partition_field != '_PARTITIONTIME':
+                    if isinstance(partition_field, str):
+                        job_config.time_partitioning = bigquery.table.TimePartitioning(
+                            field=partition_field
+                        )
+                    else:
+                        raise ValueError("partition_field should be a string")
             table.clustering_fields = clustering
             try:
                 table = self.client.create_table(table)
@@ -357,7 +361,7 @@ class BigQueryExecutor:
         job_config.create_disposition = bigquery.CreateDisposition.CREATE_IF_NEEDED
         job_config.priority = set_priority(priority)
         if partition:
-            if partition_field == '_PARTITIONTIME':
+            if not partition_field or partition_field == '_PARTITIONTIME':
                 job_config.time_partitioning = bigquery.TimePartitioning(
                     type_=bigquery.TimePartitioningType.DAY
                 )
@@ -395,7 +399,7 @@ class BigQueryExecutor:
                                use_legacy_sql=False,
                                write_disposition='WRITE_TRUNCATE',
                                partition_dates=None,
-                               partition_field="_PARTITIONTIME",
+                               partition_field='_PARTITIONTIME',
                                clustering=None,
                                priority="INTERACTIVE",
                                schema_path="",
@@ -417,6 +421,7 @@ class BigQueryExecutor:
                 table_id=table_id,
                 schema_path=schema_path,
                 partition=True,
+                partition_field=partition_field,
                 clustering=clustering
             )
 
