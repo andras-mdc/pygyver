@@ -362,13 +362,17 @@ class BigQueryExecutor:
             location=location,
             job_config=job_config
         )
-        query_job.result()
-        logging.info(
+        if priority == 'INTERACTIVE':
+            query_job.result()
+            logging.info(
             'Query results loaded to table %s:%s.%s',
-            project_id,
-            dataset_id,
-            table_id
-        )
+                project_id,
+                dataset_id,
+                table_id
+            )
+        
+        return query_job
+
 
     def create_partition_table(self,
                                table_id,
@@ -424,10 +428,11 @@ class BigQueryExecutor:
             )
             dates = partition_dates
 
+        jobs = []
         for date in dates:
             partition_name = self.set_partition_name(table=table_id, date=date)
             logging.info("Updating partition: %s", partition_name)
-            self.create_table(
+            job = self.create_table(
                 sql=self.apply_partition_filter(
                     sql=sql,
                     date=date
@@ -442,6 +447,12 @@ class BigQueryExecutor:
                 clustering=clustering,
                 priority=priority
             )
+            jobs.append(job)
+
+        if priority == 'BATCH':
+            for job in jobs:
+                job.results()
+
 
     def apply_partition_filter(self, sql, date):
         """ Apply partition_date to the SQL query.
