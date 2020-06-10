@@ -263,7 +263,14 @@ class BigQueryExecutor:
         except NotFound as error:
             logging.error(error)
 
-    def initiate_table(self, table_id, schema_path, dataset_id=bq_default_dataset(),project_id=bq_default_project(), partition=False, clustering=None):
+    def initiate_table(self,
+                       table_id,
+                       schema_path,
+                       dataset_id=bq_default_dataset(),
+                       project_id=bq_default_project(),
+                       partition=False,
+                       partition_field="_PARTITIONTIME",
+                       clustering=None):
         """ Initiate a BigQuery table. If the table already exists, compares the schema_path and apply a patch if there is a schema change.
 
         Parameters:
@@ -272,6 +279,7 @@ class BigQueryExecutor:
             project_id (string): BigQuery project ID.
             schema_path (string: Path to the BigQuery table schema from the PROJECT_ROOT environement variable.
             partition (bool): Specify whether the BigQuery table is partioned. Default to False.
+            partition_field (string): Specify partition_field if table partioned. Defaults to "_PARTITIONTIME"
             clustering (list): List of clustering fields. Defaults to None.
         """
         if self.table_exists(
@@ -295,7 +303,10 @@ class BigQueryExecutor:
                 schema=schema
                 )
             if partition:
-                table.partitioning_type = 'DAY'
+                table.time_partitioning = bigquery.TimePartitioning(
+                    type_=bigquery.TimePartitioningType.DAY
+                    field=partition_field
+                )
             table.clustering_fields = clustering
             try:
                 table = self.client.create_table(table)
@@ -328,7 +339,8 @@ class BigQueryExecutor:
             self.initiate_table(
                 table_id=table_id,
                 schema_path=schema_path,
-                partition=partition, 
+                partition=partition,
+                partition_field=partition_field,
                 dataset_id=dataset_id, 
                 project_id=project_id
             )
