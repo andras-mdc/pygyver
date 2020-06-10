@@ -451,7 +451,7 @@ class BigQueryExecutor:
 
         if priority == 'BATCH':
             for job in jobs:
-                job.results()
+                job.result()
 
 
     def apply_partition_filter(self, sql, date):
