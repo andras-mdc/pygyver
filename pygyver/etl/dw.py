@@ -306,7 +306,7 @@ class BigQueryExecutor:
                 table.partitioning_type = 'DAY'
                 if partition_field and partition_field != '_PARTITIONTIME':
                     if isinstance(partition_field, str):
-                        job_config.time_partitioning = bigquery.table.TimePartitioning(
+                        table.time_partitioning = bigquery.table.TimePartitioning(
                             field=partition_field
                         )
                     else:
