@@ -622,6 +622,19 @@ class BigQueryExecutor:
         partitioning_type = self.client.get_table(table_ref).partitioning_type
         return partitioning_type
 
+    def get_table_attributes(self, table_id, dataset_id=bq_default_dataset(), project_id=bq_default_project()):
+        dict_of_attributes = {}
+        attributes = ['clustering_fields', 'description', 'encryption_configuration', 'expires',
+        'external_data_configuration', 'friendly_name', 'labels', 'partitioning_type', 
+        'range_partitioning', 'require_partition_filter', 'schema', 'time_partitioning', 
+        'view_query', 'view_use_legacy_sql']
+        table_ref = self.get_table_ref(dataset_id, table_id, project_id=project_id)
+        for attribute in attributes:
+            my_attribute = getattr(self.client.get_table(table_ref), attribute)
+            dict_of_attributes.update({attribute: my_attribute})
+        return dict_of_attributes
+
+
     def get_table_clustering_fields(self, table_id, dataset_id=bq_default_dataset(), project_id=bq_default_project()):
         """ Gets table clustering_fields
 
@@ -1110,7 +1123,6 @@ class BigQueryExecutor:
             table_id
         )
 
-    # this is a placeholder - no tests.
     def copy_table_structure(
         self,
         source_table_id,
@@ -1130,27 +1142,18 @@ class BigQueryExecutor:
 
         if self.table_exists(table_id=source_table_id, dataset_id=source_dataset_id, project_id=source_project_id):
 
-            schema = self.get_table_schema(
+            attributes = self.get_table_attributes(
                 table_id=source_table_id,
                 dataset_id=source_dataset_id,
                 project_id=source_project_id
             )
             table_def = "{}.{}.{}".format(dest_project_id, dest_dataset_id, dest_table_id)
-            table = bigquery.Table(table_def, schema=schema)
-            clustering_fields = self.get_table_clustering_fields(
-                table_id=source_table_id,
-                dataset_id=source_dataset_id,
-                project_id=source_project_id
-            )
-            partition_type = self.get_table_partitioning_type(
-                table_id=source_table_id,
-                dataset_id=source_dataset_id,
-                project_id=source_project_id
-            )
-            if not clustering_fields is None:
-                table.clustering_fields = clustering_fields
-            if not partition_type is None:
-                table.partitioning_type = partition_type
+            table = bigquery.Table(table_def)
+
+            for attribute_key, attribute_value in attributes.items():
+                if not attribute_value is None:
+                    setattr(table, attribute_key, attribute_value)
+
             self.client.create_table(table) # Make an API request.
             logging.info(
                 "Created table {}.{}.{}".format(table.project, table.dataset_id, table.table_id)

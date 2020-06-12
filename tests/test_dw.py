@@ -15,6 +15,60 @@ from oauth2client.service_account import ServiceAccountCredentials
 from pygyver.etl.storage import GCSExecutor
 from pandas.testing import assert_frame_equal
 
+class get_table_attributes(unittest.TestCase):
+    """ Test """
+    def setUp(self):
+        self.db = dw.BigQueryExecutor()
+        self.db.create_dataset(
+            dataset_id='test_get_table_attributes'
+        )
+        self.db.initiate_table(
+            dataset_id='test_get_table_attributes',
+            table_id='partition_table',
+            schema_path='tests/schema/orig_table.json',
+            partition=True,
+            clustering=['fullname']
+        )
+        self.db.initiate_table(
+            dataset_id='test_get_table_attributes',
+            table_id='partition_table_with_partition_field',
+            schema_path='tests/schema/orig_table_with_date.json',
+            partition=True,
+            partition_field='birthday',
+            clustering=['fullname']
+        )
+
+    def test_get_table_attributes(self):        
+        """ Test """
+        attributes = self.db.get_table_attributes(
+            dataset_id='test_get_table_attributes',
+            table_id='partition_table'
+        )
+        self.assertEqual(
+            str(attributes),
+            "{'clustering_fields': ['fullname'], 'description': None, 'encryption_configuration': None, 'expires': None, 'external_data_configuration': None, 'friendly_name': None, 'labels': {}, 'partitioning_type': 'DAY', 'range_partitioning': None, 'require_partition_filter': None, 'schema': [SchemaField('fullname', 'STRING', 'NULLABLE', '', ()), SchemaField('age', 'INTEGER', 'NULLABLE', '', ())], 'time_partitioning': TimePartitioning(type=DAY), 'view_query': None, 'view_use_legacy_sql': None}"
+        )
+        attributes = self.db.get_table_attributes(
+            dataset_id='test_get_table_attributes',
+            table_id='partition_table_with_partition_field'
+        )
+        self.assertEqual(
+            str(attributes),
+            "{'clustering_fields': ['fullname'], 'description': None, 'encryption_configuration': None, 'expires': None, 'external_data_configuration': None, 'friendly_name': None, 'labels': {}, 'partitioning_type': 'DAY', 'range_partitioning': None, 'require_partition_filter': None, 'schema': [SchemaField('fullname', 'STRING', 'NULLABLE', '', ()), SchemaField('age', 'INTEGER', 'NULLABLE', '', ()), SchemaField('birthday', 'DATE', 'NULLABLE', '', ())], 'time_partitioning': TimePartitioning(field=birthday,type=DAY), 'view_query': None, 'view_use_legacy_sql': None}"
+        )
+
+    def tearDown(self):
+        self.db.delete_table(
+            dataset_id='test_get_table_attributes',
+            table_id='partition_table'
+        )
+        self.db.delete_table(
+            dataset_id='test_get_table_attributes',
+            table_id='partition_table_with_partition_field'
+        )
+        self.db.delete_dataset(
+            dataset_id='test_get_table_attributes'
+        )
 
 def get_existing_partition_query_mock(dataset_id, table_id):
     d = {'partition_id': ["20200101", "20200102", "20200103"]}

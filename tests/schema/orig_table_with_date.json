@@ -1,0 +1,20 @@
+[  
+    {
+      "mode": "NULLABLE",
+      "name": "fullname",
+      "type": "STRING",
+      "description": ""
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "age",
+      "type": "INTEGER",
+      "description": ""
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "birthday",
+      "type": "DATE",
+      "description": ""
+    }
+]
