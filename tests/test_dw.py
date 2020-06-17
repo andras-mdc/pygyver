@@ -46,7 +46,14 @@ class get_table_attributes(unittest.TestCase):
         )
         self.assertEqual(
             str(attributes),
-            "{'clustering_fields': ['fullname'], 'description': None, 'encryption_configuration': None, 'expires': None, 'external_data_configuration': None, 'friendly_name': None, 'labels': {}, 'partitioning_type': 'DAY', 'range_partitioning': None, 'require_partition_filter': None, 'schema': [SchemaField('fullname', 'STRING', 'NULLABLE', '', ()), SchemaField('age', 'INTEGER', 'NULLABLE', '', ())], 'time_partitioning': TimePartitioning(type=DAY), 'view_query': None, 'view_use_legacy_sql': None}"
+            (
+                "{'clustering_fields': ['fullname'], 'description': None, 'encryption_configuration': None, "
+                "'expires': None, 'external_data_configuration': None, 'friendly_name': None, 'labels': {}, "
+                "'range_partitioning': None, 'require_partition_filter': None, "
+                "'schema': [SchemaField('fullname', 'STRING', 'NULLABLE', '', (), None), "
+                "SchemaField('age', 'INTEGER', 'NULLABLE', '', (), None)], 'time_partitioning': TimePartitioning(type=DAY), "
+                "'view_query': None, 'view_use_legacy_sql': None}"
+            )
         )
         attributes = self.db.get_table_attributes(
             dataset_id='test_get_table_attributes',
@@ -54,20 +61,20 @@ class get_table_attributes(unittest.TestCase):
         )
         self.assertEqual(
             str(attributes),
-            "{'clustering_fields': ['fullname'], 'description': None, 'encryption_configuration': None, 'expires': None, 'external_data_configuration': None, 'friendly_name': None, 'labels': {}, 'partitioning_type': 'DAY', 'range_partitioning': None, 'require_partition_filter': None, 'schema': [SchemaField('fullname', 'STRING', 'NULLABLE', '', ()), SchemaField('age', 'INTEGER', 'NULLABLE', '', ()), SchemaField('birthday', 'DATE', 'NULLABLE', '', ())], 'time_partitioning': TimePartitioning(field=birthday,type=DAY), 'view_query': None, 'view_use_legacy_sql': None}"
+            (
+                "{'clustering_fields': ['fullname'], 'description': None, 'encryption_configuration': None, "
+                "'expires': None, 'external_data_configuration': None, 'friendly_name': None, 'labels': {}, "
+                "'range_partitioning': None, 'require_partition_filter': None, "
+                "'schema': [SchemaField('fullname', 'STRING', 'NULLABLE', '', (), None), "
+                "SchemaField('age', 'INTEGER', 'NULLABLE', '', (), None), SchemaField('birthday', 'DATE', 'NULLABLE', '', (), None)], "
+                "'time_partitioning': TimePartitioning(field=birthday,type=DAY), 'view_query': None, 'view_use_legacy_sql': None}"
+            )
         )
 
     def tearDown(self):
-        self.db.delete_table(
-            dataset_id='test_get_table_attributes',
-            table_id='partition_table'
-        )
-        self.db.delete_table(
-            dataset_id='test_get_table_attributes',
-            table_id='partition_table_with_partition_field'
-        )
         self.db.delete_dataset(
-            dataset_id='test_get_table_attributes'
+            dataset_id='test_get_table_attributes',
+            delete_contents=True
         )
 
 def get_existing_partition_query_mock(dataset_id, table_id):
@@ -1028,8 +1035,8 @@ class BigQueryExecutorTableTruncate(unittest.TestCase):
             )
         )
         self.assertEqual(
-            truncated_table.partitioning_type,
-            'DAY'
+            truncated_table.time_partitioning,
+            bigquery.table.TimePartitioning(type_='DAY')
         )
         self.assertEqual(
             len(truncated_table.schema),

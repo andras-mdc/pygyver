@@ -104,10 +104,8 @@ class BigQueryExecutor:
     Returns:
         a BigQueryExecutor object.
     """
-    def __init__(self, project_id=bq_default_project()):
-        """
-        Parameters:
-            project_id (sql_file): BigQuery Project. Defaults to BIGQUERY_PROJECT environment variable.
+    def __init__(self):
+        """ Resets client and credentials.
         """
         self.client = None
         self.credentials = None
@@ -303,7 +301,7 @@ class BigQueryExecutor:
                 schema=schema
                 )
             if partition:
-                table.partitioning_type = 'DAY'
+                table.time_partitioning = bigquery.table.TimePartitioning(type_='DAY')
                 if partition_field and partition_field != '_PARTITIONTIME':
                     if isinstance(partition_field, str):
                         table.time_partitioning = bigquery.table.TimePartitioning(
@@ -362,8 +360,8 @@ class BigQueryExecutor:
         job_config.priority = set_priority(priority)
         if partition:
             if not partition_field or partition_field == '_PARTITIONTIME':
-                job_config.time_partitioning = bigquery.TimePartitioning(
-                    type_=bigquery.TimePartitioningType.DAY
+                job_config.time_partitioning = bigquery.table.TimePartitioning(
+                    type_='DAY'
                 )
                 job_config.clustering_fields = clustering
             elif isinstance(partition_field, str):
@@ -616,18 +614,18 @@ class BigQueryExecutor:
             project_id (string): BigQuery project ID.
 
         Returns:
-            partitioning_type is the table is partioned, None otherwise.
+            partitioning_type is 'DAY' if the table is partitioned, None otherwise.
         """
         table_ref = self.get_table_ref(dataset_id, table_id, project_id=project_id)
-        partitioning_type = self.client.get_table(table_ref).partitioning_type
+        table_properties = self.client.get_table(table_ref)._properties
+        partitioning_type = table_properties.get('timePartitioning', {}).get('type')
         return partitioning_type
 
     def get_table_attributes(self, table_id, dataset_id=bq_default_dataset(), project_id=bq_default_project()):
         dict_of_attributes = {}
         attributes = ['clustering_fields', 'description', 'encryption_configuration', 'expires',
-        'external_data_configuration', 'friendly_name', 'labels', 'partitioning_type', 
-        'range_partitioning', 'require_partition_filter', 'schema', 'time_partitioning', 
-        'view_query', 'view_use_legacy_sql']
+        'external_data_configuration', 'friendly_name', 'labels', 'range_partitioning', 
+        'require_partition_filter', 'schema', 'time_partitioning', 'view_query', 'view_use_legacy_sql']
         table_ref = self.get_table_ref(dataset_id, table_id, project_id=project_id)
         for attribute in attributes:
             my_attribute = getattr(self.client.get_table(table_ref), attribute)
@@ -1108,14 +1106,8 @@ class BigQueryExecutor:
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
         """
-        job_config = bigquery.QueryJobConfig()
-        job_config.destination = self.get_table_ref(dataset_id, table_id,project_id=project_id)
-        job_config.write_disposition = set_write_disposition("WRITE_TRUNCATE")
-        query_job = self.client.query(
-            query=f"SELECT * FROM `{dataset_id}.{table_id}` LIMIT 0",
-            job_config=job_config
-        )
-        query_job.result()
+        query=f"DELETE FROM `{project_id}.{dataset_id}.{table_id}` WHERE TRUE"
+        self.execute_sql(sql=query, project_id=project_id)
         logging.info(
             'Table %s:%s.%s has been truncated',
             project_id,
