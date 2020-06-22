@@ -311,8 +311,8 @@ class TestPipelineCopyTableStructure(unittest.TestCase):
     def setUp(self):
         self.bq_client = BigQueryExecutor()
         self.p_ex = pl.PipelineExecutor("tests/yaml/unit_tests_fail.yaml")    
-        self.p_ex.dry_run_dataset_prefix = 1001
-        add_dataset_id_prefix(self.p_ex.yaml, self.p_ex.dry_run_dataset_prefix)
+        self.p_ex.dataset_prefix = 1001
+        add_dataset_id_prefix(self.p_ex.yaml, self.p_ex.dataset_prefix)
 
         if self.bq_client.table_exists(dataset_id='reporting', table_id='out_product'):
             self.bq_client.delete_table(dataset_id='reporting', table_id='out_product')
@@ -331,9 +331,9 @@ class TestPipelineDryRun(unittest.TestCase):
     def setUp(self):
         self.bq_client = BigQueryExecutor()
         self.p_ex = pl.PipelineExecutor("tests/yaml/test_dry_run.yaml")
-        self.p_ex.dry_run_dataset_prefix = 1001
-        add_dataset_id_prefix(self.p_ex.yaml, self.p_ex.dry_run_dataset_prefix)
-        self.bq_client.create_dataset(dataset_id=str(self.p_ex.dry_run_dataset_prefix) + '_' + "test")
+        self.p_ex.dataset_prefix = 1001
+        add_dataset_id_prefix(self.p_ex.yaml, self.p_ex.dataset_prefix)
+        self.bq_client.create_dataset(dataset_id=str(self.p_ex.dataset_prefix) + '_' + "test")
 
     def test_dry_run(self):
         self.p_ex.run()
@@ -362,9 +362,9 @@ class TestPipelineDryRunWithArgs(unittest.TestCase):
             my_string_arg='one',
             my_dataset_arg='my_dataset_dry_run_with_args'
         )
-        self.p_ex.dry_run_dataset_prefix = 4001
+        self.p_ex.dataset_prefix = 4001
 
-        add_dataset_id_prefix(obj=self.p_ex.yaml, prefix=self.p_ex.dry_run_dataset_prefix, kwargs={'my_string_arg': 'one', 'my_dataset_arg': 'my_dataset_dry_run_with_args'})
+        add_dataset_id_prefix(obj=self.p_ex.yaml, prefix=self.p_ex.dataset_prefix, kwargs={'my_string_arg': 'one', 'my_dataset_arg': 'my_dataset_dry_run_with_args'})
 
 
     def test_dry_run(self):
@@ -423,9 +423,9 @@ class TestPipelinePerformance(unittest.TestCase):
         logging.basicConfig(level=logging.DEBUG)
         self.bq_client = BigQueryExecutor()
         self.p_ex = pl.PipelineExecutor("tests/yaml/test_performance.yaml")
-        self.p_ex.dry_run_dataset_prefix = 1008
-        add_dataset_id_prefix(self.p_ex.yaml, self.p_ex.dry_run_dataset_prefix)
-        self.bq_client.create_dataset(dataset_id=str(self.p_ex.dry_run_dataset_prefix) + '_' + "test")
+        self.p_ex.dataset_prefix = 1008
+        add_dataset_id_prefix(self.p_ex.yaml, self.p_ex.dataset_prefix)
+        self.bq_client.create_dataset(dataset_id=str(self.p_ex.dataset_prefix) + '_' + "test")
 
     def test_dry_pipeline_performance(self):
        

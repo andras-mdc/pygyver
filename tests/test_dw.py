@@ -120,15 +120,15 @@ class test_read_sql(unittest.TestCase):
             param2="300"
         )
 
-    def test_class_read_sql_with_dry_run_dataset_prefix(self):        
+    def test_class_read_sql_with_dataset_prefix(self):        
         """ Test """
         sql = dw.read_sql(
-            file="tests/sql/read_sql_dry_run_dataset_prefix.sql",
+            file="tests/sql/read_sql_dataset_prefix.sql",
             param1="type",
             param2="300",
             param3="shipped_date",
             param4='trying',
-            dry_run_dataset_prefix='1001'
+            dataset_prefix='1001'
         )
         self.assertEqual(
             sql,
