@@ -6,6 +6,9 @@ import random
 import logging
 import concurrent.futures
 import numpy as np
+from pathlib import Path
+from datetime import date
+from importlib.util import spec_from_file_location, module_from_spec
 from pygyver.etl.dw import read_sql
 from pygyver.etl.lib import apply_kwargs
 from pygyver.etl.lib import extract_args
@@ -74,6 +77,24 @@ def extract_unit_tests(batch_list=None, kwargs={}):
     for a, b in zip(args, args_mock):
         a.update(b)
     return args
+
+def run_releases(releases_file: str):
+    """
+    Reads a YAML file and executes release files if required.
+    Arguments:
+    - releases_file (string): path to release file
+    """
+    logging.info(f"Checking {releases_file} for modules to run")
+    releases_dict = read_yaml_file(releases_file)
+    for release in releases_dict["releases"]:
+        if release["date"] == date.today():
+            logging.info(f"Release {release['date']}: {release['description']}")
+            for module_path in release["python_files"]:
+                logging.info(f"Running {module_path}")
+                module_name = Path(module_path).stem
+                spec = spec_from_file_location(module_name, module_path)
+                module = module_from_spec(spec)
+                spec.loader.exec_module(module)
 
 
 class PipelineExecutor:
