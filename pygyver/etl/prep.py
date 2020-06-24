@@ -131,8 +131,8 @@ class Transformer(object):
         for cat in self.fit_params['binarize']:
             df[cat] = self.config_params['catch_all']
             for level in self.fit_params['binaries'][cat]:
-                for col in self.fit_params['columns_out']:
-                    if col == '_'.join([cat, level]):
+                for col in df.columns.tolist():
+                    if col == '_'.join([cat, str(level)]):
                         df.loc[df[col] == 1, cat] = level
                         df.drop(columns=col, inplace=True)
         for col in self.fit_params['scale']:
