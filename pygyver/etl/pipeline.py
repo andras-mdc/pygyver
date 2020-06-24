@@ -1,12 +1,13 @@
 """ Module to ETL data to generate pipelines """
 from __future__ import print_function
 
+import os
 import copy
 import random
 import logging
 import concurrent.futures
 import numpy as np
-from pathlib import Path
+from pathlib import PurePath
 from datetime import date
 from importlib.util import spec_from_file_location, module_from_spec
 from pygyver.etl.dw import read_sql
@@ -91,8 +92,9 @@ def run_releases(releases_file: str):
             logging.info(f"Release {release['date']}: {release['description']}")
             for module_path in release["python_files"]:
                 logging.info(f"Running {module_path}")
-                module_name = Path(module_path).stem
-                spec = spec_from_file_location(module_name, module_path)
+                module_name = PurePath(module_path).stem
+                module_full_path = PurePath(os.getenv("PROJECT_ROOT")) / module_path
+                spec = spec_from_file_location(module_name, module_full_path)
                 module = module_from_spec(spec)
                 spec.loader.exec_module(module)
 
