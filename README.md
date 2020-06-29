@@ -38,3 +38,10 @@ BIGQUERY_PROJECT= "default name of the project in BigQuery"
 - merge to master branch
 - create a new Release in https://github.com/madedotcom/pygyver/releases
 
+## Developing locally
+
+```
+source load-local-vars.sh --> sets local vars
+make build --> build container locally
+make run-tests --> executes the tests
+```
