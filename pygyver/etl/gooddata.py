@@ -1,6 +1,8 @@
 import os
 import json
 import requests
+import time
+import logging
 
 
 def auth_cookie():
@@ -171,9 +173,24 @@ def execute_schedule(schedule_id, retry=False):
     # Check response's Status Code
     if 200 <= response.status_code < 300:
         content = json.loads(response.content)
+        uri = os.getenv('GOODDATA_DOMAIN') + content['execution']['links']['self']
+        status = True
+        while status:
+            response = requests.get(
+                url=uri,
+                headers=headers
+            )   
+            content = json.loads(response.content)
+            if (content['execution']['status'] not in ['RUNNING', 'SCHEDULED']):
+                status = False
+                if(content['execution']['status'] not in ['OK']):
+                    logging.info('Graph completed with a non OK status')
+                    raise ValueError(content['execution']['status'])
+                else:
+                    logging.info('Graph completed with a OK status')
+                    return content['execution']['status']
+            else:
+                logging.info("Graph has not completed, entering sleep for 5 seconds")
+                time.sleep(5) 
     else:
         raise ValueError(json.loads(response.content))
-
-    uri = os.getenv('GOODDATA_DOMAIN') + content['execution']['links']['self']
-
-    return uri
