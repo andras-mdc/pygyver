@@ -155,42 +155,42 @@ def execute_schedule(schedule_id, retry=False):
     })
 
     api_url = os.getenv('GOODDATA_DOMAIN') + "/gdc/projects/" + os.getenv('GOODDATA_PROJECT') + "/schedules/" + schedule_id + "/executions"
-
-    #token = auth_cookie()
+    print(api_url)
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
         "User-Agent": get_useragent(),
         "X-GDC-AuthTT": auth_cookie()
     }
+    print(headers)
 
     response = requests.post(
         url=api_url, 
         data=values,
         headers=headers
     )
+    print(response)
+    print(response.status_code)
 
-    # Check response's Status Code
-    if 200 <= response.status_code < 300:
-        content = json.loads(response.content)
-        uri = os.getenv('GOODDATA_DOMAIN') + content['execution']['links']['self']
-        status = True
-        while status:
-            response = requests.get(
-                url=uri,
-                headers=headers
-            )   
-            content = json.loads(response.content)
-            if (content['execution']['status'] not in ['RUNNING', 'SCHEDULED']):
-                status = False
-                if(content['execution']['status'] not in ['OK']):
-                    logging.info('Graph completed with a non OK status')
-                    raise ValueError(content['execution']['status'])
-                else:
-                    logging.info('Graph completed with a OK status')
-                    return content['execution']['status']
-            else:
-                logging.info("Graph has not completed, entering sleep for 5 seconds")
-                time.sleep(5) 
-    else:
-        raise ValueError(json.loads(response.content))
+    # if 200 <= response.status_code < 300:
+    #     content = json.loads(response.content)
+    #     uri = os.getenv('GOODDATA_DOMAIN') + content['execution']['links']['self']
+    #     while True:
+    #         response = requests.get(
+    #             url=uri,
+    #             headers=headers
+    #         )   
+    #         content = json.loads(response.content)
+    #         status = content['execution']['status']
+    #         if (status not in ['RUNNING', 'SCHEDULED']):
+    #             if(status not in ['OK']):
+    #                 logging.info('Graph completed with a non OK status')
+    #                 raise ValueError(status)
+    #             else:
+    #                 logging.info('Graph completed with a OK status')
+    #                 break
+    #         else:
+    #             logging.info("Graph has not completed, entering sleep for 15 seconds")
+    #             time.sleep(15)
+    # else:
+    #     raise ValueError(json.loads(response.content))
