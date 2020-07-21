@@ -5,8 +5,9 @@ from unittest import mock
 from pygyver.etl.lib import bq_token_file_valid
 from pygyver.etl.lib import extract_args
 from pygyver.etl.lib import remove_first_slash
-from pygyver.etl.lib import add_dataset_id_prefix
+from pygyver.etl.lib import add_dataset_prefix
 from pygyver.etl.lib import apply_kwargs
+from pygyver.etl.lib import get_dataset_prefix
 
 
 def bq_token_file_path_exists_mock(token_path):
@@ -65,7 +66,7 @@ class FunctionsinLib(unittest.TestCase):
                             "table_desc": "table1",
                             "create_table": {
                                 "table_id": "table1",
-                                "dataset_id": "test",              
+                                "dataset_id": "test",
                                 "file": "tests/sql/table1.sql"
                             },
                             "pk": ["col1", "col2"],
@@ -81,7 +82,7 @@ class FunctionsinLib(unittest.TestCase):
                             "pk": ["col1"],
                             "mock_data": "sql/table1_mocked.sql"
                         }
-                    ]        
+                    ]
         self.assertEqual(
             extract_args(content, "pk"),
             [["col1", "col2"], ["col1"]],
@@ -104,7 +105,7 @@ class FunctionsinLib(unittest.TestCase):
             "extracted ok"
             )
 
-    def test_add_dataset_id_prefix(self):
+    def test_add_dataset_prefix(self):
         self.yaml = {
                         "desc": "test",
                         "tables":
@@ -113,25 +114,25 @@ class FunctionsinLib(unittest.TestCase):
                                 "table_desc": "table1",
                                 "create_table": {
                                     "table_id": "table1",
-                                    "dataset_id": "test",              
-                                },                      
+                                    "dataset_id": "test",
+                                },
                             },
                             {
                                 "table_desc": "table2",
                                 "create_table": {
                                     "table_id": "table2",
-                                    "dataset_id": "test",                                    
-                                },                                    
+                                    "dataset_id": "test",
+                                },
                             }
                         ]
                     }
-        add_dataset_id_prefix(
+        add_dataset_prefix(
                     self.yaml,
-                    prefix='1234'
+                    dataset_prefix='1234_'
                 )
         self.assertEqual(
                 self.yaml
-                , 
+                ,
                 {
                     "desc": "test",
                     "tables":
@@ -140,20 +141,28 @@ class FunctionsinLib(unittest.TestCase):
                             "table_desc": "table1",
                             "create_table": {
                                 "table_id": "table1",
-                                "dataset_id": "1234_test",              
-                            },                      
+                                "dataset_id": "1234_test",
+                            },
                         },
                         {
                             "table_desc": "table2",
                             "create_table": {
                                 "table_id": "table2",
-                                "dataset_id": "1234_test",                                    
-                            },                                    
+                                "dataset_id": "1234_test",
+                            },
                         }
-                    ]                
+                    ]
                 },
-                "prefix properly added to dataset_id"
+                "dataset prefix properly added to dataset_id"
             )
+
+    def test_get_dataset_prefix(self):
+        self.assertEqual(
+            get_dataset_prefix(),
+            None
+        )
+        # See test_pipeline.TestRunReleases() for pipeline based testing
+
 
 if __name__ == "__main__":
     unittest.main()

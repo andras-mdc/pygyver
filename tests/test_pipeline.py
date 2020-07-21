@@ -5,11 +5,11 @@ import unittest
 from unittest import mock
 from pygyver.etl.dw import BigQueryExecutor
 import pygyver.etl.pipeline as pl
-from pygyver.etl.lib import add_dataset_id_prefix
+from pygyver.etl.lib import add_dataset_prefix
 
 class TestPipelineExtractuUnitTests(unittest.TestCase):
-    
-    def test_extract_unit_tests(self):   
+
+    def test_extract_unit_tests(self):
         list_batches = [
                         {
                             "batch": None,
@@ -18,7 +18,7 @@ class TestPipelineExtractuUnitTests(unittest.TestCase):
                                 {
                                 "table_desc": "table1",
                                 "create_table": {
-                                    "table_id": "table1",                                    
+                                    "table_id": "table1",
                                     "file": "tests/sql/unit_table1.sql"
                                 },
                                 "pk": [
@@ -32,7 +32,7 @@ class TestPipelineExtractuUnitTests(unittest.TestCase):
                                 {
                                 "table_desc": "table2",
                                 "create_table": {
-                                    "table_id": "table2",                                    
+                                    "table_id": "table2",
                                     "file": "tests/sql/unit_table2.sql"
                                 },
                                 "pk": [
@@ -52,7 +52,7 @@ class TestPipelineExtractuUnitTests(unittest.TestCase):
                                 {
                                 "table_desc": "table3",
                                 "create_table": {
-                                    "table_id": "table3",                                    
+                                    "table_id": "table3",
                                     "file": "tests/sql/unit_table3.sql"
                                 },
                                 "pk": [
@@ -66,7 +66,7 @@ class TestPipelineExtractuUnitTests(unittest.TestCase):
                                 {
                                 "table_desc": "table4",
                                 "create_table": {
-                                    "table_id": "table4",                                    
+                                    "table_id": "table4",
                                     "file": "tests/sql/unit_table4.sql"
                                 },
                                 "pk": [
@@ -81,19 +81,19 @@ class TestPipelineExtractuUnitTests(unittest.TestCase):
                             ]
                             }
                         ]
-                    
-                          
-        self.assertCountEqual( 
-            pl.extract_unit_tests(list_batches), 
-            [ 
-                { "table_id": "table1", "file" : "tests/sql/unit_table1.sql", "mock_file": "sql/unit_table1_mocked.sql"}, 
+
+
+        self.assertCountEqual(
+            pl.extract_unit_tests(list_batches),
+            [
+                { "table_id": "table1", "file" : "tests/sql/unit_table1.sql", "mock_file": "sql/unit_table1_mocked.sql"},
                 { "table_id": "table2", "file" : "tests/sql/unit_table2.sql", "mock_file": "sql/unit_table2_mocked.sql"},
                 { "table_id": "table3", "file" : "tests/sql/unit_table3.sql", "mock_file": "sql/unit_table3_mocked.sql"},
                 { "table_id": "table4", "file" : "tests/sql/unit_table4.sql", "mock_file": "sql/unit_table4_mocked.sql", "output_table_name": "output_test_table"},
-            ], 
+            ],
             "unit tests well extracted" )
-    
-    
+
+
     def test_extract_unit_test_value(self):
         self.assertCountEqual(
             pl.extract_unit_test_value(
@@ -101,7 +101,7 @@ class TestPipelineExtractuUnitTests(unittest.TestCase):
                         { "file" : "tests/sql/unit_table1.sql", "mock_file": "tests/sql/unit_table1_mocked.sql"},
                         { "file" : "tests/sql/unit_table1.sql", "mock_file": "tests/sql/unit_table1_mocked.sql", "output_table_name": "output_test_table"},
                     ]
-                ), 
+                ),
             [
                 { "sql" : "sql test 1", "cte": "mock_sql test 1",
                 "file" : "tests/sql/unit_table1.sql", "mock_file": "tests/sql/unit_table1_mocked.sql"},
@@ -117,14 +117,14 @@ class TestPipelineExtractuUnitTests(unittest.TestCase):
                         { "file" : "tests/sql/sql_with_parameters.sql", "mock_file": "tests/sql/unit_table1_mocked.sql", "who": "'Angus MacGyver'"},
                         { "file" : "tests/sql/unit_table1.sql", "mock_file": "tests/sql/unit_table1_mocked.sql", "output_table_name": "output_test_table"},
                     ]
-                ), 
+                ),
             [
                 { "sql" : "SELECT 'Angus MacGyver' AS fullname, 2 AS age", "cte": "mock_sql test 1",
                 "file" : "tests/sql/sql_with_parameters.sql", "mock_file": "tests/sql/unit_table1_mocked.sql",  "who": "'Angus MacGyver'"},
                 { "sql" : "sql test 1", "cte": "mock_sql test 1", "output_table_name": "output_test_table",
                 "file" : "tests/sql/unit_table1.sql", "mock_file": "tests/sql/unit_table1_mocked.sql", "output_table_name": "output_test_table"}
             ],
-            "unit tests values well extracted" ) 
+            "unit tests values well extracted" )
 
     def test_extract_unit_test_value_with_partition(self):
         self.maxDiff = None
@@ -135,7 +135,7 @@ class TestPipelineExtractuUnitTests(unittest.TestCase):
                     ]
                 )
         expected_result =  [
-                { "sql" : "SELECT 'Angus MacGyver' AS fullname, 2 AS age, TIMESTAMP(\"2020-01-01 00:00:00\") AS _PARTITIONTIME where DATE(_PARTITIONTIME) = PARSE_DATE(\"%Y%m%d\", \'2020-01-01\')", 
+                { "sql" : "SELECT 'Angus MacGyver' AS fullname, 2 AS age, TIMESTAMP(\"2020-01-01 00:00:00\") AS _PARTITIONTIME where DATE(_PARTITIONTIME) = PARSE_DATE(\"%Y%m%d\", \'2020-01-01\')",
                 'cte': 'mock_sql test 1',
                 "file" : "tests/sql/sql_with_partition_date.sql", "mock_file": "tests/sql/unit_table1_mocked.sql",  "who": "'Angus MacGyver'", "mock_partition_date": "2020-01-01"},
                 { "sql" : "sql test 1", "cte": "mock_sql test 1", "output_table_name": "output_test_table",
@@ -145,17 +145,17 @@ class TestPipelineExtractuUnitTests(unittest.TestCase):
             res,
             expected_result,
             "unit tests values well extracted"
-        ) 
+        )
 
-    def test_run_unit_tests_ok(self):         
-        self.p_ex = pl.PipelineExecutor("tests/yaml/unit_tests.yaml")       
+    def test_run_unit_tests_ok(self):
+        self.p_ex = pl.PipelineExecutor("tests/yaml/unit_tests.yaml")
         try:
             self.p_ex.run_unit_tests()
         except AssertionError:
             self.fail("run_unit_tests() raised AssertionError unexpectedly!")
 
 class TestPipelineUnitTestsErrorRaised(unittest.TestCase):
-    
+
     def setUp(self):
         self.db = BigQueryExecutor()
         self.p_ex = pl.PipelineExecutor("tests/yaml/unit_tests_fail.yaml")
@@ -163,7 +163,7 @@ class TestPipelineUnitTestsErrorRaised(unittest.TestCase):
     def test_run_unit_tests_error(self):
         with self.assertRaises(AssertionError):
             self.p_ex.run_unit_tests()
-    
+
     def tearDown(self):
         self.db.delete_table(
             table_id='table2',
@@ -179,11 +179,11 @@ class TestPipelineUnitTestsErrorRaised(unittest.TestCase):
         )
 
 class TestPipelineExecutorRunBatch(unittest.TestCase):
-    
+
     def setUp(self):
         self.bq_client = BigQueryExecutor()
         self.p_ex = pl.PipelineExecutor("tests/yaml/test_run.yaml")
-    
+
     def test_run_batch_create_tables(self):
         batch = {
             "desc": "create table1 & table2 in staging",
@@ -193,7 +193,7 @@ class TestPipelineExecutorRunBatch(unittest.TestCase):
                     "table_desc": "table1",
                     "create_table": {
                         "table_id": "table1",
-                        "dataset_id": "test",              
+                        "dataset_id": "test",
                         "file": "tests/sql/table1.sql"
                     },
                     "pk": ["col1", "col2"],
@@ -259,14 +259,14 @@ class TestPipelineExecutorRunBatch(unittest.TestCase):
 
 
 class TestPipelineExecutorRun(unittest.TestCase):
-    
+
     def setUp(self):
         self.bq_client = BigQueryExecutor()
         self.p_ex = pl.PipelineExecutor("tests/yaml/test_run.yaml")
         self.bq_client.create_dataset(dataset_id='test')
-        
+
     def test_run_completed_no_error(self):
-        
+
         self.p_ex.run()
 
         self.assertTrue(
@@ -280,7 +280,7 @@ class TestPipelineExecutorRun(unittest.TestCase):
                 table_id='ref_sheet2',
                 dataset_id="test"),
             "googlesheet table2 exists")
-        
+
         self.assertTrue(
             self.bq_client.table_exists(
                 table_id='table1',
@@ -292,7 +292,7 @@ class TestPipelineExecutorRun(unittest.TestCase):
                 table_id='table2',
                 dataset_id="test"),
             "createtable table2 exists")
-               
+
     def tearDown(self):
         if self.bq_client.table_exists(table_id='table1', dataset_id='test'):
             self.bq_client.delete_table(table_id='table1', dataset_id='test')
@@ -304,15 +304,13 @@ class TestPipelineExecutorRun(unittest.TestCase):
             self.bq_client.delete_table(table_id='ref_sheet2', dataset_id='test')
 
 
-
-
 class TestPipelineCopyTableStructure(unittest.TestCase):
 
     def setUp(self):
         self.bq_client = BigQueryExecutor()
-        self.p_ex = pl.PipelineExecutor("tests/yaml/unit_tests_fail.yaml")    
-        self.p_ex.dataset_prefix = 1001
-        add_dataset_id_prefix(self.p_ex.yaml, self.p_ex.dataset_prefix)
+        self.p_ex = pl.PipelineExecutor("tests/yaml/unit_tests_fail.yaml")
+        self.p_ex.dataset_prefix = "1001_"
+        add_dataset_prefix(self.p_ex.yaml, self.p_ex.dataset_prefix)
 
         if self.bq_client.table_exists(dataset_id='reporting', table_id='out_product'):
             self.bq_client.delete_table(dataset_id='reporting', table_id='out_product')
@@ -331,9 +329,9 @@ class TestPipelineDryRun(unittest.TestCase):
     def setUp(self):
         self.bq_client = BigQueryExecutor()
         self.p_ex = pl.PipelineExecutor("tests/yaml/test_dry_run.yaml")
-        self.p_ex.dataset_prefix = 1001
-        add_dataset_id_prefix(self.p_ex.yaml, self.p_ex.dataset_prefix)
-        self.bq_client.create_dataset(dataset_id=str(self.p_ex.dataset_prefix) + '_' + "test")
+        self.p_ex.dataset_prefix = "1001_"
+        add_dataset_prefix(self.p_ex.yaml, self.p_ex.dataset_prefix)
+        self.bq_client.create_dataset(dataset_id=str(self.p_ex.dataset_prefix) + "test")
 
     def test_dry_run(self):
         self.p_ex.run()
@@ -358,13 +356,13 @@ class TestPipelineDryRunWithArgs(unittest.TestCase):
             dataset_id='4001_test'
         )
         self.p_ex = pl.PipelineExecutor(
-            yaml_file= "tests/yaml/test_dry_run_with_args.yaml",           
+            yaml_file= "tests/yaml/test_dry_run_with_args.yaml",
             my_string_arg='one',
             my_dataset_arg='my_dataset_dry_run_with_args'
         )
-        self.p_ex.dataset_prefix = 4001
+        self.p_ex.dataset_prefix = "4001_"
 
-        add_dataset_id_prefix(obj=self.p_ex.yaml, prefix=self.p_ex.dataset_prefix, kwargs={'my_string_arg': 'one', 'my_dataset_arg': 'my_dataset_dry_run_with_args'})
+        add_dataset_prefix(obj=self.p_ex.yaml, dataset_prefix=self.p_ex.dataset_prefix, kwargs={'my_string_arg': 'one', 'my_dataset_arg': 'my_dataset_dry_run_with_args'})
 
 
     def test_dry_run(self):
@@ -375,7 +373,7 @@ class TestPipelineDryRunWithArgs(unittest.TestCase):
                 table_id='table1'
             )
         )
-    
+
     def tearDown(self):
         self.p_ex.dry_run_clean()
 
@@ -423,20 +421,55 @@ class TestPipelinePerformance(unittest.TestCase):
         logging.basicConfig(level=logging.DEBUG)
         self.bq_client = BigQueryExecutor()
         self.p_ex = pl.PipelineExecutor("tests/yaml/test_performance.yaml")
-        self.p_ex.dataset_prefix = 1008
-        add_dataset_id_prefix(self.p_ex.yaml, self.p_ex.dataset_prefix)
-        self.bq_client.create_dataset(dataset_id=str(self.p_ex.dataset_prefix) + '_' + "test")
+        self.p_ex.dataset_prefix = "1008_"
+        add_dataset_prefix(self.p_ex.yaml, self.p_ex.dataset_prefix)
+        self.bq_client.create_dataset(dataset_id=str(self.p_ex.dataset_prefix) + "test")
 
     def test_dry_pipeline_performance(self):
-       
+
 
         start_time = time.time()
         self.p_ex.run()
         end_time = time.time()
         self.assertLess(end_time - start_time, 10, "pipeline performance is bad")
-    
-    def tearDown(self):        
+
+    def tearDown(self):
         self.p_ex.dry_run_clean()
+
+
+class TestRunReleases(unittest.TestCase):
+    def setUp(self):
+        logging.basicConfig(level=logging.DEBUG)
+        self.bq_client = BigQueryExecutor()
+        self.p_ex = pl.PipelineExecutor("tests/yaml/test_run.yaml")
+
+    def test_run_releases(self):
+        self.p_ex.run_releases(release_date="2020-01-01")
+        self.assertTrue(
+            self.bq_client.table_exists(
+                table_id="table1",
+                dataset_id="test"
+            ),
+            "Table was not created"
+        )
+
+    def test_run_releases_with_dataset_prefix(self):
+        self.p_ex.dataset_prefix = "2001_"
+        self.p_ex.run_releases(release_date="2020-01-01")
+        self.assertTrue(
+            self.bq_client.table_exists(
+                table_id="table1",
+                dataset_id="2001_test"
+            ),
+            "Table was not created"
+        )
+
+    def tearDown(self):
+        if self.bq_client.table_exists(table_id='table1', dataset_id='test'):
+            self.bq_client.delete_table(table_id='table1', dataset_id='test')
+        if self.bq_client.dataset_exists("2001_test"):
+            self.bq_client.delete_dataset("2001_test", delete_contents=True)
+
 
 if __name__ == '__main__':
     unittest.main()

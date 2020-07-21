@@ -78,7 +78,7 @@ def read_sql(file, *args, **kwargs):
             if index%2==1 and "." in dataset:
                 sql = sql.replace(
                     "`" + sql.split("`")[index] + "`",
-                    "`" + str(kwargs.get('dataset_prefix', None)) + "_" +  sql.split("`")[index] + "`",
+                    "`" + kwargs.get('dataset_prefix', '') +  sql.split("`")[index] + "`",
                     1
                 )
 
@@ -625,7 +625,7 @@ class BigQueryExecutor:
         dict_of_attributes = {}
         attributes = ['clustering_fields', 'description', 'encryption_configuration', 'expires',
         'external_data_configuration', 'friendly_name', 'labels', 'range_partitioning', 
-        'require_partition_filter', 'schema', 'time_partitioning', 'view_query', 'view_use_legacy_sql']
+        'require_partition_filter', 'schema', 'time_partitioning']
         table_ref = self.get_table_ref(dataset_id, table_id, project_id=project_id)
         for attribute in attributes:
             my_attribute = getattr(self.client.get_table(table_ref), attribute)

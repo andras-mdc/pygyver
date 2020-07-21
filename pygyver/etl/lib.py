@@ -2,6 +2,7 @@
 import os
 from os import path
 import json
+from inspect import stack
 from datetime import date, timedelta
 from google.cloud import bigquery
 from pygyver.etl.toolkit import validate_date
@@ -179,22 +180,46 @@ def gcs_default_bucket():
     return os.environ.get('GCS_BUCKET', '')
 
 
-def add_dataset_id_prefix(obj, prefix, kwargs={}):
+def add_dataset_prefix(obj, dataset_prefix: str, kwargs={}):
 
-    if isinstance(obj, list):        
+    if isinstance(obj, list):
         for i in obj:
-            add_dataset_id_prefix(i, prefix, kwargs)
+            add_dataset_prefix(i, dataset_prefix, kwargs)
 
     if isinstance(obj, dict):
         for k, v in obj.items():
             if isinstance(v, list):
                 for i in v:
-                    add_dataset_id_prefix(i, prefix, kwargs)
+                    add_dataset_prefix(i, dataset_prefix, kwargs)
 
             if isinstance(v, dict):
                 apply_kwargs(v, kwargs)
-                add_dataset_id_prefix(v, prefix, kwargs)
+                add_dataset_prefix(v, dataset_prefix, kwargs)
             else:
-                if k == 'dataset_id': 
-                    obj[k] =  str(prefix) + '_' + obj[k]
+                if k == 'dataset_id':
+                    obj[k] =  dataset_prefix + obj[k]
 
+
+def get_dataset_prefix():
+    """
+    Call this method from a release script listed in pipeline.yaml
+    The dataset_prefix can then be added to target dataset_id's to pass dry run tests
+
+    Returns:
+        if release module is run from PipelineExecutor:
+            return dataset_prefix (string or None)
+        else:
+            return None
+    """
+    parent_locals = [
+        f[0].f_locals for f in stack()
+        if "pygyver/etl/pipeline.py" in f.filename
+        and f.function == "run_python_file"
+    ]
+
+    if parent_locals:
+        dataset_prefix = parent_locals[0].get('_dataset_prefix', None)
+    else:
+        dataset_prefix = None
+
+    return dataset_prefix
