@@ -126,6 +126,22 @@ class TestPipelineExtractuUnitTests(unittest.TestCase):
             ],
             "unit tests values well extracted" )
 
+    def test_extract_unit_test_value_with_sql_mock_param(self):
+        self.assertCountEqual(
+            pl.extract_unit_test_value(
+                    [
+                        { "file" : "tests/sql/sql_with_parameters.sql", "mock_file": "tests/sql/unit_table1_mocked.sql", "who": "'Angus MacGyver'", "mock_who": "'Simone F'"},
+                        { "file" : "tests/sql/unit_table1.sql", "mock_file": "tests/sql/unit_table1_mocked.sql", "output_table_name": "output_test_table"},
+                    ]
+                ),
+            [
+                { "sql" : "SELECT 'Simone F' AS fullname, 2 AS age", "cte": "mock_sql test 1",
+                "file" : "tests/sql/sql_with_parameters.sql", "mock_file": "tests/sql/unit_table1_mocked.sql",  "who": "'Angus MacGyver'"},
+                { "sql" : "sql test 1", "cte": "mock_sql test 1", "output_table_name": "output_test_table",
+                "file" : "tests/sql/unit_table1.sql", "mock_file": "tests/sql/unit_table1_mocked.sql", "output_table_name": "output_test_table"}
+            ],
+            "unit tests values well extracted" )
+
     def test_extract_unit_test_value_with_partition(self):
         self.maxDiff = None
         res = pl.extract_unit_test_value(
