@@ -59,16 +59,16 @@ def extract_unit_test_value(unit_test_list):
         d["file"] = file
     return utl
 
-def extract_unit_test_mock_values(d):
-    sql = d["sql"]
+def extract_unit_test_mock_values(test):
+    sql = test["sql"]
     sql_parser = string.Formatter()
     elements = sql_parser.parse(sql)
     format_dict={}
     for a, b, c, d in elements: 
-        if 'mock_{}'.format(b) in d :
-            format_dict[b]=d['mock_{}'.format(b)]
-        elif b in d:
-            format_dict[b]=d[b]
+        if 'mock_{}'.format(b) in test :
+            format_dict[b]=test['mock_{}'.format(b)]
+        elif b in test:
+            format_dict[b]=test[b]
     sql = sql.format(**format_dict)
     return sql 
 
