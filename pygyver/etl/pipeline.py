@@ -48,19 +48,13 @@ def execute_parallel(func, args, message='running task', log=''):
 def extract_unit_test_value(unit_test_list):
     utl = copy.deepcopy(unit_test_list)
     for d in utl:
-        file = d.pop('file')
-        d["sql"] = read_sql(file=file, **d)
-        if 'mock_partition_date' in d:
-            d["sql"] = d["sql"].format(
-                partition_date=d['mock_partition_date']
-            )
-        d["sql"] = extract_unit_test_mock_values(d)
+        d["sql"] = extract_unit_test_sql_values(d)
         d["cte"] = read_sql(file=d['mock_file'], **d)
-        d["file"] = file
     return utl
 
-def extract_unit_test_mock_values(test):
-    sql = test["sql"]
+def extract_unit_test_sql_values(test):
+    file = test.pop('file')
+    sql = read_sql(file=file)
     sql_parser = string.Formatter()
     elements = sql_parser.parse(sql)
     format_dict={}
