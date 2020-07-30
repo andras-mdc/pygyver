@@ -53,10 +53,23 @@ def extract_unit_test_value(unit_test_list):
             d["sql"] = d["sql"].format(
                 partition_date=d['mock_partition_date']
             )
+        d["sql"] = extract_unit_test_mock_values(d)
         d["cte"] = read_sql(file=d['mock_file'], **d)
         d["file"] = file
     return utl
 
+def extract_unit_test_mock_values(d):
+    sql = d["sql"]
+    sql_parser = string.Formatter()
+    elements = sql_parser.parse(y)
+    format_dict={}
+    for a, b, c, d in elements: 
+        if 'mock_{}'.format(b) in d :
+            format_dict[b]=d['mock_{}'.format(b)]
+        elif b in d:
+            format_dict[b]=d[b]
+    sql = sql.format(**format_dict)
+    return sql 
 
 def extract_unit_tests(batch_list=None, kwargs={}):
     """ return the list of unit test: unit test -> file, mock_file, output_table_name(opt) """
