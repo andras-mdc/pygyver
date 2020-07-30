@@ -62,7 +62,7 @@ def extract_unit_test_value(unit_test_list):
 def extract_unit_test_mock_values(d):
     sql = d["sql"]
     sql_parser = string.Formatter()
-    elements = sql_parser.parse(y)
+    elements = sql_parser.parse(sql)
     format_dict={}
     for a, b, c, d in elements: 
         if 'mock_{}'.format(b) in d :
