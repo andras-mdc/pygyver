@@ -332,7 +332,7 @@ class BigQueryExecutor:
         """ create a bigquery table from a sql query """
 
         if sql is None and file is None:
-            raise BigQueryExecutorError("EIther sql or file must be provided")
+            raise BigQueryExecutorError("Either SQL or file containing the SQL must be provided")
 
         if sql is None:
             sql = read_sql(file, **kwargs)
@@ -408,7 +408,7 @@ class BigQueryExecutor:
         To filter on a specific partition, the filter DATE(_PARTITIONTIME) = {partition_date} can be used in your sql query.
         """
         if sql is None and file is None:
-            raise BigQueryExecutorError("EIther sql or file must be provided")
+            raise BigQueryExecutorError("Either SQL or file containing the SQL must be provided")
         if sql is None:
             sql = read_sql(file, **kwargs)
 
