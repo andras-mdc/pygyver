@@ -49,12 +49,12 @@ def extract_unit_test_value(unit_test_list):
     utl = copy.deepcopy(unit_test_list)
     for d in utl:
         sql_file = d.pop('file')
-        d["sql"] = extract_unit_test_sql_values(d, sql_file)
+        d["sql"] = extract_unit_test_sql_value(d, sql_file)
         d["cte"] = read_sql(file=d['mock_file'], **d)
         d["file"] = sql_file
     return utl
 
-def extract_unit_test_sql_values(test, sql_file):
+def extract_unit_test_sql_value(test, sql_file):
     sql= read_sql(file=sql_file)
     sql_parser = string.Formatter()
     elements = sql_parser.parse(sql)
