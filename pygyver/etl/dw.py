@@ -227,7 +227,7 @@ class BigQueryExecutor:
             table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            
+
 
         Returns:
             True is the table exists, False otherwise.
@@ -246,7 +246,7 @@ class BigQueryExecutor:
             table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            
+
         """
         try:
             table_ref = self.get_table_ref(dataset_id, table_id,project_id=project_id)
@@ -343,7 +343,7 @@ class BigQueryExecutor:
                 schema_path=schema_path,
                 partition=partition,
                 partition_field=partition_field,
-                dataset_id=dataset_id, 
+                dataset_id=dataset_id,
                 project_id=project_id
             )
             if write_disposition == "WRITE_TRUNCATE":
@@ -384,7 +384,7 @@ class BigQueryExecutor:
                 dataset_id,
                 table_id
             )
-        
+
         return query_job
 
 
@@ -562,7 +562,7 @@ class BigQueryExecutor:
                         table_id=table_id
                         )
         return self.execute_sql(
-            sql=sql, 
+            sql=sql,
             project_id=project_id
         )
 
@@ -596,7 +596,7 @@ class BigQueryExecutor:
             table_id (string): BigQuery table ID.
             dataset_id (string): BigQuery dataset ID.
             project_id (string): BigQuery project ID.
-            
+
 
         Returns:
             Table schema.
@@ -624,7 +624,7 @@ class BigQueryExecutor:
     def get_table_attributes(self, table_id, dataset_id=bq_default_dataset(), project_id=bq_default_project()):
         dict_of_attributes = {}
         attributes = ['clustering_fields', 'description', 'encryption_configuration', 'expires',
-        'external_data_configuration', 'friendly_name', 'labels', 'range_partitioning', 
+        'external_data_configuration', 'friendly_name', 'labels', 'range_partitioning',
         'require_partition_filter', 'schema', 'time_partitioning']
         table_ref = self.get_table_ref(dataset_id, table_id, project_id=project_id)
         for attribute in attributes:
@@ -849,24 +849,26 @@ class BigQueryExecutor:
         job.result()
 
 
-    def load_google_sheet(self, googlesheet_key, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project(), **kwargs):
+    def load_google_sheet(self, googlesheet_key, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project(), sheet_name='', sheet_index=0, **kwargs):
         """ Loads Google Sheet to BigQuery table. If the table already exists, overwrites.
 
         Parameters:
             googlesheet_key (string): Google Sheet Key
-            table_id (string): BigQuery table ID.
-            dataset_id (string): BigQuery dataset ID.
-            project_id (string): BigQuery project ID.
+            table_id (string): BigQuery table ID
+            dataset_id (string): BigQuery dataset ID
+            project_id (string): BigQuery project ID
+            sheet_name (string): GS Sheet Name
+            sheet_index (int): GS Sheet Index
         """
-        df = load_gs_to_dataframe(googlesheet_key)
+        df = load_gs_to_dataframe(googlesheet_key, sheet_name=sheet_name, sheet_index=sheet_index)
         if self.table_exists(table_id, dataset_id,project_id=project_id):
             self.delete_table(table_id, dataset_id,project_id=project_id)
         self.load_dataframe(
             df,
             table_id,
-            dataset_id, 
+            dataset_id,
             project_id=project_id
-            )
+        )
 
     def load_json_file(self, file, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project(), schema_path='', write_disposition="WRITE_TRUNCATE"):
         """ Loads JSON file to BigQuery table.
@@ -884,7 +886,7 @@ class BigQueryExecutor:
             self.initiate_table(
                 table_id=table_id,
                 schema_path=schema_path,
-                dataset_id=dataset_id, 
+                dataset_id=dataset_id,
                 project_id=project_id
             )
             schema = read_table_schema_from_file(schema_path)
@@ -926,7 +928,7 @@ class BigQueryExecutor:
             self.initiate_table(
                 table_id=table_id,
                 schema_path=schema_path,
-                dataset_id=dataset_id, 
+                dataset_id=dataset_id,
                 project_id=project_id
             )
             schema = read_table_schema_from_file(schema_path)
@@ -935,7 +937,7 @@ class BigQueryExecutor:
 
         if self.table_exists(
                 table_id=table_id,
-                dataset_id=dataset_id, 
+                dataset_id=dataset_id,
                 project_id=project_id
         ):
             table_ref = self.get_table_ref(dataset_id, table_id,project_id=project_id)
@@ -994,7 +996,7 @@ class BigQueryExecutor:
 
         table_ref = self.get_table_ref(
             dataset_id=dataset_id,
-            table_id=table_id, 
+            table_id=table_id,
             project_id=project_id
         )
 
@@ -1031,7 +1033,7 @@ class BigQueryExecutor:
         """
         table_ref = self.get_table_ref(
             dataset_id=dataset_id,
-            table_id=table_id, 
+            table_id=table_id,
             project_id=project_id
         )
         try:
@@ -1078,7 +1080,7 @@ class BigQueryExecutor:
 
         table_ref = self.get_table_ref(
             dataset_id=dataset_id,
-            table_id=table_id, 
+            table_id=table_id,
             project_id=project_id
         )
 
@@ -1296,7 +1298,7 @@ class BigQueryExecutor:
                 GROUP BY
                     {', '.join(primary_key)}
             )
-            """, 
+            """,
             project_id = project_id
         )
         return data['dup_total'].values[0]
