@@ -47,14 +47,14 @@ class GoodDataFunctions(unittest.TestCase):
     
     def test_schedule_bad_response(self, mock_get, mock_post, mock_auth_cookie):
         """
-        Executes gooddata.py function execute_schedule
+        Executes gooddata.py function execute_schedule and tests for bad response capture
         """
         self.assertRaises(ValueError, execute_schedule, 'schedule_0')
 
     @mock.patch('pygyver.etl.gooddata.sleep_interval', side_effect=mocked_sleep_interval)
     def test_schedule_sleep(self, mock_interval_sleep, mock_get, mock_post, mock_auth_cookie):
         """
-        Executes gooddata.py function execute_schedule
+        Executes gooddata.py function execute_schedule and tests for SCHEDULED status sleep
         """
         with self.assertRaises(SystemExit) as cm:
             execute_schedule('schedule_1')
@@ -62,13 +62,13 @@ class GoodDataFunctions(unittest.TestCase):
    
     def test_schedule_complete(self, mock_get, mock_post, mock_auth_cookie):
         """
-        Executes gooddata.py function execute_schedule
+        Executes gooddata.py function execute_schedule and tests for completed schedule
         """
         self.assertEqual(execute_schedule('schedule_2'), 'OK')
 
     def test_schedule_failure(self, mock_get, mock_post, mock_auth_cookie):
         """
-        Executes gooddata.py function execute_schedule
+        Executes gooddata.py function execute_schedule and tests for failed schedule
         """
         self.assertRaises(ValueError, execute_schedule, 'schedule_3')
 
