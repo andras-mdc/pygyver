@@ -52,7 +52,7 @@ class GoodDataFunctions(unittest.TestCase):
         self.assertRaises(ValueError, execute_schedule, 'schedule_0')
 
     @mock.patch('pygyver.etl.gooddata.time.sleep', side_effect=mocked_time_sleep)
-    def test_schedule_sleep(self, mock_interval_sleep, mock_get, mock_post, mock_auth_cookie):
+    def test_schedule_sleep(self, mock_time_sleep, mock_get, mock_post, mock_auth_cookie):
         """
         Executes gooddata.py function execute_schedule and tests for SCHEDULED status sleep
         """
