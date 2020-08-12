@@ -17,7 +17,7 @@ fi
 
 if [ "$1" == "local" ]; then
     echo "Starting pygyver-tests-local entrypoint"
-    pytest tests --junitxml='pygyver-out-waxit-tests.xml' -sv || [[ $? -eq 1 ]]
+    pytest --junitxml='pygyver-out-waxit-tests.xml' -sv || [[ $? -eq 1 ]]
     echo "Finished waxit-tests-local entrypoint."
     exit $?
 fi
