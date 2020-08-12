@@ -115,9 +115,6 @@ def temporary_token(sst):
 
     return temp_token
 
-def sleep_interval(seconds):
-    time.sleep(seconds)
-
 def execute_schedule(schedule_id, retry=False):
     """ Executes GoodData schedule.
 
@@ -184,7 +181,7 @@ def execute_schedule(schedule_id, retry=False):
             status = content['execution']['status']
             if status in ['RUNNING', 'SCHEDULED']:
                 logging.info("Graph has not completed, entering sleep for 15 seconds")
-                sleep_interval(15)
+                time.sleep(15)
             elif status = 'OK':
                 logging.info('Graph completed with a OK status')
                 return status
