@@ -116,7 +116,11 @@ class BigQueryExecutor:
         """
         bq_token_file_valid()
         self.credentials = service_account.Credentials.from_service_account_file(
-            bq_token_file_path()
+            bq_token_file_path(),
+            scopes=[
+                "https://www.googleapis.com/auth/drive",
+                "https://www.googleapis.com/auth/bigquery"
+            ]
         )
         self.client = bigquery.Client(
             project = bq_default_project(),
@@ -849,26 +853,118 @@ class BigQueryExecutor:
         job.result()
 
 
-    def load_google_sheet(self, googlesheet_key, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project(), sheet_name='', sheet_index=0, **kwargs):
-        """ Loads Google Sheet to BigQuery table. If the table already exists, overwrites.
+    def create_gs_table(self,
+                        table_id,
+                        dataset_id=bq_default_dataset(),
+                        project_id=bq_default_project(),
+                        schema_path='',
+                        googlesheet_uri=None,
+                        googlesheet_key=None,
+                        sheet_name=None,
+                        header=True):
+        """ Creates BigQuery Table with live connection to Google Sheets
 
-        Parameters:
-            googlesheet_key (string): Google Sheet Key
-            table_id (string): BigQuery table ID
-            dataset_id (string): BigQuery dataset ID
-            project_id (string): BigQuery project ID
-            sheet_name (string): GS Sheet Name
-            sheet_index (int): GS Sheet Index
+        Args:
+            table_id (str): BigQuery table ID
+            dataset_id (str): BigQuery dataset ID
+            project_id (str): BigQuery project ID
+            schema_path (str): Path to schema file, if not set then BQ will auto-detect
+            googlesheet_uri (str): Google Sheet URI
+            googlesheet_key (str): Google Sheet Key, an alternate option instead of URI
+            sheet_name (str): GS Sheet Name, defaults to first worksheet, index 0
+            header (bool): Defaults to True
         """
-        df = load_gs_to_dataframe(googlesheet_key, sheet_name=sheet_name, sheet_index=sheet_index)
-        if self.table_exists(table_id, dataset_id,project_id=project_id):
-            self.delete_table(table_id, dataset_id,project_id=project_id)
-        self.load_dataframe(
-            df,
-            table_id,
-            dataset_id,
-            project_id=project_id
+        if googlesheet_uri is None:
+            if googlesheet_key is None:
+                raise BigQueryExecutorError("A googlesheet_uri or googlesheet_key must be provided")
+            else:
+                googlesheet_uri = f"https://docs.google.com/spreadsheets/d/{googlesheet_key}"
+
+        external_config = bigquery.ExternalConfig("GOOGLE_SHEETS")
+        external_config.source_uris = [googlesheet_uri]
+        if sheet_name:
+            external_config.options.range = (sheet_name)
+
+        if header:
+            external_config.options.skip_leading_rows = 1
+
+        if schema_path != '':
+            schema = read_table_schema_from_file(schema_path)
+        else:
+            schema = None
+            external_config.autodetect = True
+
+        gs_table = bigquery.Table(
+            self.get_table_ref(
+                project_id=project_id,
+                dataset_id=dataset_id,
+                table_id=table_id
+            ),
+            schema=schema
         )
+        gs_table.external_data_configuration=external_config
+
+        try:
+            self.client.delete_table(gs_table, not_found_ok=True)
+            self.client.create_table(gs_table)
+            logging.info(
+                f"Created table {project_id}:{dataset_id}.{table_id} with live connection to {googlesheet_uri}"
+            )
+        except exceptions.Conflict as error:
+            logging.error(error)
+
+
+    def load_google_sheet(self,
+                        table_id,
+                        dataset_id=bq_default_dataset(),
+                        project_id=bq_default_project(),
+                        schema_path='',
+                        googlesheet_key=None,
+                        googlesheet_uri=None,
+                        sheet_name=None,
+                        header=True,
+                        write_disposition='WRITE_TRUNCATE'):
+        """ Loads Google Sheets data into a normal BigQuery Table
+
+        Args:
+            table_id (str): BigQuery table ID
+            dataset_id (str): BigQuery dataset ID
+            project_id (str): BigQuery project ID
+            schema_path (str): Path to schema file, if not set then BQ will auto-detect
+            googlesheet_uri (str): Google Sheet URI
+            googlesheet_key (str): Google Sheet Key, an alternate option instead of URI
+            sheet_name (str): GS Sheet Name, defaults to first worksheet, index 0
+            header (bool): Defaults to True
+            write_disposition (str): Write disposition. Can be one of WRITE_TRUNCATE, WRITE_APPEND or WRITE_EMPTY
+        """
+
+        temp_table_id=f"temp_gs__{table_id}"
+
+        try:
+            self.create_gs_table(
+                table_id=temp_table_id,
+                dataset_id=dataset_id,
+                project_id=project_id,
+                schema_path=schema_path,
+                googlesheet_key=googlesheet_key,
+                googlesheet_uri=googlesheet_uri,
+                sheet_name=sheet_name,
+                header=header
+            )
+            self.create_table(
+                project_id=project_id,
+                dataset_id=dataset_id,
+                table_id=table_id,
+                schema_path=schema_path,
+                write_disposition=write_disposition,
+                sql=f"SELECT * FROM `{project_id}.{dataset_id}.{temp_table_id}`"
+            )
+        except Exception as e:
+            logging.error(e)
+        finally:
+            if self.table_exists(dataset_id=dataset_id, table_id=temp_table_id):
+                self.delete_table(dataset_id=dataset_id, table_id=temp_table_id)
+
 
     def load_json_file(self, file, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project(), schema_path='', write_disposition="WRITE_TRUNCATE"):
         """ Loads JSON file to BigQuery table.

@@ -249,9 +249,8 @@ class TestPipelineExecutorRunBatch(unittest.TestCase):
                     "load_google_sheet": {
                         "table_id": "ref_sheet1",
                         "dataset_id": "test",
-                        "googlesheet_key": "19Jmapr9G1nrMcW2QTpY7sOvKYaFXnw5krK6dD0GwEqU",
                         "sheet_name": "input",
-                        "googlesheet_link": "https://docs.google.com/spreadsheets/d/19Jmapr9G1nrMcW2QTpY7sOvKYaFXnw5krK6dD0GwEqU/edit#gid=0"
+                        "googlesheet_uri": "https://docs.google.com/spreadsheets/d/19Jmapr9G1nrMcW2QTpY7sOvKYaFXnw5krK6dD0GwEqU/edit#gid=0"
                     }
                 }
             ]

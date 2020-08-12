@@ -1350,31 +1350,23 @@ class BigQueryExecutorLoadGoogleSheet(unittest.TestCase):
     """ Test """
     def setUp(self):
         self.bq_client = dw.BigQueryExecutor()
-        self.scope = [
-            'https://spreadsheets.google.com/feeds',
-            'https://www.googleapis.com/auth/drive'
-            ]
-        self.credentials = ServiceAccountCredentials.from_json_keyfile_name(
-            bq_token_file_path(),
-            self.scope
-            )
-        self.client = gspread.authorize(self.credentials)
-        self.id = self.client.create('test_spreadsheet').id
-        self.test_data = open('tests/csv/test_load_to_gs.csv', 'r').read()
-        self.client.import_csv(self.id, self.test_data)
+        self.test_csv = open('tests/csv/test_load_gs.csv', 'r').read()
 
-    def test_load_google_sheet_to_bigquery(self):
+    def test_load_gs_to_bq(self):
         self.bq_client.load_google_sheet(
-            googlesheet_key=self.id,
+            googlesheet_key='19Jmapr9G1nrMcW2QTpY7sOvKYaFXnw5krK6dD0GwEqU',
+            sheet_name='input',
             table_id='table1',
-            dataset_id='test'
+            dataset_id='test',
+            schema_path='tests/schema/test_load_gs.json'
         )
 
         result = self.bq_client.execute_sql(
-            "SELECT * FROM test.table1"
+            "SELECT * FROM test.table1 ORDER BY date"
         )
 
-        test_df = pd.read_csv('tests/csv/test_load_to_gs.csv')
+        test_df = pd.read_csv('tests/csv/test_load_gs.csv', parse_dates=['date'])
+
         assert_frame_equal(
             result,
             test_df
