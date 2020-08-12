@@ -71,6 +71,3 @@ class GoodDataFunctions(unittest.TestCase):
         Executes gooddata.py function execute_schedule and tests for failed schedule
         """
         self.assertRaises(ValueError, execute_schedule, 'schedule_3')
-
-
-
