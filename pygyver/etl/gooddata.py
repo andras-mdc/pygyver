@@ -172,7 +172,6 @@ def execute_schedule(schedule_id, retry=False):
         content = json.loads(response.content)
         uri = os.getenv('GOODDATA_DOMAIN') + content['execution']['links']['self']
         while True:
-            print('starting the get')
             response = requests.get(
                 url=uri,
                 headers=headers
