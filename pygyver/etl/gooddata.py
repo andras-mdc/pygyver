@@ -1,6 +1,8 @@
 import os
 import json
 import requests
+import time
+import logging
 
 
 def auth_cookie():
@@ -112,7 +114,14 @@ def temporary_token(sst):
         raise ValueError(response.content)
 
     return temp_token
-
+def get_header():
+    header = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "User-Agent": get_useragent(),
+        "X-GDC-AuthTT": auth_cookie()
+    }
+    return header
 
 def execute_schedule(schedule_id, retry=False):
     """ Executes GoodData schedule.
@@ -154,26 +163,30 @@ def execute_schedule(schedule_id, retry=False):
 
     api_url = os.getenv('GOODDATA_DOMAIN') + "/gdc/projects/" + os.getenv('GOODDATA_PROJECT') + "/schedules/" + schedule_id + "/executions"
 
-    #token = auth_cookie()
-    headers = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "User-Agent": get_useragent(),
-        "X-GDC-AuthTT": auth_cookie()
-    }
-
     response = requests.post(
         url=api_url, 
         data=values,
-        headers=headers
+        headers=get_header()
     )
 
-    # Check response's Status Code
     if 200 <= response.status_code < 300:
         content = json.loads(response.content)
+        uri = os.getenv('GOODDATA_DOMAIN') + content['execution']['links']['self']
+        while True:
+            response = requests.get(
+                url=uri,
+                headers=get_header()
+            )   
+            content = json.loads(response.content)
+            status = content['execution']['status']
+            if status in ['RUNNING', 'SCHEDULED']:
+                logging.info("Graph has not completed, entering sleep for 15 seconds")
+                time.sleep(15)
+            elif status == 'OK':
+                logging.info('Graph completed with a OK status')
+                return status
+            else:
+                logging.info('Graph completed with a non OK status')
+                raise ValueError(status)
     else:
         raise ValueError(json.loads(response.content))
-
-    uri = os.getenv('GOODDATA_DOMAIN') + content['execution']['links']['self']
-
-    return uri
