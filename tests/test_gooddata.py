@@ -36,7 +36,7 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse('{"execution":{"status":"FAILURE"}}', 100)
     return MockResponse(None, 404)
 
-def mocked_sleep_interval(seconds):
+def mocked_time_sleep(seconds):
     sys.exit('sleep has been initiated')
 
 @mock.patch.dict(os.environ, { 'GOODDATA_DOMAIN': 'gooddata_domain','GOODDATA_PROJECT': 'gooddata_project'})
@@ -51,7 +51,7 @@ class GoodDataFunctions(unittest.TestCase):
         """
         self.assertRaises(ValueError, execute_schedule, 'schedule_0')
 
-    @mock.patch('pygyver.etl.gooddata.sleep_interval', side_effect=mocked_sleep_interval)
+    @mock.patch('pygyver.etl.gooddata.time.sleep', side_effect=mocked_time_sleep)
     def test_schedule_sleep(self, mock_interval_sleep, mock_get, mock_post, mock_auth_cookie):
         """
         Executes gooddata.py function execute_schedule and tests for SCHEDULED status sleep
