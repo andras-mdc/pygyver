@@ -182,7 +182,7 @@ def execute_schedule(schedule_id, retry=False):
             if status in ['RUNNING', 'SCHEDULED']:
                 logging.info("Graph has not completed, entering sleep for 15 seconds")
                 time.sleep(15)
-            elif status = 'OK':
+            elif status == 'OK':
                 logging.info('Graph completed with a OK status')
                 return status
             else:
