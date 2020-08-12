@@ -21,7 +21,7 @@ batches:
     pk:
     - col1
     - col2
-    mock_data: 
+    mock_data:
       mock_file: tests/sql/unit_table2_mocked.sql
   - table_desc: table4
     create_table:
@@ -31,14 +31,6 @@ batches:
     pk:
     - col1
     - col2
-    mock_data: 
-      mock_file: tests/sql/unit_table4_mocked.sql  
-      output_table_name: "output_test_table"   
-release:
-  release_log: path_to_release_log.yml
-  date: "2020-05-07"
-  desc: "release of order-item to prod"
-  files:
-    - path_to_file1
-    - path_to_file2
-    - path_to_file3
+    mock_data:
+      mock_file: tests/sql/unit_table4_mocked.sql
+      output_table_name: "output_test_table"

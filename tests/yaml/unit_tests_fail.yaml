@@ -1,7 +1,7 @@
 desc: this is a test pipeline
 datasets: [flat_events, staging, data, reporting]
 batches:
-- desc: 
+- desc:
   tables:
   - table_desc: table2
     create_table:
@@ -11,8 +11,8 @@ batches:
     pk:
     - col1
     - col2
-    mock_data: 
-      mock_file: tests/sql/unit_table2_mocked.sql  
+    mock_data:
+      mock_file: tests/sql/unit_table2_mocked.sql
 - desc: create table3 & table4 in staging
   tables:
   - table_desc: table3
@@ -23,7 +23,7 @@ batches:
     pk:
     - col1
     - col2
-    mock_data: 
+    mock_data:
       mock_file: tests/sql/unit_table_mocked_error.sql
   - table_desc: table4
     create_table:
@@ -33,14 +33,6 @@ batches:
     pk:
     - col1
     - col2
-    mock_data: 
-      mock_file: tests/sql/unit_table4_mocked.sql  
-      output_table_name: "output_test_table"   
-release:
-  release_log: path_to_release_log.yml
-  date: "2020-05-07"
-  desc: "release of order-item to prod"
-  files:
-    - path_to_file1
-    - path_to_file2
-    - path_to_file3
+    mock_data:
+      mock_file: tests/sql/unit_table4_mocked.sql
+      output_table_name: "output_test_table"

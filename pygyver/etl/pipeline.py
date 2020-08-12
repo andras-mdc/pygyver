@@ -3,10 +3,11 @@ from __future__ import print_function
 
 import os
 import copy
-import random
 import logging
 import concurrent.futures
 import numpy as np
+import string
+from random import randint
 from pathlib import PurePath
 from datetime import date
 from importlib.util import spec_from_file_location, module_from_spec
@@ -16,7 +17,7 @@ from pygyver.etl.lib import extract_args
 from pygyver.etl.dw import BigQueryExecutor
 from pygyver.etl.toolkit import read_yaml_file
 from pygyver.etl.lib import bq_default_project
-from pygyver.etl.lib import add_dataset_id_prefix
+from pygyver.etl.lib import add_dataset_prefix
 
 
 def execute_parallel(func, args, message='running task', log=''):
@@ -47,16 +48,24 @@ def execute_parallel(func, args, message='running task', log=''):
 def extract_unit_test_value(unit_test_list):
     utl = copy.deepcopy(unit_test_list)
     for d in utl:
-        file = d.pop('file')
-        d["sql"] = read_sql(file=file, **d)
-        if 'mock_partition_date' in d:
-            d["sql"] = d["sql"].format(
-                partition_date=d['mock_partition_date']
-            )
+        sql_file = d.pop('file')
+        d["sql"] = extract_unit_test_sql_value(d, sql_file)
         d["cte"] = read_sql(file=d['mock_file'], **d)
-        d["file"] = file
+        d["file"] = sql_file
     return utl
 
+def extract_unit_test_sql_value(test, sql_file):
+    sql= read_sql(file=sql_file)
+    sql_parser = string.Formatter()
+    elements = sql_parser.parse(sql)
+    format_dict={}
+    for a, b, c, d in elements: 
+        if 'mock_{}'.format(b) in test :
+            format_dict[b]=test['mock_{}'.format(b)]
+        elif b in test:
+            format_dict[b]=test[b]
+    sql = sql.format(**format_dict)
+    return sql 
 
 def extract_unit_tests(batch_list=None, kwargs={}):
     """ return the list of unit test: unit test -> file, mock_file, output_table_name(opt) """
@@ -79,25 +88,6 @@ def extract_unit_tests(batch_list=None, kwargs={}):
         a.update(b)
     return args
 
-def run_releases(releases_file: str):
-    """
-    Reads a YAML file and executes release files if required.
-    Arguments:
-    - releases_file (string): path to release file
-    """
-    logging.info(f"Checking {releases_file} for modules to run")
-    releases_dict = read_yaml_file(releases_file)
-    for release in releases_dict["releases"]:
-        if release["date"] == date.today():
-            logging.info(f"Release {release['date']}: {release['description']}")
-            for module_path in release["python_files"]:
-                logging.info(f"Running {module_path}")
-                module_name = PurePath(module_path).stem
-                module_full_path = PurePath(os.getenv("PROJECT_ROOT")) / module_path
-                spec = spec_from_file_location(module_name, module_full_path)
-                module = module_from_spec(spec)
-                spec.loader.exec_module(module)
-
 
 class PipelineExecutor:
     def __init__(self, yaml_file, dry_run=False, *args, **kwargs):
@@ -105,8 +95,8 @@ class PipelineExecutor:
         self.yaml = read_yaml_file(yaml_file)
         self.dataset_prefix = None
         if dry_run:
-            self.dataset_prefix = random.sample(range(1, 1000000000), 1)[0]
-            add_dataset_id_prefix(obj=self.yaml, prefix=self.dataset_prefix, kwargs=self.kwargs)
+            self.dataset_prefix = f'{randint(1, 99999999):08}_'
+            add_dataset_prefix(obj=self.yaml, dataset_prefix=self.dataset_prefix, kwargs=self.kwargs)
         self.bq = BigQueryExecutor()
         self.prod_project_id = 'copper-actor-127213'
 
@@ -133,7 +123,7 @@ class PipelineExecutor:
 
                 for dataset in args_dataset:
                     value = dataset.get('dataset_id', '')
-                    dataset['dataset_id'] = str(self.dataset_prefix) + "_" + value
+                    dataset['dataset_id'] = self.dataset_prefix + value
 
                 args_dataset = [dict(t) for t in {tuple(d.items()) for d in args_dataset}]
 
@@ -223,11 +213,36 @@ class PipelineExecutor:
         if not (batch.get('tables', '') == '' or extract_args(batch.get('tables', ''), 'create_table') == '' or extract_args(batch.get('tables', ''), 'pk') == ''):
             self.run_checks(batch)
 
-    def run(self):
+    def run_batches(self):
         batch_list = self.yaml.get('batches', '')
         for batch in batch_list:
             apply_kwargs(batch, self.kwargs)
             self.run_batch(batch)
+
+    def run_python_file(self, python_file):
+        # _dataset_prefix string is unused in run_python_file()
+        # but it makes PipelineExecutor's dataset_prefix available to the release script, using:
+        # from pygyver.etl.lib import get_dataset_prefix
+        _dataset_prefix = self.dataset_prefix
+
+        logging.info(f"Running {python_file}")
+        module_name = PurePath(python_file).stem
+        module_full_path = PurePath(os.getenv("PROJECT_ROOT")) / python_file
+        spec = spec_from_file_location(module_name, module_full_path)
+        module = module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+    def run_releases(self, release_date=date.today().strftime("%Y-%m-%d")):
+        release_list = self.yaml.get('releases', [])
+        for release in release_list:
+            if str(release.get('date', '')) == release_date:
+                logging.info(f"Release {release_date}: {release.get('description', '')}")
+                for python_file in release.get('python_files', []):
+                    self.run_python_file(python_file)
+
+    def run(self):
+        self.run_releases()
+        self.run_batches()
 
     def run_unit_tests(self, batch_list=None):
         batch_list = batch_list or self.yaml.get('batches', '')
@@ -242,7 +257,6 @@ class PipelineExecutor:
             )
 
     def copy_prod_structure(self, table_list=''):
-
         args, args_dataset = [], []
 
         if table_list == '':
@@ -253,13 +267,13 @@ class PipelineExecutor:
                 "source_project_id" : self.prod_project_id,
                 "source_dataset_id" : table.split(".")[0],
                 "source_table_id": table.split(".")[1],
-                "dest_dataset_id" : str(self.dataset_prefix) + "_" + table.split(".")[0],
+                "dest_dataset_id" : self.dataset_prefix + table.split(".")[0],
                 "dest_table_id": table.split(".")[1]
                 }
             apply_kwargs(_dict, self.kwargs)
             args.append(_dict)
 
-        for dataset in np.unique([str(self.dataset_prefix) + "_" + table.split(".")[0] for table in table_list]):
+        for dataset in np.unique([self.dataset_prefix + table.split(".")[0] for table in table_list]):
             _dict = {"dataset_id" : dataset}
             apply_kwargs(_dict, self.kwargs)
             args_dataset.append(

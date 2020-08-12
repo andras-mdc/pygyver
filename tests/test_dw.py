@@ -38,7 +38,7 @@ class get_table_attributes(unittest.TestCase):
             clustering=['fullname']
         )
 
-    def test_get_table_attributes(self):        
+    def test_get_table_attributes(self):
         """ Test """
         attributes = self.db.get_table_attributes(
             dataset_id='test_get_table_attributes',
@@ -51,8 +51,7 @@ class get_table_attributes(unittest.TestCase):
                 "'expires': None, 'external_data_configuration': None, 'friendly_name': None, 'labels': {}, "
                 "'range_partitioning': None, 'require_partition_filter': None, "
                 "'schema': [SchemaField('fullname', 'STRING', 'NULLABLE', '', (), None), "
-                "SchemaField('age', 'INTEGER', 'NULLABLE', '', (), None)], 'time_partitioning': TimePartitioning(type=DAY), "
-                "'view_query': None, 'view_use_legacy_sql': None}"
+                "SchemaField('age', 'INTEGER', 'NULLABLE', '', (), None)], 'time_partitioning': TimePartitioning(type=DAY)}"
             )
         )
         attributes = self.db.get_table_attributes(
@@ -67,7 +66,7 @@ class get_table_attributes(unittest.TestCase):
                 "'range_partitioning': None, 'require_partition_filter': None, "
                 "'schema': [SchemaField('fullname', 'STRING', 'NULLABLE', '', (), None), "
                 "SchemaField('age', 'INTEGER', 'NULLABLE', '', (), None), SchemaField('birthday', 'DATE', 'NULLABLE', '', (), None)], "
-                "'time_partitioning': TimePartitioning(field=birthday,type=DAY), 'view_query': None, 'view_use_legacy_sql': None}"
+                "'time_partitioning': TimePartitioning(field=birthday,type=DAY)}"
             )
         )
 
@@ -84,7 +83,7 @@ def get_existing_partition_query_mock(dataset_id, table_id):
 
 class test_read_sql(unittest.TestCase):
     """ Test """
-    def test_class_read_sql(self):        
+    def test_class_read_sql(self):
         """ Test """
         sql = dw.read_sql(
             file="tests/sql/read_sql.sql",
@@ -112,7 +111,7 @@ class test_read_sql(unittest.TestCase):
                 partition_date='20200101'
             )
 
-    def test_class_read_sql_extra_arg(self):        
+    def test_class_read_sql_extra_arg(self):
         """ Test """
         sql = dw.read_sql(
             file="tests/sql/read_sql_extra_arg.sql",
@@ -120,7 +119,7 @@ class test_read_sql(unittest.TestCase):
             param2="300"
         )
 
-    def test_class_read_sql_with_dataset_prefix(self):        
+    def test_class_read_sql_with_dataset_prefix(self):
         """ Test """
         sql = dw.read_sql(
             file="tests/sql/read_sql_dataset_prefix.sql",
@@ -128,7 +127,7 @@ class test_read_sql(unittest.TestCase):
             param2="300",
             param3="shipped_date",
             param4='trying',
-            dataset_prefix='1001'
+            dataset_prefix='1001_'
         )
         self.assertEqual(
             sql,
@@ -136,7 +135,7 @@ class test_read_sql(unittest.TestCase):
             "read_sql add suffix to dataset: ok"
         )
 
-        
+
 class BigQueryExecutorDatasets(unittest.TestCase):
     """ Test """
     def setUp(self):
@@ -521,7 +520,7 @@ class BigQueryExecutorTableCreation(unittest.TestCase):
         self.db.create_table(
             dataset_id='test',
             table_id='my_param_table',
-            schema_path='tests/schema/orig_table.json',            
+            schema_path='tests/schema/orig_table.json',
             file="tests/sql/sql_with_parameters.sql",
             who="'Angus MacGyver'",
         )
@@ -533,7 +532,7 @@ class BigQueryExecutorTableCreation(unittest.TestCase):
             "Table was not created"
         )
         df1 = self.db.execute_sql("select * from test.my_param_table")
-        df2 = self.db.execute_sql("SELECT 'Angus MacGyver' AS fullname, 2 AS age")       
+        df2 = self.db.execute_sql("SELECT 'Angus MacGyver' AS fullname, 2 AS age")
         self.assertTrue(
             df1.equals(df2),
             "parameter for create table: ok"
@@ -709,12 +708,12 @@ class BigQueryLoadJSONfile(unittest.TestCase):
 #             )['row_count'][0],
 #             2
 #         )
-        
+
 #     def tearDown(self):
 #         self.db.delete_table(
 #             dataset_id='test',
-#             table_id='insert_json_rows'      
-#         )  
+#             table_id='insert_json_rows'
+#         )
 
 class BigQueryLoadJSONData(unittest.TestCase):
     """ Test """
@@ -899,7 +898,7 @@ class BigQueryLoadGCS(unittest.TestCase):
         self.db = dw.BigQueryExecutor()
         self.data = pd.DataFrame(
             data={
-                "first_name": ["Boris", "Emmanuel", "Angela"], 
+                "first_name": ["Boris", "Emmanuel", "Angela"],
                 "age": [55, 42, 65]
                 }
             )
@@ -907,7 +906,7 @@ class BigQueryLoadGCS(unittest.TestCase):
             df=self.data,
             gcs_path='test-bigquery-load/test.csv'
         )
-        
+
     def test_load_gcs_autodetect(self):
         """ Test """
 
@@ -960,7 +959,7 @@ class BigQueryExportGCS(unittest.TestCase):
         self.db = dw.BigQueryExecutor()
         self.data = pd.DataFrame(
             data={
-                "first_name": ["Boris", "Emmanuel", "Angela"], 
+                "first_name": ["Boris", "Emmanuel", "Angela"],
                 "age": [55, 42, 65]
                 }
             )
@@ -969,7 +968,7 @@ class BigQueryExportGCS(unittest.TestCase):
             dataset_id='test',
             table_id='export_gcs'
         )
-        
+
     def test_extract_table_to_gcs(self):
         """ Test """
         self.db.extract_table_to_gcs(
@@ -1085,7 +1084,7 @@ class BigQueryExecutorCreateTableStructure(unittest.TestCase):
                 table_id='bq_copy_table_source3'),
             "table structure properly copied"
         )
-    
+
     def test_copy_table_does_not_error_and_delete_dest_table(self):
         try:
             self.bq_client.copy_table_structure(
@@ -1096,7 +1095,7 @@ class BigQueryExecutorCreateTableStructure(unittest.TestCase):
         )
         except:
             self.fail("it should not fail!")
-        
+
         self.assertTrue(
             not self.bq_client.table_exists(
             dataset_id='test',
@@ -1293,8 +1292,8 @@ class BigQueryCheckSql(unittest.TestCase):
     def setUp(self):
         """ Test """
         self.bq_client = dw.BigQueryExecutor()
-        
-        
+
+
     def test_check_sql_output_ok(self):
         """ Test """
         cte = """`staging.table1` AS (
@@ -1305,12 +1304,12 @@ class BigQueryCheckSql(unittest.TestCase):
                 `staging.table2` AS (
                     SELECT  100 AS price, 'A001' AS id, UNION ALL
                     SELECT  200 AS price, 'A002' AS id UNION ALL
-                    SELECT  300 AS price, 'A003' AS id 
+                    SELECT  300 AS price, 'A003' AS id
                 ),
                 `expected_output` AS (
                     SELECT 'A001' AS id,'sofa' AS sku, 100 AS price, '102461350' AS order_reference UNION ALL
                     SELECT 'A002' AS id,'chair' AS sku, 200 AS price, '1600491918' AS order_reference UNION ALL
-                    SELECT 'A003' AS id,'sofa' AS sku, 300 AS price, '1600491919' AS order_reference  
+                    SELECT 'A003' AS id,'sofa' AS sku, 300 AS price, '1600491919' AS order_reference
                 )"""
         sql = """
                 SELECT a.*, b.price from  `staging.table1` a LEFT JOIN `staging.table2` b on a.id = b.id
@@ -1340,7 +1339,7 @@ class BigQueryCheckSql(unittest.TestCase):
                     SELECT 'A003','1600491918','chair', 200) """
         sql = """
                 SELECT a.*, b.price from  `staging.table1` a LEFT JOIN `staging.table2` b on a.id = b.id
-                """        
+                """
         with self.assertRaises(AssertionError):
             self.bq_client.assert_acceptance(
                 sql=sql,
@@ -1392,7 +1391,7 @@ class BigQueryExecutorGetTableClusteringFields(unittest.TestCase):
     """ Test """
     def setUp(self):
         self.db = dw.BigQueryExecutor()
-    
+
     def test_get_table_clustering_fields_table1(self):
         self.db.initiate_table(
             dataset_id='test',
@@ -1460,7 +1459,7 @@ class BigQueryExecutorGetTablePartititonType(unittest.TestCase):
     """ Test """
     def setUp(self):
         self.db = dw.BigQueryExecutor()
-    
+
     def test_get_table_clustering_fields_table1(self):
         self.db.initiate_table(
             dataset_id='test',

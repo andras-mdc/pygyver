@@ -172,34 +172,91 @@ def validate_date(date, format='%Y-%m-%d', error_msg=None):
             raise ValueError(error_msg)
 
 
-def configure_logging(env=None):
-    """ Sets logging"""
-    logging.info("Environment: %s", env)
+def level_is_valid(verbosity):
+    '''
+    Validates key parameter for configure_logging() and raises approriate
+    exception messages.
+
+    Returns the expected level for verbosity.
+    '''
+
+    if not isinstance(verbosity, str):
+        raise ValueError('verbosity needs to be a string')
+    verbosity = verbosity.upper()
+    logging.info("verbosity passed: %s", verbosity)
+    
+    if verbosity not in ('DEBUG', 'INFO', 'QUIET', 'WARNING', 'CRITICAL'):
+        raise ValueError('verbosity needs to be one of the following: DEBUG, INFO, QUIET, WARNING, CRITICAL')
+    
+    return verbosity
+
+
+def configure_logging(env=None, verbosity=None):
+    """ Sets logging """
+
+    levels = {
+        "DEBUG": {
+            'level': "DEBUG",
+            'format': "%(asctime)s,%(msecs)3d - %(levelname)-8s - %(funcName)5s:%(lineno)-10s :: %(message)s",
+            'datefmt': "%Y-%m-%d %H:%M:%S"
+        },
+        "INFO": {
+            'level': "INFO",
+            'format': "%(asctime)s - %(levelname)-8s — %(name)-10s :: %(message)s",
+            'datefmt': "%H:%M:%S"
+        },
+        "QUIET": {
+            'level': "ERROR",
+            'format': "%(asctime)s - %(levelname)-8s — %(name)-10s :: %(message)s",
+            'datefmt': "%H:%M:%S"
+        },
+        "WARNING": {
+            'level': "WARNING",
+            'format': "%(asctime)s - %(levelname)s - %(funcName)-10s :: %(message)s",
+            'datefmt': "%H:%M:%S"
+        },
+        "CRITICAL": {
+            'level': "CRITICAL",
+            'format': "%(asctime)s - %(levelname)-8s - %(funcName)5s:%(lineno)-10s :: %(message)s",
+            'datefmt': "%Y-%m-%d %H:%M:%S"
+        }
+    }
+
+    if verbosity is None:
+        setlevel = levels["INFO"]['level']
+        setformat = levels["INFO"]['format']
+        setdatefmt = levels["INFO"]['datefmt']
+    else:
+        verbosity = level_is_valid(verbosity)
+        setlevel = levels[verbosity]['level']
+        setformat = levels[verbosity]['format']
+        setdatefmt = levels[verbosity]['datefmt']
 
     logging.config.dictConfig(
         {
             'version': 1,
             'disable_existing_loggers': False,
             'root': {
-                'level': 'INFO',
+                'level': setlevel,
                 'handlers': ['default']
             },
             'formatters': {
-                'plain_text': {
-                    'format': '%(asctime)s %(levelname)s %(message)s',
-                    'datefmt': '%H:%M:%S'
-                }
+                'default': {
+                    'format': setformat,
+                    'datefmt': setdatefmt
+                },
             },
             'handlers': {
                 'default': {
                     'class': 'logging.StreamHandler',
                     'stream': 'ext://sys.stdout',
-                    'formatter': 'plain_text',
-                    'level': 'NOTSET'
+                    'formatter': 'default',
+                    'level': logging.DEBUG
                 }
             }
         }
     )
+
 
 def convert_list_for_sql(my_list):
     """ Convert a python list to a SQL list. 
