@@ -182,15 +182,14 @@ def execute_schedule(schedule_id, retry=False):
             )   
             content = json.loads(response.content)
             status = content['execution']['status']
-            if (status not in ['RUNNING', 'SCHEDULED']):
-                if(status not in ['OK']):
-                    logging.info('Graph completed with a non OK status')
-                    raise ValueError(status)
-                else:
-                    logging.info('Graph completed with a OK status')
-                    return status
-            else:
+            if status in ['RUNNING', 'SCHEDULED']:
                 logging.info("Graph has not completed, entering sleep for 15 seconds")
                 sleep_interval(15)
+            elif status = 'OK':
+                logging.info('Graph completed with a OK status')
+                return status
+            else:
+                logging.info('Graph completed with a non OK status')
+                raise ValueError(status)
     else:
         raise ValueError(json.loads(response.content))
