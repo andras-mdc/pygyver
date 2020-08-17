@@ -3,7 +3,6 @@ import unittest
 import pandas as pd
 from pandas.testing import assert_frame_equal
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 from pygyver.etl import gs
 from pygyver.etl.lib import bq_token_file_path
 
@@ -11,15 +10,8 @@ from pygyver.etl.lib import bq_token_file_path
 class GoogleSpreadsheetLoadDataToDataframe(unittest.TestCase):
     """ Test """
     def setUp(self):
-        self.scope = [
-            'https://spreadsheets.google.com/feeds',
-            'https://www.googleapis.com/auth/drive'
-        ]
-        self.credentials = ServiceAccountCredentials.from_json_keyfile_name(
-            bq_token_file_path(),
-            self.scope
-        )
-        self.client = gspread.authorize(self.credentials)
+        self.client = gs.gspread_client()
+
         self.spreadsheet = self.client.create('test_spreadsheet')
         self.worksheet = self.spreadsheet.add_worksheet(title='new_worksheet', rows=3, cols=3, index=1)
         self.test_df = pd.read_csv('tests/csv/test_load_gs.csv', thousands=',')

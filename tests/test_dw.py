@@ -1,7 +1,6 @@
 """ DW Tests """
 import os
 import logging
-import gspread
 import unittest
 import pandas as pd
 from unittest import mock
@@ -11,7 +10,6 @@ from google.cloud import exceptions
 from pandas.testing import assert_frame_equal
 from pygyver.etl.lib import bq_token_file_path
 from pygyver.etl.dw import BigQueryExecutorError
-from oauth2client.service_account import ServiceAccountCredentials
 from pygyver.etl.storage import GCSExecutor
 from pandas.testing import assert_frame_equal
 

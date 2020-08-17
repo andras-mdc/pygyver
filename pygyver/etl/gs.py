@@ -2,8 +2,27 @@
 import pandas as pd
 import gspread
 from gspread_dataframe import get_as_dataframe
-from oauth2client.service_account import ServiceAccountCredentials
+from google.auth.transport.requests import AuthorizedSession
+from google.oauth2 import service_account
+from pygyver.etl.lib import bq_token_file_valid
 from pygyver.etl.lib import bq_token_file_path
+
+
+
+def gspread_client():
+    """ Sets BigQuery client.
+    """
+    bq_token_file_valid()
+    credentials = service_account.Credentials.from_service_account_file(
+        bq_token_file_path(),
+        scopes=[
+            'https://spreadsheets.google.com/feeds',
+            'https://www.googleapis.com/auth/drive'
+        ]
+    )
+    gc = gspread.Client(auth=credentials)
+    gc.session = AuthorizedSession(credentials)
+    return gc
 
 
 def load_gs_to_dataframe(key, sheet_name='', sheet_index=0, **kwargs):
@@ -21,11 +40,8 @@ def load_gs_to_dataframe(key, sheet_name='', sheet_index=0, **kwargs):
     Returns:
         Spreadsheet as a DataFrame.
     '''
-    scope = ['https://spreadsheets.google.com/feeds',
-             'https://www.googleapis.com/auth/drive']
+    client = gspread_client()
 
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(bq_token_file_path(), scope)
-    client = gspread.authorize(credentials)
     if sheet_name != '':
         sheet = client.open_by_key(key).worksheet(sheet_name)
     else:
