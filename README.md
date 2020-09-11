@@ -28,8 +28,6 @@ BIGQUERY_PROJECT= "default name of the project in BigQuery"
 
 ## [etl](../master/pygyver/etl/README.md)
 
-## [data_prep](../master/pygyver/data_prep/README.md)
-
 
 ## Pypi release
 
