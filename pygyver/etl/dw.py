@@ -30,12 +30,12 @@ class BigQueryExecutorError(Exception):
 
 def print_kwargs_params(func):
     def inner(*args, **kwargs):
-        logging.info("Keyword args applied to the template:")
+        logging.debug("Keyword args applied to the template:")
         for key, value in kwargs.items():
             if key in forbiden_kwargs():
                 raise KeyError("{} is a forbidden keyword argument.".format(key))
         for key, value in kwargs.items():
-            logging.info("%s = %s" % (key, value))
+            logging.debug("%s = %s" % (key, value))
         return func(*args, **kwargs)
     return inner
 
