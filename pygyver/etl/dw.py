@@ -22,6 +22,8 @@ from pygyver.etl.lib import set_write_disposition, set_priority
 from pygyver.etl.toolkit import date_lister
 from pygyver.etl.toolkit import validate_date
 from pygyver.etl.gs import load_gs_to_dataframe
+from pygyver.etl.storage import GCSExecutor
+from pygyver.etl.db import DBExecutor
 
 
 class BigQueryExecutorError(Exception):
@@ -1106,12 +1108,72 @@ class BigQueryExecutor:
         load_job.result()  # Waits for job to complete.
 
         logging.info(
-            'Loaded %s loaded to %s:%s.%s',
+            'Loaded %s to %s:%s.%s',
             uri,
             project_id,
             dataset_id,
             table_id
         )
+
+    def load_from_db(
+        self,
+        dataset_id,
+        table_id,
+        project_id=bq_default_project(),
+        schema_path="",
+        write_disposition="WRITE_TRUNCATE",
+        source=None,
+        source_url=None,
+        sql=None,
+        file=None,
+        **kwargs
+    ):
+        """ Load data from another db into a BigQuery table
+        Note:
+            Sqlalchemy's built-in drivers should be supported
+            Additional drivers can be added using requirements.txt
+            Postgres(pg8000) and MySQL(pymysql) are included in tests
+
+        Args:
+            dataset_id (str): BigQuery dataset ID.
+            table_id (str): BigQuery table ID.
+            project_id (str): BigQuery project ID.
+            schema_path (str): Path to schema file, if not set then BQ will auto-detect when creating a new table.
+            write_disposition (str): Write disposition. Can be one of WRITE_TRUNCATE, WRITE_APPEND or WRITE_EMPTY.
+            source (str): Defines connection using env vars with this prefix, e.g. "ERP", "MAGENTO", etc.
+            source_url (str): Defines connection using SQLAlchemy database URL format, e.g.
+            sql (str): SQL query (or table name).
+            file (str): path to the SQL file relative to PROJECT_ROOT env var.
+            **kwargs: an be applied to pass parameters into SQL file
+        """
+        db = DBExecutor(name=source, url=source_url)
+        df = db.execute_query(sql=sql, file=file, **kwargs)
+        db.clean_up()
+
+        # By default, convert_dtypes will attempt to convert a Series
+        # (or each Series in a DataFrame) to dtypes that support pd.NA
+        # This prevents, for example, int64 being force to float in columns that contain nulls
+        df = df.convert_dtypes()
+
+        gcs = GCSExecutor()
+        gcs_path = f"temp_load_from_db/{dataset_id}/{table_id}.csv"
+        gcs.df_to_gcs(
+            gcs_path=gcs_path,
+            df=df
+        )
+
+        self.load_gcs(
+            project_id=project_id,
+            dataset_id=dataset_id,
+            table_id=table_id,
+            schema_path=schema_path,
+            gcs_path=gcs_path,
+            header=True,
+            write_disposition=write_disposition
+        )
+
+        gcs.delete_directory(gcs_directory="temp_load_from_db")
+
 
     def insert_rows_json(self, dataset_id, table_id, rows,project_id=bq_default_project()):
         """ Insert rows into a table via the streaming API.

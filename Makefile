@@ -27,13 +27,13 @@ pull-ci:
 	docker pull ${IMAGE_REGISTRY}/pygyver:${CACHE_TAG} || true
 	docker pull ${IMAGE_REGISTRY}/pygyver:latest || true
 
-build-ci: 
+build-ci:
 	docker-compose build pygyver
 	docker tag ${IMAGE_REGISTRY}/pygyver:${DOCKER_TAG} ${IMAGE_REGISTRY}/pygyver:${CACHE_TAG}
 	docker tag ${IMAGE_REGISTRY}/pygyver:${DOCKER_TAG} ${IMAGE_REGISTRY}/pygyver:latest
 
 run-tests-ci:
-	docker-compose -p ${TESTNAME} run --no-deps --name ${TESTNAME}${DOCKER_TAG} pygyver-tests
+	docker-compose run pygyver-tests
 
 push-ci:
 	docker-compose push pygyver
@@ -44,7 +44,7 @@ push-ci:
 
 # run 'source load-local-vars.sh' to load env vars prior to local development
 
-build: 
+build:
 	docker pull ${IMAGE_REGISTRY}/py-base:${BASE_IMAGE_GIT_TAG} || true
 	docker pull ${IMAGE_REGISTRY}/pygyver:latest || true
 	docker-compose build pygyver-local

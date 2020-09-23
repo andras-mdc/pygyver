@@ -11,14 +11,39 @@ import pandas as pd
 import yaml
 
 
-def read_sql_file(path_to_file):
+class SafeDict(dict):
+    def __missing__(self, key):
+        return '{' + key + '}'
+
+
+def read_sql_file(path_to_file, **kwargs):
     """ Loads SQL file as a string.
     Arguments:
-        - path_to_file (string): path to sql file from PROJECT_ROOT
+        path_to_file (string): path to sql file from PROJECT_ROOT
+        *kwargs: can be passed if some parameters are to be passed.
+
+    Returns:
+        a SQL formated with **kwargs if applicable.
+
+    Example:
+        With SQL as:
+            "select .. {param2} .. {param1} .. {paramN}"
+        *kwargs as:
+            param1=value1
+            param2=value2
+            paranN=valueN
+        The functions returns:
+            "select .. value2 .. value1 .. valueN"
     """
     full_path = os.path.join(os.environ.get("PROJECT_ROOT"), path_to_file)
-    query = open(full_path, 'r').read()
-    return query
+
+    file = open(full_path, 'r')
+    sql = file.read()
+    file.close()
+
+    if len(kwargs) > 0:
+        sql = sql.format_map(SafeDict(**kwargs))
+    return sql
 
 
 def read_yaml_file(path_to_file):
@@ -184,10 +209,10 @@ def level_is_valid(verbosity):
         raise ValueError('verbosity needs to be a string')
     verbosity = verbosity.upper()
     logging.info("verbosity passed: %s", verbosity)
-    
+
     if verbosity not in ('DEBUG', 'INFO', 'QUIET', 'WARNING', 'CRITICAL'):
         raise ValueError('verbosity needs to be one of the following: DEBUG, INFO, QUIET, WARNING, CRITICAL')
-    
+
     return verbosity
 
 
@@ -259,7 +284,7 @@ def configure_logging(env=None, verbosity=None):
 
 
 def convert_list_for_sql(my_list):
-    """ Convert a python list to a SQL list. 
+    """ Convert a python list to a SQL list.
     The function is primarly used when trying to format SQL queries by passing an argument.
 
     Arguments:

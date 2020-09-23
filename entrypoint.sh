@@ -14,7 +14,8 @@ cd src/
 
 if [ "$1" == "pygyver-tests" ]; then
     echo "Starting "$2" tests"
-    tests/entrypoint-tests.sh "$2"
+    export WAIT_HOSTS="postgres-test:5432, mysql-test:3306"
+    /wait && tests/entrypoint-tests.sh "$2"
     echo "Finished "$2" tests."
     exit $?
 fi

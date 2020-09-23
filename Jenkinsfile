@@ -28,7 +28,7 @@ if(env.BRANCH_NAME == "master" || env.CHANGE_ID) {
         sh "echo '${env.BRANCH_NAME.replaceAll(/\//, '.')}-${BUILD_NUMBER}-${SHORT_HASH}-${PY_VERSION}' > .git/docker-tag"
         def DOCKER_TAG = readFile('.git/docker-tag').trim()
         currentBuild.displayName = DOCKER_TAG
-        
+
         //get base image git tag
         def BASE_IMAGE_GIT_TAG = sshagent(credentials: ['Github-SSH']){sh(returnStdout: true, script:'git ls-remote --tags ' + "${BASE_IMAGE_REPO}" + ' | grep '+ "${PY_VERSION}" +' | cut -d "/" -f 3 | sort -nr -b -t - -k 2 | awk "NR==1"')}
         sh("echo 'Using py base image tag: ${BASE_IMAGE_GIT_TAG}'")
@@ -75,39 +75,17 @@ if(env.BRANCH_NAME == "master" || env.CHANGE_ID) {
 
             lock('pygyver-tests') {
 
-              stage('parallel tests') {
-                buildStages = prepareBuildStages([])
-                for (builds in buildStages) {
-                    parallel(builds)
-                }
-              }
-              
               stage('serial tests') {
-                  buildStages = prepareBuildStages(['pygyver-tests'])
-                  println("Serial tests initialised")
-                  for (builds in buildStages) {
-                      for (build in builds.values()) {
-                          build.call()
-                      }
-                  }
+               sh "make run-tests-ci"
+               junit "test_output/*.xml"
               }
             }
 
             stage ("push latest and docker_tag images") {
                 sh "DOCKER_TAG=${DOCKER_TAG} make push-ci"
                 sh "DOCKER_TAG=latest make push-ci"
-            }  
+            }
         }
-
-        // stage ("push release git tag") {
-        //   if(env.BRANCH_NAME == "master") {
-        //     sh "git tag ${DOCKER_TAG}" 
-        //     pushGitTag()
-        //   }
-        //   else {
-        //     echo "Tag push to Github skipped because not on master branch"
-        //   }
-        // }
       }
       finally {
         stage ("cleanup") {
@@ -118,42 +96,5 @@ if(env.BRANCH_NAME == "master" || env.CHANGE_ID) {
       }
     }
   }
-}   
-
-////////////////////////
-//Functions
-///////////////////////
-
-// Create List of build stages to suit
-def prepareBuildStages(stage_list) {
-  def buildList = []
-  def buildStages = [:]
-  for (name in stage_list ) {
-    def n = "${name}"
-    buildStages.put(n, prepareOneBuildStage(n))
-  }
-  buildList.add(buildStages)
-  return buildList 
 }
 
-// Create a single stage
-def prepareOneBuildStage(String name) {
-  return {
-    stage("${name}") {
-      println("Building ${name}")
-      def dockerTag = readFile('.git/docker-tag').trim()
-      sh "DOCKER_TAG=${dockerTag} TESTNAME=${name} make run-tests-ci"
-      def containerName = "${name}${dockerTag}"
-      def container = sh(returnStdout: true, script:"docker ps -a -q --filter name=${containerName}").trim()
-      sh(returnStdout: true, script: "docker cp ${container}:/code/src/test-out-${name}.xml .")
-      junit "test-out-${name}.xml"
-    }
-  }
-} 
-
-// // Push git tag
-// def pushGitTag(){
-//   sshagent(credentials: ['Github-SSH']){
-//     sh('git push -f --tags') 
-//   }
-// }

@@ -8,10 +8,11 @@ from pygyver.etl import dw
 from google.cloud import bigquery
 from google.cloud import exceptions
 from pandas.testing import assert_frame_equal
+from sqlalchemy import create_engine
+from sqlalchemy.pool import NullPool
 from pygyver.etl.lib import bq_token_file_path
 from pygyver.etl.dw import BigQueryExecutorError
 from pygyver.etl.storage import GCSExecutor
-from pandas.testing import assert_frame_equal
 
 class get_table_attributes(unittest.TestCase):
     """ Test """
@@ -989,6 +990,70 @@ class BigQueryExportGCS(unittest.TestCase):
             dataset_id='test',
             table_id='export_gcs'
         )
+
+class BigQueryLoadFromDB(unittest.TestCase):
+    """ Test """
+    def setUp(self):
+        self.bq_client = dw.BigQueryExecutor()
+        self.test_df = pd.DataFrame(
+            data={
+                "fullname": ["Angus MacGyver", "Jack Dalton"],
+                "age": [2, 4],
+                "date_of_birth": [pd.Timestamp('2018-01-01'), pd.Timestamp('2016-01-01')],
+                "iq": [176.5, 124.0]
+            }
+        )
+
+    def setup_test_db(self, url):
+        self.engine = create_engine(url, poolclass=NullPool)
+        self.test_df.to_sql(
+            "table_1",
+            con=self.engine,
+            if_exists="replace",
+            index=False
+        )
+
+    def tearDown(self):
+        self.engine.dispose()
+        self.bq_client.delete_table(
+            dataset_id='test',
+            table_id='load_from_db'
+        )
+
+    def test_load_from_db_postgres(self):
+        url = "postgresql+pg8000://user:password@postgres-test:5432/testing"
+        self.setup_test_db(url)
+        self.bq_client.load_from_db(
+            dataset_id="test",
+            table_id="load_from_db",
+            source_url=url,
+            sql="SELECT * FROM table_1"
+        )
+        result_df = self.bq_client.execute_sql(
+            "SELECT * FROM `test.load_from_db` ORDER BY fullname"
+        )
+        assert_frame_equal(
+            result_df,
+            self.test_df
+        )
+
+    def test_load_from_db_mysql(self):
+        url = "mysql+pymysql://user:password@mysql-test:3306/testing"
+        self.setup_test_db(url)
+        self.bq_client.load_from_db(
+            dataset_id="test",
+            table_id="load_from_db",
+            source_url=url,
+            sql="SELECT * FROM table_1"
+        )
+        result_df = self.bq_client.execute_sql(
+            "SELECT * FROM `test.load_from_db` ORDER BY fullname"
+        )
+        assert_frame_equal(
+            result_df,
+            self.test_df
+        )
+
 
 class BigQueryExecutorTableTruncate(unittest.TestCase):
     """

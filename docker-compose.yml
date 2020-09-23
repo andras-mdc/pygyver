@@ -33,14 +33,18 @@ services:
         - ${IMAGE_REGISTRY}/pygyver:${CACHE_TAG}
         - ${IMAGE_REGISTRY}/pygyver:latest
     image: ${IMAGE_REGISTRY}/pygyver:${DOCKER_TAG:-local}
-    command: ["pygyver-tests","${TESTNAME:-local}"]
+    command: ["pygyver-tests", "pygyver-tests"]
+    depends_on:
+      - postgres-test
+      - mysql-test
     env_file:
       - ./vars/env/default/default.env
       - ./vars/env/test/test.env
       - ./vars/env/test/test-secrets.env
     volumes:
       - ./access_token.json:/code/access_token.json
-  
+      - ./test_output:/code/src/test_output
+
 #################################################################
 ### LOCAL (UPDATE AT WILL)
 #################################################################
@@ -76,10 +80,36 @@ services:
         - ${IMAGE_REGISTRY}/py-base:${BASE_IMAGE_GIT_TAG}
         - ${IMAGE_REGISTRY}/pygyver:local
     image: ${IMAGE_REGISTRY}/pygyver:local
-    command: ["pygyver-tests","local"]
+    command: ["pygyver-tests", "local"]
+    depends_on:
+      - postgres-test
+      - mysql-test
     env_file:
       - ./vars/env/default/default.env
       - ./vars/env/${ENV}/${ENV}.env
     volumes:
       - ./vars/env/local/access_token.json:/code/access_token.json
-      - ./vars/env/local/facebook_access_token.json:/code/facebook_access_token.json
+      - ./test_output:/code/src/test_output
+
+#################################################################
+### DATABASES FOR TESTING
+#################################################################
+
+  postgres-test:
+    image: postgres:12-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=testing
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+
+  mysql-test:
+    image: mysql:8
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_DATABASE=testing
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+      - MYSQL_ROOT_PASSWORD=mandatory

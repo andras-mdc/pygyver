@@ -231,7 +231,10 @@ class GCSExecutor:
         index: keeps the Dataframe index in file
         """
         self.set_bucket(gcs_bucket=gcs_bucket)
-        self.bucket.blob(gcs_path).upload_from_string(df.to_csv(index=index), 'text/csv')
+        blob = self.bucket.blob(gcs_path)
+
+        logging.info(f"Writing DataFrame to gs://{gcs_bucket}/{blob.name}")
+        blob.upload_from_string(df.to_csv(index=index), 'text/csv')
 
     def download_file(self,
                       gcs_path,
@@ -301,3 +304,5 @@ class GCSExecutor:
         self.set_bucket(gcs_bucket=gcs_bucket)
         for blob in self.bucket.list_blobs(prefix=gcs_directory):
             blob.delete()
+
+        logging.info(f"Deleted directory gs://{gcs_bucket}/{gcs_directory}")

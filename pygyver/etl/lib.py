@@ -137,20 +137,18 @@ def remove_first_slash(word=''):
     return word
 
 # AWS
-
-
 def s3_default_bucket():
     """
-    Returns BIGQUERY_PROJECT if env is set
+    Returns AWS_S3_BUCKET if env is set
     """
     return os.getenv('AWS_S3_BUCKET', '')
 
 
 def s3_default_root():
     """
-    Returns BIGQUERY_PROJECT if env is set
+    Returns AWS_S3_ROOT if env is set
     """
-    return os.environ.get('AWS_S3_ROOT', '')
+    return os.getenv('AWS_S3_ROOT', '')
 
 
 def extract_args(content, to_extract: str, kwargs={}):

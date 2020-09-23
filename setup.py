@@ -1,6 +1,5 @@
 import io
 import versioneer
-
 import setuptools
 
 
@@ -28,21 +27,27 @@ setuptools.setup(
     test_suite="pygyver.tests",
     packages=setuptools.find_packages(),
     install_requires=[
-        'wheel',
-        'PyYAML==5.3.1',
-        'nltk==3.4.5',
-        'boto3==1.9.218',
-        'pyarrow==0.16.0',
-        'facebook-business==6.0.0',
-        'google-api-python-client==1.10.0',
-        'google-auth==1.20.1',
-        'google-cloud-storage==1.30.0',
-        'google-cloud-bigquery==1.26.1',
-        'gspread==3.6.0',
-        'gspread-dataframe==3.0.7',
+        'boto3>=1.9.218',
+        'codecov>=2.1.0',
+        'facebook-business>=6.0.0',
+        'google-cloud-bigquery>=1.24.0',
+        'google-cloud-storage>=1.28.0',
+        'gspread>=3.1.0',
+        'gspread-dataframe>=3.0.4',
+        'moto>=1.3.14',
+        'nltk>=3.4.0',
+        'numpy>=1.13.3',
         'pandas>=1.0.0',
-        'numpy>=1.17.4',
-        'pandas-gbq>=0.9.0'
+        'pandas-gbq>=0.9.0',
+        'pg8000>=1.14.0',
+        'pyarrow>=1.0.0',
+        'pymysql>=0.9.3',
+        'pytest>=5.3.1',
+        'PyYAML>=5.1',
+        'sqlalchemy>=1.3.0',
+        'tox>=3.15.0',
+        'versioneer>=0.18',
+        'wheel>=0.33.1'
     ],
     cmdclass=versioneer.get_cmdclass(),
     classifiers=[
