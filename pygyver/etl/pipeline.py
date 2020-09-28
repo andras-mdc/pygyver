@@ -150,6 +150,20 @@ class PipelineExecutor:
                 log='table_id'
             )
 
+    def create_gs_tables(self, batch):
+        args =[]
+        batch_content = batch.get('sheets', '')
+        args = extract_args(content=batch_content, to_extract='create_gs_tables', kwargs=self.kwargs)
+        if args == []:
+            raise Exception("create_gs_tables in YAML file is not well defined")
+        execute_parallel(
+                self.bq.create_gs_table,
+                args,
+                message='Creating live Google Sheet connection table in BigQuery:',
+                log='table_id'
+            )
+
+
     def create_partition_tables(self, batch):
         args = []
         batch_content = batch.get('tables', '')
@@ -203,6 +217,9 @@ class PipelineExecutor:
         # *** check load_google_sheets ***
         if not (batch.get('sheets', '') == '' or extract_args(batch.get('sheets', ''), 'load_google_sheet') == ''):
             self.load_google_sheets(batch)
+        # *** check create_gs_tables ***
+        if not (batch.get('sheets', '') == '' or extract_args(batch.get('sheets', ''), 'create_gs_tables') == ''):
+            self.create_gs_tables(batch)
         # *** check create_tables ***
         if not (batch.get('tables', '') == '' or extract_args(batch.get('tables', ''), 'create_table') == ''):
             self.create_tables(batch)

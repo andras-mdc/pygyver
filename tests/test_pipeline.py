@@ -198,7 +198,7 @@ class TestPipelineExecutorRunBatch(unittest.TestCase):
 
     def setUp(self):
         self.bq_client = BigQueryExecutor()
-        self.p_ex = pl.PipelineExecutor("tests/yaml/test_run.yaml")
+        self.p_ex = pl.PipelineExecutor("tests/yaml/test_dummy.yaml")
 
     def test_run_batch_create_tables(self):
         batch = {
@@ -240,6 +240,29 @@ class TestPipelineExecutorRunBatch(unittest.TestCase):
                 ),
             "Tables are created")
 
+
+    def test_run_batch_create_gs_tables(self):
+        batch = {
+            "desc": "load test spreadsheet into bigquery",
+            "sheets": [
+                {
+                    "table_desc": "ref gs_test_table1",
+                    "create_gs_tables": {
+                         "table_id": "gs_test_table1",
+                        "dataset_id": "test",
+                        "sheet_name": "input",
+                        "googlesheet_uri": "https://docs.google.com/spreadsheets/d/19Jmapr9G1nrMcW2QTpY7sOvKYaFXnw5krK6dD0GwEqU/edit#gid=0"
+                    }
+                }
+            ]
+        }
+        self.p_ex.create_gs_tables(batch)
+        self.assertTrue(
+            self.bq_client.table_exists(
+                table_id='gs_test_table1',
+                dataset_id="test"),
+            "gs_test_table1 does NOT exists")
+
     def test_run_batch_load_google_sheets(self):
         batch = {
             "desc": "load test spreadsheet into bigquery",
@@ -260,7 +283,7 @@ class TestPipelineExecutorRunBatch(unittest.TestCase):
             self.bq_client.table_exists(
                 table_id='ref_sheet1',
                 dataset_id="test"),
-            "ref_sheet1 exists")
+            "ref_sheet1 does NOT exists")
 
 
     def tearDown(self):
@@ -269,9 +292,11 @@ class TestPipelineExecutorRunBatch(unittest.TestCase):
         if self.bq_client.table_exists(table_id='table2', dataset_id='test'):
             self.bq_client.delete_table(table_id='table2', dataset_id='test')
         if self.bq_client.table_exists(table_id='test_run_batch_table_1', dataset_id='test'):
-            self.bq_client.delete_table(table_id='test_run_batch_table_1', dataset_id='test')
+            self.bq_client.delete_table(table_id='test_run_batch_table_1',dataset_id='test')
         if self.bq_client.table_exists(table_id='test_run_batch_table_2', dataset_id='test'):
             self.bq_client.delete_table(table_id='test_run_batch_table_2', dataset_id='test')
+        if self.bq_client.table_exists(table_id='gs_test_table1', dataset_id='test'):
+            self.bq_client.delete_table(table_id='gs_test_table1', dataset_id='test')
 
 
 class TestPipelineExecutorRun(unittest.TestCase):
@@ -299,6 +324,13 @@ class TestPipelineExecutorRun(unittest.TestCase):
 
         self.assertTrue(
             self.bq_client.table_exists(
+                table_id='gs_test_table1',
+                dataset_id='test'),
+            "googlesheet live connection table exists"
+            )
+
+        self.assertTrue(
+            self.bq_client.table_exists(
                 table_id='table1',
                 dataset_id="test"),
             "createtable table1 exists")
@@ -318,6 +350,8 @@ class TestPipelineExecutorRun(unittest.TestCase):
             self.bq_client.delete_table(table_id='ref_sheet1', dataset_id='test')
         if self.bq_client.table_exists(table_id='ref_sheet2', dataset_id='test'):
             self.bq_client.delete_table(table_id='ref_sheet2', dataset_id='test')
+        if self.bq_client.table_exists(table_id='gs_test_table1', dataset_id='test'):
+            self.bq_client.delete_table(table_id='gs_test_table1', dataset_id='test')
 
 
 class TestPipelineCopyTableStructure(unittest.TestCase):

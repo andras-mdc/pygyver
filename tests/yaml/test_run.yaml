@@ -10,12 +10,22 @@ batches:
         schema_path: tests/schema/test_load_google_sheets.json
         googlesheet_uri: https://docs.google.com/spreadsheets/d/19Jmapr9G1nrMcW2QTpY7sOvKYaFXnw5krK6dD0GwEqU/edit#gid=0
         sheet_name: input
+
+    - table_desc: ref gs_test_table1
+      create_gs_tables:
+        table_id: gs_test_table1
+        dataset_id: test
+        schema_path: tests/schema/test_load_gs.json
+        googlesheet_uri: https://docs.google.com/spreadsheets/d/19Jmapr9G1nrMcW2QTpY7sOvKYaFXnw5krK6dD0GwEqU/edit#gid=0
+        sheet_name: input
+
     - table_desc: make a second copy of ref sheet1
       load_google_sheet:
         table_id: ref_sheet2
         dataset_id: test
         googlesheet_key: 19Jmapr9G1nrMcW2QTpY7sOvKYaFXnw5krK6dD0GwEqU
         sheet_name: input
+
   - desc: create table1 & table2 in staging
     tables:
     - table_desc: table1
