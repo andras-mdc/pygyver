@@ -247,7 +247,7 @@ class TestPipelineExecutorRunBatch(unittest.TestCase):
             "sheets": [
                 {
                     "table_desc": "ref gs_test_table1",
-                    "create_gs_tables": {
+                    "create_gs_table": {
                          "table_id": "gs_test_table1",
                         "dataset_id": "test",
                         "sheet_name": "input",
@@ -313,33 +313,43 @@ class TestPipelineExecutorRun(unittest.TestCase):
         self.assertTrue(
             self.bq_client.table_exists(
                 table_id='ref_sheet1',
-                dataset_id="test"),
-            "googlesheet table1 exists")
+                dataset_id="test"
+            ),
+            "test.ref_sheet1 exists"
+        )
 
         self.assertTrue(
             self.bq_client.table_exists(
                 table_id='ref_sheet2',
-                dataset_id="test"),
-            "googlesheet table2 exists")
+                dataset_id="test"
+            ),
+            "test.ref_sheet2 exists"
+        )
 
         self.assertTrue(
             self.bq_client.table_exists(
                 table_id='gs_test_table1',
-                dataset_id='test'),
-            "googlesheet live connection table exists"
-            )
+                dataset_id="test"
+            ),
+            "test.gs_test_table1 exists"
+        )
 
         self.assertTrue(
             self.bq_client.table_exists(
                 table_id='table1',
-                dataset_id="test"),
-            "createtable table1 exists")
+                dataset_id="test"
+            ),
+            "test.table1 exists"
+        )
 
         self.assertTrue(
             self.bq_client.table_exists(
                 table_id='table2',
-                dataset_id="test"),
-            "createtable table2 exists")
+                dataset_id="test"
+            ),
+            "test.table2 exists"
+        )
+
 
     def tearDown(self):
         if self.bq_client.table_exists(table_id='table1', dataset_id='test'):

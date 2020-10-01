@@ -921,6 +921,7 @@ class BigQueryExecutor:
             )
         except exceptions.Conflict as error:
             logging.error(error)
+            raise error
 
 
     def load_google_sheet(self,
@@ -968,8 +969,9 @@ class BigQueryExecutor:
                 write_disposition=write_disposition,
                 sql=f"SELECT * FROM `{project_id}.{dataset_id}.{temp_table_id}`"
             )
-        except Exception as e:
-            logging.error(e)
+        except Exception as error:
+            logging.error(error)
+            raise error
         finally:
             if self.table_exists(dataset_id=dataset_id, table_id=temp_table_id):
                 self.delete_table(dataset_id=dataset_id, table_id=temp_table_id)

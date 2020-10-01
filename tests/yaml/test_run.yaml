@@ -12,7 +12,7 @@ batches:
         sheet_name: input
 
     - table_desc: ref gs_test_table1
-      create_gs_tables:
+      create_gs_table:
         table_id: gs_test_table1
         dataset_id: test
         schema_path: tests/schema/test_load_gs.json
