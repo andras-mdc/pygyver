@@ -383,11 +383,26 @@ class BigQueryExecutor:
             job_config=job_config
         )
 
-        # add temp file load here
+        # add temp table load here
+
+            # - generate table_id and write to temp dataset
 
         # add constraint checks here
 
-        # if constraints pass continue
+            # - check args for constraint checks (pk, rows, columns, etc etc)
+            # - run constraint checks on table
+
+        # if constraints pass
+
+            # - continue process as below
+        
+        # if constraints fail
+
+            # - log out reason for failure in clearly with supporting data e.g. row number difference
+
+        # clean up
+
+            # - drop temp table after process has completed
 
         if priority == 'INTERACTIVE':
             query_job.result()
