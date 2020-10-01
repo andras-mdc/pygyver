@@ -394,7 +394,7 @@ class BigQueryExecutor:
 
         # if constraints pass
 
-            # - continue process as below
+            # - continue process as below but instead of the usual create table perform a table copy
         
         # if constraints fail
 
