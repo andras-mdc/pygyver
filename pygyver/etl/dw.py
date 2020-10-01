@@ -382,6 +382,13 @@ class BigQueryExecutor:
             location=location,
             job_config=job_config
         )
+
+        # add temp file load here
+
+        # add constraint checks here
+
+        # if constraints pass continue
+
         if priority == 'INTERACTIVE':
             query_job.result()
             logging.info(
