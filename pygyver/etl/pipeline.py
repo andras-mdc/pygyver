@@ -153,9 +153,9 @@ class PipelineExecutor:
     def create_gs_tables(self, batch):
         args =[]
         batch_content = batch.get('sheets', '')
-        args = extract_args(content=batch_content, to_extract='create_gs_tables', kwargs=self.kwargs)
+        args = extract_args(content=batch_content, to_extract='create_gs_table', kwargs=self.kwargs)
         if args == []:
-            raise Exception("create_gs_tables in YAML file is not well defined")
+            raise Exception("create_gs_table in YAML file is not well defined")
         execute_parallel(
                 self.bq.create_gs_table,
                 args,
@@ -213,22 +213,22 @@ class PipelineExecutor:
         )
 
     def run_batch(self, batch):
-        ''' batch executor - this is a mvp, it can be widely improved '''
-        # *** check load_google_sheets ***
-        if not (batch.get('sheets', '') == '' or extract_args(batch.get('sheets', ''), 'load_google_sheet') == ''):
-            self.load_google_sheets(batch)
-        # *** check create_gs_tables ***
-        if not (batch.get('sheets', '') == '' or extract_args(batch.get('sheets', ''), 'create_gs_tables') == ''):
-            self.create_gs_tables(batch)
-        # *** check create_tables ***
-        if not (batch.get('tables', '') == '' or extract_args(batch.get('tables', ''), 'create_table') == ''):
-            self.create_tables(batch)
-        # *** check create_partition_tables ***
-        if not (batch.get('tables', '') == '' or extract_args(batch.get('tables', ''), 'create_partition_table') == ''):
-            self.create_partition_tables(batch)
-        # *** exec pk check ***
-        if not (batch.get('tables', '') == '' or extract_args(batch.get('tables', ''), 'create_table') == '' or extract_args(batch.get('tables', ''), 'pk') == ''):
-            self.run_checks(batch)
+        """ Executes a batch. """
+
+        if 'tables' in batch:
+            if extract_args(batch['tables'], 'create_table'):
+                self.create_tables(batch)
+            if extract_args(batch['tables'], 'create_partition_table'):
+                self.create_partition_tables(batch)
+            if extract_args(batch['tables'], 'pk'):
+                self.run_checks(batch)
+
+        if 'sheets' in batch:
+            if extract_args(batch['sheets'], 'load_google_sheet'):
+                self.load_google_sheets(batch)
+            if extract_args(batch['sheets'], 'create_gs_table'):
+                self.create_gs_tables(batch)
+
 
     def run_batches(self):
         batch_list = self.yaml.get('batches', '')
