@@ -61,6 +61,7 @@ class DBExecutor:
             self.engine = create_engine(self.url, poolclass=NullPool)
         except Exception as error:
             logging.error(f"Failed to connect to {self.safe_url}: {error}")
+            raise error
 
 
     def clean_up(self):
@@ -90,6 +91,7 @@ class DBExecutor:
                 df = pd.read_sql(sql, con)
             except Exception as error:
                 logging.error(error)
+                raise error
             finally:
                 con.close()
 
