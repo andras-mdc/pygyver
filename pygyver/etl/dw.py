@@ -398,7 +398,7 @@ class BigQueryExecutor:
         
         # if constraints fail
 
-            # - log out reason for failure in clearly with supporting data e.g. row number difference
+            # - log out reason for failure clearly with supporting data e.g. row number difference
 
         # clean up
 
