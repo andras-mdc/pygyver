@@ -383,7 +383,7 @@ class BigQueryExecutor:
             job_config=job_config
         )
 
-        # add temp file load here
+        # add temp table load here
 
         # add constraint checks here
 
