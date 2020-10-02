@@ -200,11 +200,13 @@ class PipelineExecutor:
         args, args_pk = [], []
         batch_content = batch.get('tables', '')
         args = extract_args(batch_content, 'create_table')
-        for a in args:
-            a.update({"dataset_prefix": self.dataset_prefix})
-        args_pk = extract_args(batch_content, 'pk')
+        args_pk = [x.get('pk', []) for x in batch_content]
         for a, b in zip(args, args_pk):
-            a.update({"primary_key": b})
+            a.update({
+                "dataset_prefix": self.dataset_prefix,
+                "primary_key": b
+                }
+            )
         execute_parallel(
             self.bq.assert_unique,
             args,
@@ -218,10 +220,9 @@ class PipelineExecutor:
         if 'tables' in batch:
             if extract_args(batch['tables'], 'create_table'):
                 self.create_tables(batch)
+                self.run_checks(batch)
             if extract_args(batch['tables'], 'create_partition_table'):
                 self.create_partition_tables(batch)
-            if extract_args(batch['tables'], 'pk'):
-                self.run_checks(batch)
 
         if 'sheets' in batch:
             if extract_args(batch['sheets'], 'load_google_sheet'):

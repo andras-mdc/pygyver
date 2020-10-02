@@ -26,7 +26,7 @@ batches:
         googlesheet_key: 19Jmapr9G1nrMcW2QTpY7sOvKYaFXnw5krK6dD0GwEqU
         sheet_name: input
 
-  - desc: create table1 & table2 in staging
+  - desc: create table1, table2 & table3 in staging - no pk check for table3
     tables:
     - table_desc: table1
       create_table:
@@ -50,6 +50,12 @@ batches:
       mock_data:
         mock_file: sql/table1_mocked.sql
         output_table_name: "output_test_table"
+    - table_desc: table3
+      create_table:
+        table_id: table3
+        dataset_id: test
+        file: tests/sql/table3.sql
+
 
 releases:
   - date: 2019-12-31

@@ -1445,6 +1445,9 @@ class BigQueryExecutor:
         Returns:
             non-negative integer
         """
+        if not primary_key:
+            logging.warning("No primary key supplied, skipping duplicates count.")
+            return 0
         data = self.execute_sql(
             f"""
             SELECT
@@ -1478,7 +1481,7 @@ class BigQueryExecutor:
             Raise and log AssertionError if there are duplicate rows and ignore_error=False (default)
             Log a warning if there are dupicate rows and ignore_error=True (debugging)
         """
-        if self.count_duplicates(table_id, primary_key, dataset_id,project_id = project_id) != 0:
+        if self.count_duplicates(table_id, primary_key, dataset_id, project_id=project_id) != 0:
             msg = "Table %s:%s.%s is not unique on %s" % (
                 project_id,
                 dataset_id,
