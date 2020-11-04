@@ -20,7 +20,6 @@ def get_predicted_revenue_mock():
 
     df1 = db.execute_sql(
         sql=sql,
-        project_id='madecom-dev-jean-maldonado'
     )
 
     return df1
