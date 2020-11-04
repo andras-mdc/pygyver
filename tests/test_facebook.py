@@ -5,7 +5,6 @@ from pandas.testing import assert_series_equal
 from pandas.testing import assert_frame_equal
 from pygyver.etl.facebook import transform_campaign_budget
 from pygyver.etl.facebook import build_predicted_revenue_events
-from pygyver.etl.facebook import FacebookExecutor
 from pygyver.etl.dw import BigQueryExecutor
 from pygyver.etl.dw import read_sql
 
@@ -21,6 +20,7 @@ def get_predicted_revenue_mock():
 
     df1 = db.execute_sql(
         sql=sql,
+        project_id='madecom-dev-jean-maldonado'
     )
 
     return df1
@@ -96,36 +96,6 @@ class FacebookExecutorTest(unittest.TestCase):
         assert_series_equal(predicted_revenue_events["currency"], df_result["currency"])
         assert_series_equal(predicted_revenue_events["facebook_browser_id"], df_result["facebook_browser_id"])
         assert_series_equal(predicted_revenue_events["shop"], df_result["shop"])
-
-    def test_push_conversions_api_events(self):
-        """
-        Testing push_conversions_api_events() using get_predicted_revenue_mock().
-        """
-
-        fbe = FacebookExecutor()
-        fbe.set_pixel_id('1530331220624093')
-        predicted_revenue_events = get_predicted_revenue_mock()
-        events, log = build_predicted_revenue_events(predicted_revenue_events)
-        result = fbe.push_conversions_api_events(events, 'TEST69151')
-
-        self.assertEqual(result['status'], 'API Success')
-
-    def test_push_conversions_api_batch(self):
-        """
-        Testing push_conversions_api_batch() using get_predicted_revenue_mock().
-        """
-        fbe = FacebookExecutor()
-        fbe.set_pixel_id('1530331220624093')
-        predicted_revenue_events = get_predicted_revenue_mock()
-
-        result = fbe.push_conversions_api_batch(predicted_revenue_events, build_predicted_revenue_events,
-                                                'TEST69151', 2)
-
-        assert_series_equal(predicted_revenue_events["date"], result["date_source"], check_names=False)
-        assert_series_equal(predicted_revenue_events["predicted_revenue"], result["predicted_revenue"])
-        assert_series_equal(predicted_revenue_events["currency"], result["currency"])
-        assert_series_equal(predicted_revenue_events["facebook_browser_id"], result["facebook_browser_id"])
-        assert_series_equal(predicted_revenue_events["shop"], result["shop"])
 
 
 if __name__ == "__main__":
