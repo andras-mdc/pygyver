@@ -3,9 +3,11 @@ import asyncio
 import logging
 import unittest
 from unittest import mock
+from google.cloud import bigquery
 from pygyver.etl.dw import BigQueryExecutor
 import pygyver.etl.pipeline as pl
 from pygyver.etl.lib import add_dataset_prefix
+from pygyver.etl.lib import bq_default_project
 
 class TestPipelineExtractuUnitTests(unittest.TestCase):
 
@@ -197,8 +199,9 @@ class TestPipelineUnitTestsErrorRaised(unittest.TestCase):
 class TestPipelineExecutorRunBatch(unittest.TestCase):
 
     def setUp(self):
-        self.bq_client = BigQueryExecutor()
+        self.bq_exec = BigQueryExecutor()
         self.p_ex = pl.PipelineExecutor("tests/yaml/test_dummy.yaml")
+        self.bq_client = bigquery.Client()
 
     def test_run_batch_create_tables(self):
         batch = {
@@ -210,6 +213,7 @@ class TestPipelineExecutorRunBatch(unittest.TestCase):
                     "create_table": {
                         "table_id": "table1",
                         "dataset_id": "test",
+                        "description": "some descriptive text here",
                         "file": "tests/sql/table1.sql"
                     },
                     "pk": ["col1", "col2"],
@@ -229,12 +233,21 @@ class TestPipelineExecutorRunBatch(unittest.TestCase):
         }
         self.p_ex.run_batch(batch)
         self.assertTrue(
-            self.bq_client.table_exists(
+            self.bq_exec.table_exists(
                 table_id='table1',
                 dataset_id="test"),
             "Tables are created")
+
+        table_ref = self.bq_exec.get_table_ref(dataset_id='test', table_id='table1', project_id=bq_default_project())
+        table = self.bq_client.get_table(table_ref)  # API request
+
         self.assertTrue(
-            self.bq_client.table_exists(
+            table.description == "some descriptive text here",
+            "The 'description' is not the same"
+        )
+
+        self.assertTrue(
+            self.bq_exec.table_exists(
                 table_id='table2',
                 dataset_id="test"
                 ),
@@ -258,7 +271,7 @@ class TestPipelineExecutorRunBatch(unittest.TestCase):
         }
         self.p_ex.create_gs_tables(batch)
         self.assertTrue(
-            self.bq_client.table_exists(
+            self.bq_exec.table_exists(
                 table_id='gs_test_table1',
                 dataset_id="test"),
             "gs_test_table1 does NOT exists")
@@ -275,28 +288,106 @@ class TestPipelineExecutorRunBatch(unittest.TestCase):
                         "sheet_name": "input",
                         "googlesheet_uri": "https://docs.google.com/spreadsheets/d/19Jmapr9G1nrMcW2QTpY7sOvKYaFXnw5krK6dD0GwEqU/edit#gid=0"
                     }
+                },
+                {
+                    "table_desc": "ref sheet2",
+                    "load_google_sheet": {
+                        "table_id": "ref_sheet2",
+                        "dataset_id": "test",
+                        "sheet_name": "input",
+                        "description": "foo bar",
+                        "googlesheet_uri": "https://docs.google.com/spreadsheets/d/19Jmapr9G1nrMcW2QTpY7sOvKYaFXnw5krK6dD0GwEqU/edit#gid=0"
+                    }
                 }
             ]
         }
+
+
         self.p_ex.load_google_sheets(batch)
         self.assertTrue(
-            self.bq_client.table_exists(
+            self.bq_exec.table_exists(
                 table_id='ref_sheet1',
                 dataset_id="test"),
             "ref_sheet1 does NOT exists")
 
+        self.assertTrue(
+            self.bq_exec.table_exists(
+                table_id='ref_sheet2',
+                dataset_id="test"),
+            "ref_sheet2 does NOT exists")
+
+        table_ref = self.bq_exec.get_table_ref(dataset_id='test', table_id='ref_sheet2', project_id=bq_default_project())
+        table = self.bq_client.get_table(table_ref)  # API request
+
+        self.assertTrue(
+            table.description == "foo bar",
+            "The 'description' is not the same"
+        )
+
+    def test_run_batch_create_partition_tables(self):
+        # A table must be created first, only then it can be partitioned
+        batch = {
+            "desc": "create partition_table1",
+            "tables":
+                [
+                    {
+                        "table_desc": "creating table",
+                        "create_table": {
+                            "table_id": "partition_table1",
+                            "dataset_id": "test",
+                            "file": "tests/sql/table1.sql"
+                        },
+                        "pk": ["col1", "col2"],
+                        "mock_data": "sql/table1_mocked.sql"
+                    },
+                    {
+                        "table_desc": "creating partition table",
+                        "create_partition_table": {
+                            "table_id": "partition_table1",
+                            "dataset_id": "test",
+                            "description": "some descriptive text here",
+                            "file": "tests/sql/table1.sql",
+                            "partition_dates": []
+                        },
+                        "pk": ["col1", "col2"],
+                        "mock_data": "sql/table1_mocked.sql"
+                    }
+                ]
+        }
+
+        self.p_ex.run_batch(batch)
+        self.assertTrue(
+            self.bq_exec.table_exists(
+                table_id='partition_table1',
+                dataset_id="test"),
+            "Partition table is created")
+
+        table_ref = self.bq_exec.get_table_ref(dataset_id='test', table_id='partition_table1', project_id=bq_default_project())
+        table = self.bq_client.get_table(table_ref)  # API request
+
+        self.assertTrue(
+            table.description == "some descriptive text here",
+            "The 'description' is not the same"
+        )
+
 
     def tearDown(self):
-        if self.bq_client.table_exists(table_id='table1', dataset_id='test'):
-            self.bq_client.delete_table(table_id='table1', dataset_id='test')
-        if self.bq_client.table_exists(table_id='table2', dataset_id='test'):
-            self.bq_client.delete_table(table_id='table2', dataset_id='test')
-        if self.bq_client.table_exists(table_id='test_run_batch_table_1', dataset_id='test'):
-            self.bq_client.delete_table(table_id='test_run_batch_table_1',dataset_id='test')
-        if self.bq_client.table_exists(table_id='test_run_batch_table_2', dataset_id='test'):
-            self.bq_client.delete_table(table_id='test_run_batch_table_2', dataset_id='test')
-        if self.bq_client.table_exists(table_id='gs_test_table1', dataset_id='test'):
-            self.bq_client.delete_table(table_id='gs_test_table1', dataset_id='test')
+        if self.bq_exec.table_exists(table_id='table1', dataset_id='test'):
+            self.bq_exec.delete_table(table_id='table1', dataset_id='test')
+        if self.bq_exec.table_exists(table_id='table2', dataset_id='test'):
+            self.bq_exec.delete_table(table_id='table2', dataset_id='test')
+        if self.bq_exec.table_exists(table_id='test_run_batch_table_1', dataset_id='test'):
+            self.bq_exec.delete_table(table_id='test_run_batch_table_1',dataset_id='test')
+        if self.bq_exec.table_exists(table_id='test_run_batch_table_2', dataset_id='test'):
+            self.bq_exec.delete_table(table_id='test_run_batch_table_2', dataset_id='test')
+        if self.bq_exec.table_exists(table_id='gs_test_table1', dataset_id='test'):
+            self.bq_exec.delete_table(table_id='gs_test_table1', dataset_id='test')
+        if self.bq_exec.table_exists(table_id='ref_sheet1', dataset_id='test'):
+            self.bq_exec.delete_table(table_id='ref_sheet1', dataset_id='test')
+        if self.bq_exec.table_exists(table_id='ref_sheet2', dataset_id='test'):
+            self.bq_exec.delete_table(table_id='ref_sheet2', dataset_id='test')
+        if self.bq_exec.table_exists(table_id='partition_table1', dataset_id='test'):
+            self.bq_exec.delete_table(table_id='partition_table1', dataset_id='test')
 
 
 class TestPipelineExecutorRun(unittest.TestCase):

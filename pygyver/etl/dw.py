@@ -334,6 +334,7 @@ class BigQueryExecutor:
                      partition_field='_PARTITIONTIME',
                      clustering=None,
                      priority='INTERACTIVE',
+                     description=None,
                      **kwargs):
         """ create a bigquery table from a sql query """
 
@@ -390,6 +391,9 @@ class BigQueryExecutor:
                 dataset_id,
                 table_id
             )
+        if description:
+            self.update_table_description(table_id=table_id, description=description,
+                                          project_id=project_id, dataset_id=dataset_id)
 
         return query_job
 
@@ -407,6 +411,7 @@ class BigQueryExecutor:
                                clustering=None,
                                priority="INTERACTIVE",
                                schema_path="",
+                               description=None,
                                **kwargs
                               ):
         """
@@ -473,6 +478,10 @@ class BigQueryExecutor:
         if priority == 'BATCH':
             for job in jobs:
                 job.result()
+
+        if description:
+            self.update_table_description(table_id=table_id, description=description,
+                                          project_id=project_id, dataset_id=dataset_id)
 
 
     def apply_partition_filter(self, sql, date):
@@ -776,6 +785,37 @@ class BigQueryExecutor:
             except exceptions.BadRequest as error:
                 raise error
 
+    def update_table_description(
+            self,
+            table_id,
+            description,
+            project_id=bq_default_project(),
+            dataset_id=bq_default_dataset()
+            ):
+        """ Performs a table update to fill in description for the table.
+
+        Parameters:
+            table_id (string): BigQuery table ID.
+            description (string): The descriptive text to describe the content of the table.
+            project_id (string): BigQuery project ID.
+            dataset_id (string): BigQuery dataset ID.
+
+        Raises:
+            BadRequest if the update fails.
+        """
+
+        table_ref = self.get_table_ref(dataset_id=dataset_id, table_id=table_id, project_id=project_id)
+        table = self.client.get_table(table_ref)  # API request
+
+        if table.description == description:
+            logging.info("No changes to table description required")
+        else:
+            try:
+                table.description = description
+                self.client.update_table(table, ["description"])  # API request
+            except exceptions.BadRequest as error:
+                raise error
+
     def execute_sql(self, sql, project_id=bq_default_project(), dialect='standard'):
         """ Executes a SQL query and loads it as a DataFrame.
 
@@ -925,6 +965,7 @@ class BigQueryExecutor:
                         googlesheet_key=None,
                         googlesheet_uri=None,
                         sheet_name=None,
+                        description=None,
                         header=True,
                         write_disposition='WRITE_TRUNCATE'):
         """ Loads Google Sheets data into a normal BigQuery Table
@@ -937,6 +978,7 @@ class BigQueryExecutor:
             googlesheet_uri (str): Google Sheet URI
             googlesheet_key (str): Google Sheet Key, an alternate option instead of URI
             sheet_name (str): GS Sheet Name, defaults to first worksheet, index 0
+            description (str): The descriptive text to describe the content of the table
             header (bool): Defaults to True
             write_disposition (str): Write disposition. Can be one of WRITE_TRUNCATE, WRITE_APPEND or WRITE_EMPTY
         """
@@ -960,6 +1002,7 @@ class BigQueryExecutor:
                 table_id=table_id,
                 schema_path=schema_path,
                 write_disposition=write_disposition,
+                description=description,
                 sql=f"SELECT * FROM `{project_id}.{dataset_id}.{temp_table_id}`"
             )
         except Exception as error:

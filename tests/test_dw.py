@@ -11,6 +11,7 @@ from pandas.testing import assert_frame_equal
 from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
 from pygyver.etl.lib import bq_token_file_path
+from pygyver.etl.lib import bq_default_project
 from pygyver.etl.dw import BigQueryExecutorError
 from pygyver.etl.storage import GCSExecutor
 
@@ -390,6 +391,48 @@ class BigQueryExecutorExecutesPatch(unittest.TestCase):
             table_id='table_to_patch'
         )
 
+
+class BigQueryExecutorTableCreationDescription(unittest.TestCase):
+    """
+    Testing different scenarios
+    """
+
+    def setUp(self):
+        """ Test """
+        self.db = dw.BigQueryExecutor()
+        self.client = bigquery.Client()
+        self.project = self.client.project
+
+    def test_create_table_with_description(self):
+        self.db.create_table(
+            dataset_id='test',
+            table_id='my_table_with_description',
+            schema_path='tests/schema/orig_table.json',
+            sql="SELECT 'Beth Harmon' AS fullname, 26 AS age",
+            description="test_dw table description bar foo"
+        )
+
+        table_ref = self.db.get_table_ref(dataset_id='test', table_id='my_table_with_description', project_id=bq_default_project())
+        table = self.client.get_table(table_ref)  # API request
+
+        self.assertTrue(
+            self.db.table_exists(
+                dataset_id='test',
+                table_id='my_table_with_description'
+            ),
+            "Table was not created"
+        )
+
+        self.assertTrue(
+            table.description == "test_dw table description bar foo",
+            "Description is not the same on either side"
+        )
+
+    def tearDown(self):
+        if self.db.table_exists(dataset_id='test', table_id='my_table_with_description'):
+            self.db.delete_table(dataset_id='test', table_id='my_table_with_description')
+
+
 class BigQueryExecutorTableCreation(unittest.TestCase):
     """
     Testing different scenarios
@@ -401,6 +444,7 @@ class BigQueryExecutorTableCreation(unittest.TestCase):
         except exceptions.Conflict as exc:
             logging.info(exc)
         self.db = dw.BigQueryExecutor()
+        self.client = bigquery.Client()
         if self.db.table_exists('test', 'a_table_that_does_not_exists'):
             self.db.delete_table('test', 'a_table_that_does_not_exists')
         self.db.initiate_table(
@@ -472,12 +516,23 @@ class BigQueryExecutorTableCreation(unittest.TestCase):
             self.db.create_partition_table(
                 dataset_id='test',
                 table_id="my_partition_table",
+                description="descriptive text for partition table creation",
                 sql="SELECT 'Angus MacGyver' AS fullname, 2 AS age"
             )
 
         number_of_partitions = self.db.execute_sql(
             "SELECT FORMAT_DATE('%Y%m%d', DATE(_PARTITIONTIME)) as partition_id FROM test.my_partition_table GROUP BY 1"
         )
+
+        table_ref = self.db.get_table_ref(dataset_id='test', table_id='my_partition_table',
+                                          project_id=bq_default_project())
+        table = self.client.get_table(table_ref)  # API request
+
+        self.assertTrue(
+            table.description == "descriptive text for partition table creation",
+            "The description is not the same"
+        )
+
         self.db.delete_table(
             dataset_id='test',
             table_id="my_partition_table"
@@ -1412,19 +1467,21 @@ class BigQueryCheckSql(unittest.TestCase):
 class BigQueryExecutorLoadGoogleSheet(unittest.TestCase):
     """ Test """
     def setUp(self):
-        self.bq_client = dw.BigQueryExecutor()
+        self.bq_exec = dw.BigQueryExecutor()
+        self.bq_client = bigquery.Client()
         self.test_csv = open('tests/csv/test_load_gs.csv', 'r').read()
 
     def test_load_gs_to_bq(self):
-        self.bq_client.load_google_sheet(
+        self.bq_exec.load_google_sheet(
             googlesheet_key='19Jmapr9G1nrMcW2QTpY7sOvKYaFXnw5krK6dD0GwEqU',
             sheet_name='input',
             table_id='table1',
             dataset_id='test',
-            schema_path='tests/schema/test_load_gs.json'
+            schema_path='tests/schema/test_load_gs.json',
+            description='some text description for the table'
         )
 
-        result = self.bq_client.execute_sql(
+        result = self.bq_exec.execute_sql(
             "SELECT * FROM test.table1 ORDER BY date"
         )
 
@@ -1435,8 +1492,16 @@ class BigQueryExecutorLoadGoogleSheet(unittest.TestCase):
             test_df
         )
 
+        table_ref = self.bq_exec.get_table_ref(dataset_id='test', table_id='table1', project_id=bq_default_project())
+        table = self.bq_client.get_table(table_ref)  # API request
+
+        self.assertTrue(
+            table.description == "some text description for the table",
+            "Description is not the same"
+        )
+
     def tearDown(self):
-        self.bq_client.delete_table(
+        self.bq_exec.delete_table(
             dataset_id='test',
             table_id='table1'
         )
