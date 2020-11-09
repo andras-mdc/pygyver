@@ -14,7 +14,7 @@ fb = FacebookExecutor()
 
 # Get Active Campaign budget for the Facebook account 12346789
 account_id = '12346789'
-active_campaigns = fbd.get_active_campaign_budgets(
+active_campaigns = fb.get_active_campaign_budgets(
     account_id
 )
 ```
@@ -25,9 +25,9 @@ There are two functions to push Facebook Events to the Conversions API:
 - push_conversions_api_events
 - push_conversions_api_batch
 
-The first function pushes a list of Facebook Events to the Conversions API. The latter function breaks up large amounts of events into batches. As of November 2020, the Facebook API will only accept 1,000 events per batch. Any larger batches will be dropped [Facebook API Docs](https://developers.facebook.com/docs/marketing-api/conversions-api/using-the-api#batch-requests) .
+The first function pushes a list of Facebook Events to the Conversions API. The latter function breaks up a DataFrame with a large number of events into batches returning a list of DataFrames. As of November 2020, the Facebook API will only accept 1,000 events per batch. Any larger batches will be dropped [Facebook API Docs](https://developers.facebook.com/docs/marketing-api/conversions-api/using-the-api#batch-requests).
 
-When executing the tests, ensure you've set up the following environment variables:
+When testing the Facebook Conversions API, ensure you've set up the following environment variables:
 - FACEBOOK_APPLICATION_CREDENTIALS -> token path
 - GOOGLE_APPLICATION_CREDENTIALS -> token path
 - BIGQUERY_PROJECT -> dev environment
@@ -61,7 +61,8 @@ df1 = db.execute_sql(
     project_id='madecom-dev-jean-maldonado'
 )
 
+events, logs = build_predicted_revenue_events
+
 # Push events in batches of size 2 using the build_predicted_revenue_events event builder function
-result = fbe.push_conversions_api_batch(df1, build_predicted_revenue_events,
-                                                'TEST69151', 2)
+result = fbe.push_conversions_api_events(events, 'TEST69151')
 ```

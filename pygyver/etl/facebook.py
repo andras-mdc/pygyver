@@ -89,6 +89,64 @@ def build_predicted_revenue_events(df):
     return events, df_logs
 
 
+def calculate_batches(total_events, batch_size):
+    """
+    Calculate number of batches to split events into given a batch size and taking into account evenly divisible batches
+    :param total_events: The number of total events
+    :type total_events: int
+    :param batch_size: The max number of events in a batch
+    :type batch_size: int
+
+    Returns: The resulting number of batches
+    rtype: int
+
+    """
+    batches = None
+    try:
+        batches = (total_events // batch_size)
+        batches = batches + 1 if total_events % batch_size != 0 else batches
+    except ZeroDivisionError:
+        logging.error('Batch Size cannot be 0')
+        raise
+    except TypeError:
+        logging.error('Total Events and Batch Size must be integers')
+        raise
+    return batches
+
+
+def split_events_to_batches(events, batch_size=1000):
+    """
+    Divides a DataFrame of events into batches of the specified batch size (defaults to 1000).
+
+    :param events: A DataFrame of Facebook Events to push to the conversions API
+    :type events: pd.DataFrame
+    :param batch_size: The max number of events in a batch
+    :type batch_size: int
+
+    Returns: A list of DataFrames
+    rtype: list of pd.DataFrame
+
+    """
+    batched_df = []
+    try:
+        total_events = len(events.index)
+    except TypeError:
+        logging.warning("Events is null")
+
+    if total_events > 0:
+        logging.info('Batch limit set to %s', batch_size)
+        if total_events > batch_size:
+            batches = calculate_batches(total_events, batch_size)
+            batched_df = np.array_split(events, batches)
+            logging.info('Total %s events split into %s batches', total_events, batches)
+        else:
+            batched_df = [events]
+            logging.info('Total %s events only requires 1 batch', total_events)
+    else:
+        logging.warning('No events split into batches')
+    return batched_df
+
+
 class FacebookExecutor:
     """ Facebook FacebookExecutor.
     Arguments:
@@ -137,8 +195,10 @@ class FacebookExecutor:
         Sets insights from the Facebook Insight API.
         Parameters:
             account_id: ID associated to the Facebook Account
+            start_date: The start date
+            end_date: The end date
             fields: list of field to be fetched
-            start_date/end_date: defines the timerange to get insights for (YYYY-mm-dd).
+            start_date/end_date: defines the time range to get insights for (YYYY-mm-dd).
         """
         self.set_account(account_id)
         out = []
@@ -228,6 +288,11 @@ class FacebookExecutor:
         Returns: A dictionary with the parsed response from the Facebook API
         rtype: dict[str, str]
         """
+        if len(events) > 1000:
+            logging.error("The maximum number of events that Facebook accepts in a single API call is 1,000. "
+                          "Please use the split_events_to_batches() function to split the events into batches")
+            raise ValueError
+
         event_request = EventRequest(
             events=events,
             pixel_id=self.pixel_id,
@@ -245,6 +310,8 @@ class FacebookExecutor:
             api_response['status'] = 'API Success'
             api_response['fb_trace_id'] = event_response.fbtrace_id
             api_response['messages'] = '\n'.join(event_response.messages)
+            api_response['total_events'] = event_response.events_received
+
         except FacebookRequestError as e:
             logging.error('There was a Facebook Conversions API error:\n\t%s', e)
             api_response['status'] = 'API Error'
@@ -252,58 +319,6 @@ class FacebookExecutor:
             error_message = e.body()['error']['message']
             error_message = ': '.join([error_message, e.body()['error']['error_user_msg']])
             api_response['messages'] = error_message
+            api_response['total_events'] = None
+
         return api_response
-
-    def push_conversions_api_batch(self, events, event_builder_func, test_event_code=None, batch_size=1000):
-        """
-        Divides a DataFrame of events into batches to push to the Facebook Conversions API.
-
-        :param events: A list of Facebook Events to push to the conversions API
-        :type events: pd.DataFrame
-        :param event_builder_func: A function that builds a tuple of a list of Facebook Events and log DataFrame
-        :param test_event_code: A test_event_code from Facebook Events Manager to mark these as test events
-        :type test_event_code: str
-        :param batch_size: The max number of events in a batch
-        :type batch_size: int
-
-        Returns: A DataFrame of log records with the results of pushing to Facebook Conversions API
-        rtype: pd.DataFrame
-
-        """
-        total_events = len(events.index)
-        column_names = ["facebook_browser_id", "shop", "date_source", "date_processed", "predicted_revenue",
-                        "currency", "status", "fb_trace_id", "messages", "fb_pixel"]
-
-        total_logs = pd.DataFrame(columns=column_names)
-
-        if total_events > 0:
-            logging.info('Batch limit set to %s', batch_size)
-            if total_events > batch_size:
-                # Calculate number of batches taking into account evenly divisible batches
-                batches = (total_events // batch_size)
-                batches = batches + 1 if total_events % batch_size != 0 else batches
-                batched_df = np.array_split(events, batches)
-                logging.info('Total %s events split into %s batches', total_events, batches)
-            else:
-                batched_df = [events]
-                logging.info('Total %s events only requires 1 batch', total_events)
-
-            for i, df in enumerate(batched_df):
-                events, logs = event_builder_func(df)
-                response = self.push_conversions_api_events(events, test_event_code)
-
-                # Add log fields for API response to all event logs
-                logs['status'] = response['status']
-                logs['fb_trace_id'] = response['fb_trace_id']
-                logs['messages'] = response['messages']
-                logs['fb_pixel'] = self.pixel_id
-
-                # Format time stamps
-
-                total_logs = total_logs.append(logs, ignore_index=True)
-                logging.info('Push for batch %s to Facebook Conversions API completed with status %s',
-                             i + 1,
-                             response['status'])
-        else:
-            logging.warning('No events to push to the Facebook Conversions API')
-        return total_logs

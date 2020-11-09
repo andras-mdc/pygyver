@@ -1,15 +1,29 @@
 """ Facebook Tests """
 import unittest
 import pandas as pd
+import mock
 from pandas.testing import assert_series_equal
 from pandas.testing import assert_frame_equal
 from pygyver.etl.facebook import transform_campaign_budget
-from pygyver.etl.facebook import build_predicted_revenue_events
+from pygyver.etl.facebook import build_predicted_revenue_events, calculate_batches, \
+    split_events_to_batches, FacebookExecutor
 from pygyver.etl.dw import BigQueryExecutor
 from pygyver.etl.dw import read_sql
+from facebook_business.adobjects.serverside.event_request import EventResponse
+from facebook_business.exceptions import FacebookRequestError
 
 
 db = BigQueryExecutor()
+
+error_json = {
+    "error": {
+        "fbtrace_id": "test_fb_trace_id",
+        "message": "Some generic message",
+        "error_user_msg": "A more detailed message"
+    }
+}
+
+context = mock.Mock().files = {'test': 'test'}
 
 
 def get_predicted_revenue_mock():
@@ -68,6 +82,16 @@ def transform_campaign_budget_expected_outcome():
     return pd.DataFrame(data)
 
 
+def fb_login_mock():
+    True
+
+
+def fb_api_mock():
+    return EventResponse(events_received=3,
+                         fbtrace_id='test_fbtrace_id',
+                         messages='')
+
+
 class FacebookExecutorTest(unittest.TestCase):
     """ Facebook Executor Test """
 
@@ -95,6 +119,70 @@ class FacebookExecutorTest(unittest.TestCase):
         assert_series_equal(predicted_revenue_events["currency"], df_result["currency"])
         assert_series_equal(predicted_revenue_events["facebook_browser_id"], df_result["facebook_browser_id"])
         assert_series_equal(predicted_revenue_events["shop"], df_result["shop"])
+
+    def test_calculate_batches(self):
+        """
+        Testing build_predicted_revenue_events() using get_predicted_revenue_mock().
+        """
+
+        result = calculate_batches(10, 3)
+        res_even = calculate_batches(10, 5)
+        res_single_event = calculate_batches(1, 5)
+        res_no_event = calculate_batches(0, 5)
+
+        self.assertEqual(result, 4)
+        self.assertEqual(res_even, 2)
+        self.assertEqual(res_single_event, 1)
+        self.assertEqual(res_no_event, 0)
+
+    def test_split_events_to_batches(self):
+        """
+        Testing build_predicted_revenue_events() using get_predicted_revenue_mock().
+        """
+
+        predicted_revenue_events = get_predicted_revenue_mock()
+
+        total_events = len(predicted_revenue_events)
+        batch_size = 2
+
+        batches = calculate_batches(total_events, batch_size)
+
+        result = split_events_to_batches(predicted_revenue_events, batch_size)
+
+        self.assertEqual(len(result), batches)
+
+    @mock.patch('pygyver.etl.facebook.FacebookExecutor.set_api_config', side_effect=fb_login_mock)
+    @mock.patch('facebook_business.adobjects.serverside.event_request.EventRequest.execute', side_effect=fb_api_mock)
+    def test_push_conversions_api_events(self, fb_api_mock, fb_login_mock):
+        """
+        Testing push_conversions_api_events() using get_predicted_revenue_mock().
+        """
+
+        fbe = FacebookExecutor()
+        fbe.set_pixel_id('1530331220624093')
+        predicted_revenue_events = get_predicted_revenue_mock()
+        events, log = build_predicted_revenue_events(predicted_revenue_events)
+        result = fbe.push_conversions_api_events(events, 'TEST24777')
+
+        self.assertEqual(result['status'], 'API Success')
+        self.assertEqual(result['total_events'], len(predicted_revenue_events))
+
+    @mock.patch('pygyver.etl.facebook.FacebookExecutor.set_api_config', side_effect=fb_login_mock)
+    @mock.patch('facebook_business.adobjects.serverside.event_request.EventRequest.execute',
+                side_effect=FacebookRequestError(message="test exception", request_context=context, http_status="404",
+                                                 http_headers="some/headers", body=error_json))
+    def test_push_conversions_api_events_error(self, fb_api_mock, fb_login_mock):
+        """
+        Testing push_conversions_api_events() using get_predicted_revenue_mock().
+        """
+
+        fbe = FacebookExecutor()
+        fbe.set_pixel_id('1530331220624093')
+        predicted_revenue_events = get_predicted_revenue_mock()
+        events, log = build_predicted_revenue_events(predicted_revenue_events)
+        result = fbe.push_conversions_api_events(events, 'TEST24777')
+
+        self.assertEqual(result['status'], 'API Error')
 
 
 if __name__ == "__main__":
