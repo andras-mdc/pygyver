@@ -4,6 +4,8 @@ import requests
 import time
 import logging
 
+api_domain = os.getenv('GOODDATA_DOMAIN')
+api_url = api_domain + "/gdc/projects/" + os.getenv('GOODDATA_PROJECT')
 
 def auth_cookie():
     sst = super_secured_token()
@@ -123,6 +125,51 @@ def get_header():
     }
     return header
 
+def api_get_schedules():
+  uri =  "/schedules?state=ENABLED&statuses=RUNNING"
+  response = requests.get(
+      url=api_url + uri, 
+      headers=get_header()
+  )
+  return response
+
+def api_post_execution(data, schedule_id):
+    uri = "/schedules/" + schedule_id + "/executions"
+    response = requests.post(
+        url=api_url + uri, 
+        data=data,
+        headers=get_header()
+    )
+    return response
+
+def api_get_status(url):
+    response = requests.get(
+        url=url, 
+        headers=get_header()
+    )
+    return response
+
+def no_running_add_schedules():
+  """ Checks for running GoodData ADD schedules.
+
+  Returns:
+      - True if there are no GoodData ADD schedules currently running
+      - False if there is currently a GoodData ADD schedule running
+
+  Usage:
+      - no_running_add_schedules()
+  """
+
+  response = api_get_schedules()
+  content = json.loads(response.content)
+  schedules = content['schedules']['items']
+
+  for schedule in schedules:
+    params = schedule['schedule']['params']
+    if 'GDC_DATALOAD_DATASETS' in params:
+      return False
+  return True
+
 def execute_schedule(schedule_id, retry=False):
     """ Executes GoodData schedule.
 
@@ -161,32 +208,32 @@ def execute_schedule(schedule_id, retry=False):
         }
     })
 
-    api_url = os.getenv('GOODDATA_DOMAIN') + "/gdc/projects/" + os.getenv('GOODDATA_PROJECT') + "/schedules/" + schedule_id + "/executions"
+    while True:
+        if no_running_add_schedules():
+            response = api_post_execution(
+                schedule_id=schedule_id, 
+                data=values
+            )
 
-    response = requests.post(
-        url=api_url, 
-        data=values,
-        headers=get_header()
-    )
-
-    if 200 <= response.status_code < 300:
-        content = json.loads(response.content)
-        uri = os.getenv('GOODDATA_DOMAIN') + content['execution']['links']['self']
-        while True:
-            response = requests.get(
-                url=uri,
-                headers=get_header()
-            )   
-            content = json.loads(response.content)
-            status = content['execution']['status']
-            if status in ['RUNNING', 'SCHEDULED']:
-                logging.info("Graph has not completed, entering sleep for 15 seconds")
-                time.sleep(15)
-            elif status == 'OK':
-                logging.info('Graph completed with a OK status')
-                return status
+            if 200 <= response.status_code < 300:
+                content = json.loads(response.content)
+                url = content['execution']['links']['self']
+                while True:
+                    response = api_get_status(
+                        url=url
+                    )   
+                    content = json.loads(response.content)
+                    status = content['execution']['status']
+                    if status in ['RUNNING', 'SCHEDULED']:
+                        logging.info("Graph has not completed, entering sleep for 15 seconds")
+                        time.sleep(15)
+                    elif status == 'OK':
+                        logging.info('Graph completed with a OK status')
+                        return status
+                    else:
+                        logging.info('Graph completed with a non OK status')
+                        raise ValueError(status)
             else:
-                logging.info('Graph completed with a non OK status')
-                raise ValueError(status)
-    else:
-        raise ValueError(json.loads(response.content))
+                raise ValueError(json.loads(response.content))
+        else:
+            time.sleep(60)
