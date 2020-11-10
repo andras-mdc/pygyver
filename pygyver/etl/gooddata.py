@@ -142,9 +142,9 @@ def api_post_execution(data, schedule_id):
     )
     return response
 
-def api_get_status(url):
+def api_get_status(uri):
     response = requests.get(
-        url=url, 
+        url=api_domain + uri, 
         headers=get_header()
     )
     return response
@@ -217,10 +217,10 @@ def execute_schedule(schedule_id, retry=False):
 
             if 200 <= response.status_code < 300:
                 content = json.loads(response.content)
-                url = content['execution']['links']['self']
+                uri = content['execution']['links']['self']
                 while True:
                     response = api_get_status(
-                        url=url
+                        uri=uri
                     )   
                     content = json.loads(response.content)
                     status = content['execution']['status']
@@ -236,4 +236,5 @@ def execute_schedule(schedule_id, retry=False):
             else:
                 raise ValueError(json.loads(response.content))
         else:
+            logging.info('A schedule execution is already running. Sleeping for 60 seconds.')
             time.sleep(60)

@@ -46,11 +46,11 @@ def mocked_api_get_status(*args, **kwargs):
             self.content = content
             self.status_code = status_code
     
-    if kwargs['url'] == '/schedule_1':
+    if kwargs['uri'] == '/schedule_1':
         return MockResponse('{"execution":{"status":"SCHEDULED"}}', 100)
-    elif kwargs['url'] == '/schedule_2':
+    elif kwargs['uri'] == '/schedule_2':
         return MockResponse('{"execution":{"status":"OK"}}', 100)
-    elif kwargs['url'] == '/schedule_3':
+    elif kwargs['uri'] == '/schedule_3':
         return MockResponse('{"execution":{"status":"FAILURE"}}', 100)
     return MockResponse(None, 404)
 
