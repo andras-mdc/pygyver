@@ -274,7 +274,8 @@ class BigQueryExecutor:
                        project_id=bq_default_project(),
                        partition=False,
                        partition_field='_PARTITIONTIME',
-                       clustering=None):
+                       clustering=None,
+                       expires_in_days=None):
         """ Initiate a BigQuery table. If the table already exists, compares the schema_path and apply a patch if there is a schema change.
 
         Parameters:
@@ -284,7 +285,8 @@ class BigQueryExecutor:
             schema_path (string: Path to the BigQuery table schema from the PROJECT_ROOT environement variable.
             partition (bool): Specify whether the BigQuery table is partioned. Default to False.
             partition_field (string): Specify partition_field if table partioned. Defaults to "_PARTITIONTIME".
-            clustering (list): List of clustering fields. Defaults to None.
+            clustering (list): List of clustering fields. Defaults to None.,
+            expires_in_days (integer): Specify in how many days the table will expire from now.
         """
         if self.table_exists(
                 project_id=project_id,
@@ -305,6 +307,13 @@ class BigQueryExecutor:
             table = bigquery.Table(
                 self.get_table_ref(dataset_id, table_id, project_id = project_id),
                 schema=schema
+                )
+            if expires_in_days:
+                expiration_datetime = datetime.now() + timedelta(seconds=86400 * expires_in_days)
+                table.expires = expiration_datetime
+                logging.info(
+                    "Set expiration to %s",
+                    expiration_datetime
                 )
             if partition:
                 table.time_partitioning = bigquery.table.TimePartitioning(type_='DAY')
@@ -350,7 +359,8 @@ class BigQueryExecutor:
                 partition=partition,
                 partition_field=partition_field,
                 dataset_id=dataset_id,
-                project_id=project_id
+                project_id=project_id,
+                expires_in_days=expires_in_days
             )
             if write_disposition == "WRITE_TRUNCATE":
                 self.truncate_table(dataset_id=dataset_id, table_id=table_id,project_id=project_id)
@@ -364,6 +374,7 @@ class BigQueryExecutor:
         job_config.use_legacy_sql = use_legacy_sql
         job_config.create_disposition = bigquery.CreateDisposition.CREATE_IF_NEEDED
         job_config.priority = set_priority(priority)
+
         if partition:
             if not partition_field or partition_field == '_PARTITIONTIME':
                 job_config.time_partitioning = bigquery.table.TimePartitioning(
@@ -407,6 +418,7 @@ class BigQueryExecutor:
                                clustering=None,
                                priority="INTERACTIVE",
                                schema_path="",
+                               expires_in_days=None,
                                **kwargs
                               ):
         """
@@ -426,7 +438,8 @@ class BigQueryExecutor:
                 schema_path=schema_path,
                 partition=True,
                 partition_field=partition_field,
-                clustering=clustering
+                clustering=clustering,
+                expires_in_days=expires_in_days
             )
 
         if not self.table_exists(dataset_id=dataset_id, table_id=table_id,project_id=project_id):
@@ -821,7 +834,7 @@ class BigQueryExecutor:
         )
         return data
 
-    def load_dataframe(self, df, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project(), schema_path='', write_disposition="WRITE_TRUNCATE"):
+    def load_dataframe(self, df, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project(), schema_path='', write_disposition="WRITE_TRUNCATE", expires_in_days=None):
         """ Loads DataFrame to BigQuery table.
 
         Parameters:
@@ -831,13 +844,15 @@ class BigQueryExecutor:
             project_id (string): BigQuery project ID.
             schema_path (string): Path to schema file.
             write_disposition (string): Write disposition. Can be one of WRITE_TRUNCATE, WRITE_APPEND or WRITE_EMPTY.
+            expires_in_days (integer): Specify in how many days the table will expire from now.
         """
         if schema_path != '':
             self.initiate_table(
                 table_id=table_id,
                 dataset_id=dataset_id,
                 project_id=project_id,
-                schema_path=schema_path
+                schema_path=schema_path,
+                expires_in_days=expires_in_days
             )
             schema = read_table_schema_from_file(schema_path)
         else:
@@ -970,7 +985,7 @@ class BigQueryExecutor:
                 self.delete_table(dataset_id=dataset_id, table_id=temp_table_id)
 
 
-    def load_json_file(self, file, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project(), schema_path='', write_disposition="WRITE_TRUNCATE"):
+    def load_json_file(self, file, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project(), schema_path='', write_disposition="WRITE_TRUNCATE", expires_in_days=None):
         """ Loads JSON file to BigQuery table.
 
         Parameters:
@@ -981,13 +996,15 @@ class BigQueryExecutor:
             project_id (string): BigQuery project ID.
             schema_path (string): Path to schema file.
             write_disposition (string): Write disposition. Can be one of WRITE_TRUNCATE, WRITE_APPEND or WRITE_EMPTY.
+            expires_in_days (integer): Specify in how many days the table will expire from now.
         """
         if schema_path != '':
             self.initiate_table(
                 table_id=table_id,
                 schema_path=schema_path,
                 dataset_id=dataset_id,
-                project_id=project_id
+                project_id=project_id,
+                expires_in_days=expires_in_days
             )
             schema = read_table_schema_from_file(schema_path)
         else:
@@ -1013,7 +1030,7 @@ class BigQueryExecutor:
         else:
             raise Exception("Please initiate %s:%s.%s or pass the schema file",project_id ,dataset_id, table_id)
 
-    def load_json_data(self, json, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project(), schema_path='', write_disposition="WRITE_TRUNCATE"):
+    def load_json_data(self, json, table_id, dataset_id=bq_default_dataset(),project_id=bq_default_project(), schema_path='', write_disposition="WRITE_TRUNCATE", expires_in_days):
         """ Loads JSON data to BigQuery table.
 
         Parameters:
@@ -1029,7 +1046,8 @@ class BigQueryExecutor:
                 table_id=table_id,
                 schema_path=schema_path,
                 dataset_id=dataset_id,
-                project_id=project_id
+                project_id=project_id,
+                expires_in_days=expires_in_days
             )
             schema = read_table_schema_from_file(schema_path)
         else:
@@ -1053,7 +1071,7 @@ class BigQueryExecutor:
         else:
             raise Exception("Please initiate %s:%s.%s or pass the schema file",project_id,dataset_id, table_id)
 
-    def load_gcs(self, dataset_id, table_id, gcs_path, gcs_bucket=gcs_default_bucket(),project_id=bq_default_project(), location='US', schema_path='', header=True, write_disposition='WRITE_TRUNCATE'):
+    def load_gcs(self, dataset_id, table_id, gcs_path, gcs_bucket=gcs_default_bucket(),project_id=bq_default_project(), location='US', schema_path='', header=True, write_disposition='WRITE_TRUNCATE', expires_in_days=expires_in_days):
         """ Loads Google Cloud Storage CSV file into a BigQuery table.
 
         Parameters:
@@ -1082,7 +1100,8 @@ class BigQueryExecutor:
                 table_id=table_id,
                 schema_path=schema_path,
                 dataset_id=dataset_id,
-                project_id=project_id
+                project_id=project_id,
+                expires_in_days=expires_in_days
             )
             job_config.schema = read_table_schema_from_file(schema_path)
             if header:
