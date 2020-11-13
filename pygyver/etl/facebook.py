@@ -3,9 +3,9 @@ import os
 import json
 import logging
 import pandas as pd
-import datetime
 import time
 import numpy as np
+from datetime import datetime
 from facebook_business.api import FacebookAdsApi
 from facebook_business.adobjects.adaccount import AdAccount
 from facebook_business.adobjects.serverside.event import Event
@@ -55,7 +55,7 @@ def build_predicted_revenue_events(df):
     events = []
     logs = []
     for index, row in df.iterrows():
-        date_now = int(time.time())
+        date = int(time.mktime(datetime.strptime(row['date'], '%Y%m%d').timetuple()))
         user_data = UserData(
             country_code=row['shop'],
             fbp=row['facebook_browser_id']
@@ -68,7 +68,7 @@ def build_predicted_revenue_events(df):
 
         event = Event(
             event_name='Predicted revenue',
-            event_time=date_now,
+            event_time=date,
             user_data=user_data,
             custom_data=custom_data,
             data_processing_options=[]
@@ -80,7 +80,7 @@ def build_predicted_revenue_events(df):
                 "facebook_browser_id": row['facebook_browser_id'],
                 "shop": row['shop'],
                 "date_source": row['date'],
-                "date_processed": datetime.datetime.fromtimestamp(date_now),
+                "date_processed": datetime.today().strftime('%Y-%m-%d-%H:%M:%S'),
                 "predicted_revenue": row['predicted_revenue'],
                 "currency": row['currency']
             }
