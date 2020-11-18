@@ -90,6 +90,13 @@ def bq_default_project():
     return os.environ.get('BIGQUERY_PROJECT', '')
 
 
+def bq_default_prod_project():
+    """
+    Returns BIGQUERY_PROD_PROJECT if env is set or 'copper-actor-127213' if not
+    """
+    return os.environ.get('BIGQUERY_PROD_PROJECT', 'copper-actor-127213')
+
+
 def bq_default_dataset():
     """
     Returns BIGQUERY_DATASET if env is set

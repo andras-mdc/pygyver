@@ -8,6 +8,7 @@ from pygyver.etl.dw import BigQueryExecutor
 import pygyver.etl.pipeline as pl
 from pygyver.etl.lib import add_dataset_prefix
 from pygyver.etl.lib import bq_default_project
+from pygyver.etl.lib import bq_default_prod_project
 
 class TestPipelineExtractuUnitTests(unittest.TestCase):
 

@@ -17,6 +17,7 @@ from pygyver.etl.lib import extract_args
 from pygyver.etl.dw import BigQueryExecutor
 from pygyver.etl.toolkit import read_yaml_file
 from pygyver.etl.lib import bq_default_project
+from pygyver.etl.lib import bq_default_prod_project
 from pygyver.etl.lib import add_dataset_prefix
 
 
@@ -98,7 +99,8 @@ class PipelineExecutor:
             self.dataset_prefix = f'{randint(1, 99999999):08}_'
             add_dataset_prefix(obj=self.yaml, dataset_prefix=self.dataset_prefix, kwargs=self.kwargs)
         self.bq = BigQueryExecutor()
-        self.prod_project_id = 'copper-actor-127213'
+        self.prod_project_id = bq_default_prod_project()
+
 
     def remove_dataset(self, dataset_id):
         if self.bq.dataset_exists(dataset_id):
