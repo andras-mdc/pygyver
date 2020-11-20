@@ -115,8 +115,12 @@ class PipelineExecutor:
                     table_list = self.yaml.get('table_list', '')
 
                 for table in table_list:
+                    if table.count('.') == 1:
+                        dataset_id = table.split(".")[0]
+                    else:
+                        dataset_id = table.split(".")[1]
                     dict_ = {
-                        "dataset_id": table.split(".")[0]
+                        "dataset_id": dataset_id
                     }
                     apply_kwargs(dict_, self.kwargs)
                     args_dataset.append(
@@ -277,23 +281,39 @@ class PipelineExecutor:
             )
 
     def copy_prod_structure(self, table_list=''):
-        args, args_dataset = [], []
+        args, args_dataset, datasets = [], [], []
 
         if table_list == '':
             table_list = self.yaml.get('table_list', '')
 
         for table in table_list:
-            _dict = {
-                "source_project_id" : self.prod_project_id,
-                "source_dataset_id" : table.split(".")[0],
-                "source_table_id": table.split(".")[1],
-                "dest_dataset_id" : self.dataset_prefix + table.split(".")[0],
-                "dest_table_id": table.split(".")[1]
+            if table.count('.') == 1:
+                _dict = {
+                    "source_project_id" : self.prod_project_id,
+                    "source_dataset_id" : table.split(".")[0],
+                    "source_table_id": table.split(".")[1],
+                    "dest_dataset_id" : self.dataset_prefix + table.split(".")[0],
+                    "dest_table_id": table.split(".")[1]
+                }
+            else:
+                _dict = {
+                    "source_project_id" : table.split(".")[0],
+                    "source_dataset_id" : table.split(".")[1],
+                    "source_table_id": table.split(".")[2],
+                    "dest_dataset_id" : self.dataset_prefix + table.split(".")[1],
+                    "dest_table_id": table.split(".")[2]
                 }
             apply_kwargs(_dict, self.kwargs)
             args.append(_dict)
 
-        for dataset in np.unique([self.dataset_prefix + table.split(".")[0] for table in table_list]):
+        # extract datasets from table_list
+        for table in table_list:
+            if table.count('.') == 1:
+                datasets.append(self.dataset_prefix + table.split(".")[0])
+            else:
+                datasets.append(self.dataset_prefix + table.split(".")[1])
+
+        for dataset in np.unique(datasets):
             _dict = {"dataset_id" : dataset}
             apply_kwargs(_dict, self.kwargs)
             args_dataset.append(

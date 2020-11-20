@@ -455,7 +455,6 @@ class TestPipelineExecutorRun(unittest.TestCase):
         if self.bq_client.table_exists(table_id='gs_test_table1', dataset_id='test'):
             self.bq_client.delete_table(table_id='gs_test_table1', dataset_id='test')
 
-
 class TestPipelineCopyTableStructure(unittest.TestCase):
 
     def setUp(self):
@@ -470,7 +469,7 @@ class TestPipelineCopyTableStructure(unittest.TestCase):
             self.bq_client.delete_table(dataset_id='reporting', table_id='out_saleorder')
 
     def test_copy_prod_structure(self):
-        self.p_ex.copy_prod_structure(['reporting.out_product', 'reporting.out_saleorder'])
+        self.p_ex.copy_prod_structure(['copper-actor-127213.reporting.out_product', 'reporting.out_saleorder'])
         self.assertTrue(
             self.bq_client.table_exists(dataset_id='1001_reporting', table_id='out_product') and
             self.bq_client.table_exists(dataset_id='1001_reporting', table_id='out_saleorder'),
