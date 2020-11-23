@@ -112,7 +112,7 @@ class FacebookExecutorTest(unittest.TestCase):
         """
 
         predicted_revenue_events = get_predicted_revenue_mock()
-        result = build_predicted_revenue_events(predicted_revenue_events)
+        result = build_predicted_revenue_events(predicted_revenue_events, 'Predicted Revenue')
         df_result = result[1]
         assert_series_equal(predicted_revenue_events["date"], df_result["date_source"], check_names=False)
         assert_series_equal(predicted_revenue_events["predicted_revenue"], df_result["predicted_revenue"])
@@ -161,7 +161,7 @@ class FacebookExecutorTest(unittest.TestCase):
         fbe = FacebookExecutor()
         fbe.set_pixel_id('1530331220624093')
         predicted_revenue_events = get_predicted_revenue_mock()
-        events, log = build_predicted_revenue_events(predicted_revenue_events)
+        events, log = build_predicted_revenue_events(predicted_revenue_events, 'Predicted Revenue')
         result = fbe.push_conversions_api_events(events, 'TEST24777')
 
         self.assertEqual(result['status'], 'API Success')
@@ -179,7 +179,7 @@ class FacebookExecutorTest(unittest.TestCase):
         fbe = FacebookExecutor()
         fbe.set_pixel_id('1530331220624093')
         predicted_revenue_events = get_predicted_revenue_mock()
-        events, log = build_predicted_revenue_events(predicted_revenue_events)
+        events, log = build_predicted_revenue_events(predicted_revenue_events, 'Predicted Revenue')
         result = fbe.push_conversions_api_events(events, 'TEST24777')
 
         self.assertEqual(result['status'], 'API Error')

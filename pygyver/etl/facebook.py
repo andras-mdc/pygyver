@@ -41,7 +41,7 @@ def transform_campaign_budget(campaigns):
     return data
 
 
-def build_predicted_revenue_events(df):
+def build_predicted_revenue_events(df, event_name):
     """
     Creates a list of Facebook Event objects which can be pushed to the Facebook Conversions API.
     Also creates DataFrame for logging which can be used to stream insert to a BigQuery log table.
@@ -67,7 +67,7 @@ def build_predicted_revenue_events(df):
         )
 
         event = Event(
-            event_name='Predicted revenue',
+            event_name=event_name,
             event_time=date,
             user_data=user_data,
             custom_data=custom_data,
