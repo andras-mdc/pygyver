@@ -76,13 +76,13 @@ def read_sql(file, *args, **kwargs):
     sql = file.read()
     file.close()
     if kwargs.get('dataset_prefix', None) is not None:
-        for index, dataset in enumerate(sql.split("`")):
-            if index%2==1 and "." in dataset:
-                sql = sql.replace(
-                    "`" + sql.split("`")[index] + "`",
-                    "`" + kwargs.get('dataset_prefix', '') +  sql.split("`")[index] + "`",
-                    1
-                )
+        sql_split = sql.split("`")
+        for index, table in enumerate(sql_split):
+            if index%2==1 and "." in table:
+                split_table = table.split(".")
+                split_table[-2] = kwargs.get('dataset_prefix', '') + split_table[-2]
+                sql_split[index] = '.'.join(split_table)
+        sql = '`'.join(sql_split)
 
     if len(kwargs) > 0:
         sql = sql.format_map(SafeDict(**kwargs))
