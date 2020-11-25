@@ -52,7 +52,11 @@ class SafeDict(dict):
 
 @print_kwargs_params
 def read_sql(file, *args, **kwargs):
-    ''' Read SQL file and apply arguments/keywors arguments.
+    ''' Read SQL file and apply arguments/keyword arguments.
+
+    If dataset_prefix is a kwarg then this function is being used in a dry-run test.
+    In this case, the dataset_prefix is added to the dataset name and project names 
+    are removed from the SQL.
 
     Args:
         file (string): path to the SQL file from PROJECT_ROOT environment variable.
@@ -81,7 +85,7 @@ def read_sql(file, *args, **kwargs):
             if index%2==1 and "." in table:
                 split_table = table.split(".")
                 split_table[-2] = kwargs.get('dataset_prefix', '') + split_table[-2]
-                sql_split[index] = '.'.join(split_table)
+                sql_split[index] = '.'.join(split_table[-2:])
         sql = '`'.join(sql_split)
 
     if len(kwargs) > 0:
