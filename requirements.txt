@@ -21,7 +21,7 @@ chardet==3.0.4            # via aiohttp, requests
 click==7.1.2              # via nltk
 codecov==2.1.9            # via pygyver (setup.py)
 coverage==5.3             # via codecov
-cryptography==3.1         # via moto, python-jose, sshpubkeys
+cryptography==3.2         # via moto, python-jose, sshpubkeys
 curlify==2.2.1            # via facebook-business
 decorator==4.4.2          # via networkx
 distlib==0.3.1            # via virtualenv

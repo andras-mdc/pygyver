@@ -97,13 +97,14 @@ class ZendeskDownloader:
 
     def keep_running(self):
         """ Keep fetching if response include 1000 responses or more """
-        if self.next_page is None and self.page_number > 1:
+        if self.next_page is None and self.page_number > 0:
             return False
         else:
             return True
 
     def api_call(self):
         """ Make the API request. Includes retry if reached minute limit"""
+        logging.info("Requesting {}, page {}".format(self.uri, self.page_number))
         response = requests.get(url=self.endpoint, auth=self.auth)
         if response.status_code == 200:
             self.data = json.loads(response.content)
@@ -111,16 +112,17 @@ class ZendeskDownloader:
         elif response.status_code == 429:  # timed-out
             sleep_time = int(response.headers['retry-after'])
             logging.warning(
-                'Rate limited. Waiting %s secs to retry…', sleep_time)
+                'Too many requests 429. Waiting %s secs to retry…', sleep_time)
             sleep(sleep_time)
             self.api_call()
         elif response.status_code == 400:  # bad-request
-            logging.info("Bad Request")
+            logging.info("Bad Request 400")
             self.data = []
+        elif response.status_code == 403: # forbidden
+            logging.info("Request forbidden 403")
         else:
             while self.retry < self.max_retry:
-                logging.info(
-                    "Attempt {}/{} failed, retrying after 1 second...")
+                logging.info("Error {}. Attempt {}/{} failed, retrying after 1 second...".format(response.status_code, self.retry, self.max_retry))
                 sleep(1)
                 self.retry = self.retry + 1
                 self.api_call()
