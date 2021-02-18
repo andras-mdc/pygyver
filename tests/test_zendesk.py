@@ -17,17 +17,17 @@ def mocked_requests_get(*args, **kwargs):
             self.status_code = status_code
             self.headers = headers
     print(kwargs['url'])
-    if kwargs['url'] == 'https://madecom.zendesk.com/api/v2/ticket_fields.json':
+    if kwargs['url'] == 'https://madecom.zendesk.com/api/v2/ticket_fields.json?per_page=500':
         return MockResponse('{"ticket_fields": [{"id": 34}]}', 200)
-    elif kwargs['url'] == 'https://madecom.zendesk.com/api/v2/tickets.json&start_time=1514851200':
-        return MockResponse('{"tickets": [{"id": 34}], "next_page": "https://madecom.zendesk.com/api/v2/tickets/second_page.json"}', 200)
-    elif kwargs['url'] == 'https://madecom.zendesk.com/api/v2/ticket_fields.json?include=comment_events':
+    elif kwargs['url'] == 'https://madecom.zendesk.com/api/v2/tickets.json?per_page=2&start_time=1514851200':
+        return MockResponse('{"tickets": [{"id": 34}], "count": 2, "next_page": "https://madecom.zendesk.com/api/v2/tickets/second_page.json?per_page=2&start_time=1514851200"}', 200)
+    elif kwargs['url'] == 'https://madecom.zendesk.com/api/v2/tickets/second_page.json?per_page=2&start_time=1514851200':
+        return MockResponse('{"tickets": [{"id": 31}], "count": 1, "next_page": null}', 200)
+    elif kwargs['url'] == 'https://madecom.zendesk.com/api/v2/ticket_fields.json?include=comment_events&per_page=500':
         return MockResponse('{"tickets": [{"id": 22}], "next_page": "null"}', 200)
-    elif kwargs['url'] == 'https://madecom.zendesk.com/api/v2/tickets/second_page.json':
-        return MockResponse('{"tickets": [{"id": 31}], "next_page": null}', 200)
-    elif kwargs['url'] == 'https://madecom.zendesk.com/api/v2/ticket_events.json&start_time=1514851200':
+    elif kwargs['url'] == 'https://madecom.zendesk.com/api/v2/ticket_events.json?per_page=500&start_time=1514851200':
         return MockResponse(None, 429, {"retry-after": 1000})
-    elif kwargs['url'] == 'https://madecom.zendesk.com/api/v2/custom_fields.json':
+    elif kwargs['url'] == 'https://madecom.zendesk.com/api/v2/custom_fields.json?per_page=500':
         return MockResponse(None, 999)
     return MockResponse(None, 404)
 
@@ -79,7 +79,7 @@ class ZendeskDownloaderTestScenario(unittest.TestCase):
         """ Tests that the request is being called with an sideload"""
         zendesk = ZendeskDownloader(
             uri="api/v2/ticket_fields",
-            sideload="?include=comment_events"
+            sideload="include=comment_events"
         )
         zendesk.auth = ('user', 'token')
         data = zendesk.download()
@@ -89,12 +89,13 @@ class ZendeskDownloaderTestScenario(unittest.TestCase):
         """ Tests that the request is being called and the next page is recorded and called on the next download"""
         zendesk = ZendeskDownloader(
             uri="api/v2/tickets",
-            start_date="2018-01-02 00:00:00"
+            start_date="2018-01-02 00:00:00", 
+            per_page=2
         )
         zendesk.auth = ('user', 'token')
         data = zendesk.download()
         data = zendesk.download()
-        self.assertEqual(data, {"tickets": [{"id": 31}], "next_page": None})
+        self.assertEqual(data, {"tickets": [{"id": 31}], "count": 1,"next_page": None})
 
     @mock.patch('pygyver.etl.zendesk.sleep', side_effect=mocked_time_sleep)
     def test_api_sleeps_on_timeout(self, mocked_set_auth_token, mocked_set_auth, mocked_requests_get, mocked_time_sleep):
