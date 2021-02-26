@@ -17,7 +17,7 @@ fi
 
 if [ "$1" == "local" ]; then
     echo "Starting pygyver-tests-local entrypoint"
-    pytest tests/test_zendesk.py --junitxml='test_output/test-out-pygyver-tests.xml' -sv || [[ $? -eq 1 ]]
+    pytest tests/test_dml.py --junitxml='test_output/test-out-pygyver-tests.xml' -sv || [[ $? -eq 1 ]]
     echo "Finished pygyver-tests-local entrypoint."
     exit $?
 fi

@@ -840,6 +840,32 @@ class BigQueryExecutor:
 
         return data
 
+    def execute_dml(self, sql=None, file=None, location='US', project=bq_default_project()):
+
+        job_config = bigquery.QueryJobConfig()
+
+        try:
+
+            sql = sql if sql else read_sql(file)
+        
+            job = self.client.query(sql, location=location, job_config=job_config)
+            
+            results = job.result()
+            
+            logging.info("{} - {} - {} rows effected ({} elapsed, {} B processed)".format(
+                job.statement_type,
+                job.state,
+                job.num_dml_affected_rows,
+                job.ended - job.started,
+                job.total_bytes_processed
+            ))
+        
+        except Exception as e:
+            logging.error(e)
+            raise e
+
+        return
+
     def execute_file(self, file, project_id=bq_default_project(),
                      dialect='standard', *args, **kwargs):
         """ Executes a SQL file and loads it as a DataFrame.
