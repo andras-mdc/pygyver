@@ -4,7 +4,7 @@
 #
 #    pip-compile
 #
-aiohttp==3.6.2            # via facebook-business
+aiohttp==3.7.4            # via facebook-business
 appdirs==1.4.4            # via virtualenv
 async-timeout==3.0.1      # via aiohttp
 attrs==20.2.0             # via aiohttp, jsonschema, pytest
