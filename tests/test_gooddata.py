@@ -101,6 +101,5 @@ class GoodDataFunctions(unittest.TestCase):
         Executes gooddata.py function execute_schedule and tests for status sleep when there is an existing schedule running
         """
         with self.assertRaises(SystemExit) as cm:
-            execute_schedule('schedule_4')
+            execute_schedule('schedule_4', await_completion=True)
             self.assertEqual(cm.exception, "sleep has been initiated")
-

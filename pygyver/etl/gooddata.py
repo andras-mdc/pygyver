@@ -149,28 +149,30 @@ def api_get_status(uri):
     )
     return response
 
-def no_running_add_schedules():
-  """ Checks for running GoodData ADD schedules.
+def no_running_add_schedules(await_completion):
+    """ Checks for running GoodData ADD schedules.
 
-  Returns:
-      - True if there are no GoodData ADD schedules currently running
-      - False if there is currently a GoodData ADD schedule running
+    Returns:
+        - True if there are no GoodData ADD schedules currently running
+        - False if there is currently a GoodData ADD schedule running
 
-  Usage:
-      - no_running_add_schedules()
-  """
+    Usage:
+        - no_running_add_schedules()
+    """
+    if await_completion:
+        response = api_get_schedules()
+        content = json.loads(response.content)
+        schedules = content['schedules']['items']
 
-  response = api_get_schedules()
-  content = json.loads(response.content)
-  schedules = content['schedules']['items']
+        for schedule in schedules:
+            params = schedule['schedule']['params']
+            if 'GDC_DATALOAD_DATASETS' in params:
+                return False
+        return True
+    else:
+        return True
 
-  for schedule in schedules:
-    params = schedule['schedule']['params']
-    if 'GDC_DATALOAD_DATASETS' in params:
-      return False
-  return True
-
-def execute_schedule(schedule_id, retry=False):
+def execute_schedule(schedule_id, retry=False, await_completion=False):
     """ Executes GoodData schedule.
 
     Parameters:
@@ -209,7 +211,7 @@ def execute_schedule(schedule_id, retry=False):
     })
 
     while True:
-        if no_running_add_schedules():
+        if no_running_add_schedules(await_completion):
             response = api_post_execution(
                 schedule_id=schedule_id, 
                 data=values

@@ -11,7 +11,7 @@ matrix:
 services:
 - docker
 install:
-- pip install tox
+- pip install tox==3.4.0
 script:
 - make travis
 after_success:
