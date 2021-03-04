@@ -1,0 +1,74 @@
+[
+    {
+        "name": "column_boolean",
+        "type": "BOOLEAN",
+        "mode": "REQUIRED",
+        "description": "Test column type: BOOLEAN"
+    },
+    {
+        "name": "column_date",
+        "type": "DATE",
+        "mode": "REQUIRED",
+        "description": "Test column type: DATE"
+    },
+    {
+        "name": "column_datetime",
+        "type": "DATETIME",
+        "mode": "REQUIRED",
+        "description": "Test column type: DATETIME"
+    },
+    {
+        "name": "column_float",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Test column type: FLOAT"
+    },
+    {
+        "name": "column_float64",
+        "type": "FLOAT64",
+        "mode": "NULLABLE",
+        "description": "Test column type: FLOAT64"
+    },
+    {
+        "name": "column_int64",
+        "type": "INT64",
+        "mode": "NULLABLE",
+        "description": "Test column type: INT64"
+    },
+    {
+        "name": "column_integer",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Test column type: INTEGER"
+    },
+    {
+        "name": "column_numeric",
+        "type": "NUMERIC",
+        "mode": "NULLABLE",
+        "description": "Test column type: NUMERIC"
+    },
+    {
+        "name": "column_string",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Test column type: STRING"
+    },
+    {
+        "name": "column_time",
+        "type": "TIME",
+        "mode": "NULLABLE",
+        "description": "Test column type: TIME"
+    },
+    {
+        "name": "column_timestamp",
+        "type": "TIMESTAMP",
+        "mode": "NULLABLE",
+        "description": "Test column type: TIMESTAMP"
+    },
+    {
+        "name": "column_incomplete",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": ""
+    }
+]

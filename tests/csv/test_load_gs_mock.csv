@@ -1,0 +1,6 @@
+Scenarios,test.test_table,,,,,,,,,,
+,column_boolean,column_date,column_datetime,column_float,column_float64,column_int64,column_integer,column_numeric,column_string,column_time,column_timestamp
+,BOOLEAN,DATE,DATETIME,FLOAT,FLOAT64,INT64,INTEGER,NUMERIC,STRING,TIME,TIMESTAMP
+Test 1,TRUE,2021-01-01,2020-10-09T00:00:00,5.5,1,55,1,5.5,testing,,2019-09-27 15:59:46.052 UTC
+Test 2,TRUE,2021-01-02,2020-10-09T00:00:01,1,,1,NULL,1.5,table,NULL,2019-09-27 15:59:46.052 UTC
+Test 3,FALSE,,2020-10-09T00:00:02,NULL,5.5,10,55,,1,23:59:59.99999,2019-09-27 15:59:46.052 UTC

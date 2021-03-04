@@ -1,14 +1,16 @@
 """ Analytics Toolkit """
-import os
-import re
+import errno
 import hashlib
 import hmac
-from datetime import datetime, timedelta
 import logging
 import logging.config
 import nltk
+import os
 import pandas as pd
+import re
 import yaml
+from datetime import datetime, timedelta
+from typing import List
 
 
 class SafeDict(dict):
@@ -154,14 +156,16 @@ def get_date(window, date_format="%Y-%m-%d"):
     Returns date in string format ('%Y-%m-%d') from today using window in days.
     get_date(window=0) returns today, get_date(widnow=1) returns yesterday...
     """
-    date = datetime.today() - timedelta(days = window)
+    date = datetime.today() - timedelta(days=window)
     return date.strftime(date_format)
+
 
 def get_today_date(date_format="%Y-%m-%d"):
     """
     Returns today date in string format specified. Defaults to '%Y-%m-%d'.
     """
     return get_date(0, date_format)
+
 
 def get_yesterday_date(date_format="%Y-%m-%d"):
     """
@@ -302,3 +306,59 @@ def convert_list_for_sql(my_list):
             _item = item
         final_list.append(_item)
     return ", ".join([str(item) for item in final_list])
+
+
+def split_full_path(
+    path: str
+) -> List[str]:
+    """
+    Splits a full file path to path and file name.
+
+    Args:
+        path: full file path e.g. 'path/to/file.json'
+
+    Returns:
+        [f_path, f_name]: ['path/to', 'file.json']
+    """
+    split = path.split("/")
+    f_name = split[-1]
+    split.remove(f_name)
+    f_path = "/".join(split)
+
+    return f_path, f_name
+
+
+def create_folder(
+    path,
+    print_status: bool = True
+):
+    """
+    Checks if a folder exists, if not creates it.
+
+    Args:
+        path: folder path
+        print_status: print folder status
+    """
+    try:
+        os.makedirs(path)
+        if print_status:
+            print(f"Folder created at '{path}'.")
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
+
+
+def write_text_file(
+    content: str,
+    file_path: str
+):
+    """
+    Write string to a text file.
+
+    Args:
+        content: string to write
+        file_path: e.g. 'path/file.txt'
+    """
+    t = open(file_path, "w")
+    t.write(content)
+    t.close()

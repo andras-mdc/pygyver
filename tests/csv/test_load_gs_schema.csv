@@ -1,0 +1,14 @@
+test.schema_test,,,
+name,type,mode,description
+column_boolean,BOOLEAN,REQUIRED,Test column type: BOOLEAN
+column_date,DATE,REQUIRED,Test column type: DATE
+column_datetime,DATETIME,REQUIRED,Test column type: DATETIME
+column_float,FLOAT,NULLABLE,Test column type: FLOAT
+column_float64,FLOAT64,NULLABLE,Test column type: FLOAT64
+column_int64,INT64,NULLABLE,Test column type: INT64
+column_integer,INTEGER,NULLABLE,Test column type: INTEGER
+column_numeric,NUMERIC,NULLABLE,Test column type: NUMERIC
+column_string,STRING,NULLABLE,Test column type: STRING
+column_time,TIME,NULLABLE,Test column type: TIME
+column_timestamp,TIMESTAMP,NULLABLE,Test column type: TIMESTAMP
+column_incomplete,STRING,,
